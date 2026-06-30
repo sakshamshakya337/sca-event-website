@@ -1,4 +1,3 @@
-# TRAE AI EDITOR — FULL PROJECT BOOTSTRAP PROMPT
 # SCA Event Management System (SCA EMS)
 # School of Computer Applications, Lovely Professional University
 # Stack: React 18 + Vite + TailwindCSS + MongoDB + Firebase Auth + Node.js/Express
