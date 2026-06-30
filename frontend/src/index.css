@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --sidebar-width: 240px;
+    --navbar-height: 60px;
+    
+    /* Light mode colors */
+    --color-background: #F6FAFE;
+    --color-on-background: #171C1F;
+    --color-surface: #F6FAFE;
+    --color-surface-bright: #F6FAFE;
+    --color-surface-card: #FFFFFF;
+    --color-surface-sidebar: #F1F5F9;
+    --color-surface-dim: #D6DADE;
+    --color-surface-container: #EAEFF2;
+    --color-surface-container-lowest: #FFFFFF;
+    --color-surface-container-low: #F0F4F8;
+    --color-surface-container-high: #E4E9ED;
+    --color-surface-container-highest: #DFE3E7;
+    --color-surface-variant: #DFE3E7;
+    --color-surface-tint: #455F87;
+    --color-primary: #022448;
+    --color-primary-fixed: #D5E3FF;
+    --color-primary-fixed-dim: #ADC8F5;
+    --color-primary-container: #1E3A5F;
+    --color-secondary: #0051D5;
+    --color-secondary-fixed: #DBE1FF;
+    --color-secondary-fixed-dim: #B4C5FF;
+    --color-secondary-container: #316BF3;
+    --color-tertiary: #0A0085;
+    --color-tertiary-fixed: #E1E0FF;
+    --color-tertiary-fixed-dim: #C0C1FF;
+    --color-tertiary-container: #1E18B2;
+    --color-error: #BA1A1A;
+    --color-error-container: #FFDAD6;
+    --color-outline: #74777F;
+    --color-outline-variant: #C4C6CF;
+    --color-on-primary: #FFFFFF;
+    --color-on-primary-fixed: #001C3B;
+    --color-on-primary-fixed-variant: #2D486D;
+    --color-on-primary-container: #8AA4CF;
+    --color-on-secondary: #FFFFFF;
+    --color-on-secondary-fixed: #00174B;
+    --color-on-secondary-fixed-variant: #003EA8;
+    --color-on-secondary-container: #FEFCFF;
+    --color-on-tertiary: #FFFFFF;
+    --color-on-tertiary-fixed: #07006C;
+    --color-on-tertiary-fixed-variant: #2F2EBE;
+    --color-on-tertiary-container: #9699FF;
+    --color-on-error: #FFFFFF;
+    --color-on-error-container: #93000A;
+    --color-on-surface: #171C1F;
+    --color-on-surface-variant: #43474E;
+    --color-inverse-surface: #2C3134;
+    --color-inverse-on-surface: #EDF1F5;
+    --color-inverse-primary: #ADC8F5;
+  }
+
+  .dark {
+    /* Dark mode colors */
+    --color-background: #0B1120;
+    --color-on-background: #E2E8F0;
+    --color-surface: #0B1120;
+    --color-surface-bright: #1E293B;
+    --color-surface-card: #1E293B;
+    --color-surface-sidebar: #1E293B;
+    --color-surface-dim: #334155;
+    --color-surface-container: #1a2332;
+    --color-surface-container-lowest: #0B1120;
+    --color-surface-container-low: #141b28;
+    --color-surface-container-high: #242d3c;
+    --color-surface-container-highest: #2d3748;
+    --color-surface-variant: #334155;
+    --color-surface-tint: #93C5FD;
+    --color-primary: #93C5FD;
+    --color-primary-fixed: #1E3A5F;
+    --color-primary-fixed-dim: #2D486D;
+    --color-primary-container: #1E3A5F;
+    --color-secondary: #60A5FA;
+    --color-secondary-fixed: #1E40AF;
+    --color-secondary-fixed-dim: #316BF3;
+    --color-secondary-container: #1E40AF;
+    --color-tertiary: #A5B4FC;
+    --color-tertiary-fixed: #1E18B2;
+    --color-tertiary-fixed-dim: #2F2EBE;
+    --color-tertiary-container: #1E18B2;
+    --color-error: #FFB4A9;
+    --color-error-container: #93000A;
+    --color-outline: #64748B;
+    --color-outline-variant: #334155;
+    --color-on-primary: #0B1120;
+    --color-on-primary-fixed: #D5E3FF;
+    --color-on-primary-fixed-variant: #ADC8F5;
+    --color-on-primary-container: #ADC8F5;
+    --color-on-secondary: #0B1120;
+    --color-on-secondary-fixed: #DBE1FF;
+    --color-on-secondary-fixed-variant: #B4C5FF;
+    --color-on-secondary-container: #B4C5FF;
+    --color-on-tertiary: #0B1120;
+    --color-on-tertiary-fixed: #E1E0FF;
+    --color-on-tertiary-fixed-variant: #C0C1FF;
+    --color-on-tertiary-container: #C0C1FF;
+    --color-on-error: #690005;
+    --color-on-error-container: #FFDAD6;
+    --color-on-surface: #E2E8F0;
+    --color-on-surface-variant: #94A3B8;
+    --color-inverse-surface: #F8FAFC;
+    --color-inverse-on-surface: #1E293B;
+    --color-inverse-primary: #3B82F6;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    background-color: var(--color-background);
+    color: var(--color-on-surface);
+  }
+}
+
+@layer utilities {
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+}

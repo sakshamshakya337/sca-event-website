@@ -1,0 +1,89 @@
+import express from 'express'
+import helmet from 'helmet'
+import cors from 'cors'
+import mongoSanitize from 'express-mongo-sanitize'
+import hpp from 'hpp'
+import compression from 'compression'
+import morgan from 'morgan'
+
+// Import routes
+import authRoutes from './routes/auth.routes.js'
+import userRoutes from './routes/user.routes.js'
+import eventRoutes from './routes/event.routes.js'
+import todoRoutes from './routes/todo.routes.js'
+import taskRoutes from './routes/task.routes.js'
+import contactRoutes from './routes/contact.routes.js'
+import verificationRoutes from './routes/verification.routes.js'
+
+const app = express()
+
+// Security Headers
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+      scriptSrc: ["'self'"],
+    },
+  },
+}))
+
+// CORS
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}))
+
+// Body Parsing
+app.use(express.json({ limit: '10kb' }))
+app.use(express.urlencoded({ extended: true, limit: '10kb' }))
+
+// Sanitization
+app.use(mongoSanitize())
+app.use(hpp())
+
+// Compression
+app.use(compression())
+
+// Logging
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'))
+}
+
+// Routes
+app.use('/api/auth', authRoutes)
+app.use('/api/users', userRoutes)
+app.use('/api/events', eventRoutes)
+app.use('/api/todos', todoRoutes)
+app.use('/api/tasks', taskRoutes)
+app.use('/api/contact', contactRoutes)
+app.use('/api/verification', verificationRoutes)
+
+// Health Check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', env: process.env.NODE_ENV })
+})
+
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'Route not found' })
+})
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('❌ Error:', err)
+  const statusCode = err.statusCode || 500
+  const message = err.message || 'Internal Server Error'
+  res.status(statusCode).json({
+    success: false,
+    message,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  })
+})
+
+export default app
