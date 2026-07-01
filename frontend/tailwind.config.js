@@ -5,143 +5,113 @@ export default {
   theme: {
     extend: {
       colors: {
-        // ── LPU Brand Colors ──────────────────────────────────────────
         brand: {
-          orange:       '#E87722',   // LPU primary orange (buttons, sidebar, badges)
-          'orange-dark':'#C4611A',   // hover state for orange
-          'orange-light':'#FDF0E6',  // orange tint backgrounds
-          amber:        '#F5A623',   // secondary amber (top announcement bar)
-          beige:        '#FAF3EE',   // warm page background
-          'beige-dark': '#F2E8DF',   // slightly darker beige for cards
-          navy:         '#1E3A5F',   // dark text, table headers
-          blue:         '#0051D5',   // links, secondary actions
-          'blue-light': '#EEF4FF',   // link hover backgrounds
+          navy:  '#1E3A5F',
+          blue:  '#2563EB',
+          hover: '#1D4ED8',
         },
-
-        // ── Surface tokens (CSS var driven) ───────────────────────────
         surface: {
-          DEFAULT:            'var(--color-surface)',
-          bright:             'var(--color-surface-bright)',
-          card:               'var(--color-surface-card)',
-          sidebar:            'var(--color-surface-sidebar)',
-          dim:                'var(--color-surface-dim)',
-          container:          'var(--color-surface-container)',
+          DEFAULT: 'var(--color-surface)',
+          bright: 'var(--color-surface-bright)',
+          card: 'var(--color-surface-card)',
+          sidebar: 'var(--color-surface-sidebar)',
+          dim: 'var(--color-surface-dim)',
+          container: 'var(--color-surface-container)',
           'container-lowest': 'var(--color-surface-container-lowest)',
-          'container-low':    'var(--color-surface-container-low)',
-          'container-high':   'var(--color-surface-container-high)',
-          'container-highest':'var(--color-surface-container-highest)',
-          variant:            'var(--color-surface-variant)',
-          tint:               'var(--color-surface-tint)',
+          'container-low': 'var(--color-surface-container-low)',
+          'container-high': 'var(--color-surface-container-high)',
+          'container-highest': 'var(--color-surface-container-highest)',
+          variant: 'var(--color-surface-variant)',
+          tint: 'var(--color-surface-tint)',
         },
-
-        // ── Status badges ─────────────────────────────────────────────
         status: {
           pending:   '#F59E0B',
           approved:  '#10B981',
           rejected:  '#EF4444',
           completed: '#6366F1',
         },
-
-        // ── Material tokens (CSS var driven) ─────────────────────────
         primary: {
-          DEFAULT:   'var(--color-primary)',
-          fixed:     'var(--color-primary-fixed)',
-          'fixed-dim':'var(--color-primary-fixed-dim)',
+          DEFAULT: 'var(--color-primary)',
+          fixed: 'var(--color-primary-fixed)',
+          'fixed-dim': 'var(--color-primary-fixed-dim)',
           container: 'var(--color-primary-container)',
         },
         secondary: {
-          DEFAULT:   'var(--color-secondary)',
-          fixed:     'var(--color-secondary-fixed)',
-          'fixed-dim':'var(--color-secondary-fixed-dim)',
+          DEFAULT: 'var(--color-secondary)',
+          fixed: 'var(--color-secondary-fixed)',
+          'fixed-dim': 'var(--color-secondary-fixed-dim)',
           container: 'var(--color-secondary-container)',
         },
         tertiary: {
-          DEFAULT:   'var(--color-tertiary)',
-          fixed:     'var(--color-tertiary-fixed)',
-          'fixed-dim':'var(--color-tertiary-fixed-dim)',
+          DEFAULT: 'var(--color-tertiary)',
+          fixed: 'var(--color-tertiary-fixed)',
+          'fixed-dim': 'var(--color-tertiary-fixed-dim)',
           container: 'var(--color-tertiary-container)',
         },
         error: {
-          DEFAULT:   'var(--color-error)',
+          DEFAULT: 'var(--color-error)',
           container: 'var(--color-error-container)',
         },
         outline: {
           DEFAULT: 'var(--color-outline)',
           variant: 'var(--color-outline-variant)',
         },
-        'on-primary':                  'var(--color-on-primary)',
-        'on-primary-fixed':            'var(--color-on-primary-fixed)',
-        'on-primary-fixed-variant':    'var(--color-on-primary-fixed-variant)',
-        'on-primary-container':        'var(--color-on-primary-container)',
-        'on-secondary':                'var(--color-on-secondary)',
-        'on-secondary-fixed':          'var(--color-on-secondary-fixed)',
-        'on-secondary-fixed-variant':  'var(--color-on-secondary-fixed-variant)',
-        'on-secondary-container':      'var(--color-on-secondary-container)',
-        'on-tertiary':                 'var(--color-on-tertiary)',
-        'on-tertiary-fixed':           'var(--color-on-tertiary-fixed)',
-        'on-tertiary-fixed-variant':   'var(--color-on-tertiary-fixed-variant)',
-        'on-tertiary-container':       'var(--color-on-tertiary-container)',
-        'on-error':                    'var(--color-on-error)',
-        'on-error-container':          'var(--color-on-error-container)',
-        'on-surface':                  'var(--color-on-surface)',
-        'on-surface-variant':          'var(--color-on-surface-variant)',
-        'inverse-surface':             'var(--color-inverse-surface)',
-        'inverse-on-surface':          'var(--color-inverse-on-surface)',
-        'inverse-primary':             'var(--color-inverse-primary)',
-        background:                    'var(--color-background)',
-        'on-background':               'var(--color-on-background)',
+        'on-primary': 'var(--color-on-primary)',
+        'on-primary-fixed': 'var(--color-on-primary-fixed)',
+        'on-primary-fixed-variant': 'var(--color-on-primary-fixed-variant)',
+        'on-primary-container': 'var(--color-on-primary-container)',
+        'on-secondary': 'var(--color-on-secondary)',
+        'on-secondary-fixed': 'var(--color-on-secondary-fixed)',
+        'on-secondary-fixed-variant': 'var(--color-on-secondary-fixed-variant)',
+        'on-secondary-container': 'var(--color-on-secondary-container)',
+        'on-tertiary': 'var(--color-on-tertiary)',
+        'on-tertiary-fixed': 'var(--color-on-tertiary-fixed)',
+        'on-tertiary-fixed-variant': 'var(--color-on-tertiary-fixed-variant)',
+        'on-tertiary-container': 'var(--color-on-tertiary-container)',
+        'on-error': 'var(--color-on-error)',
+        'on-error-container': 'var(--color-on-error-container)',
+        'on-surface': 'var(--color-on-surface)',
+        'on-surface-variant': 'var(--color-on-surface-variant)',
+        'inverse-surface': 'var(--color-inverse-surface)',
+        'inverse-on-surface': 'var(--color-inverse-on-surface)',
+        'inverse-primary': 'var(--color-inverse-primary)',
+        background: 'var(--color-background)',
+        'on-background': 'var(--color-on-background)',
       },
-
       fontFamily: {
-        sans:         ['Inter', 'system-ui', 'sans-serif'],
-        mono:         ['JetBrains Mono', 'monospace'],
-        'body-sm':    ['Inter'],
-        'body-md':    ['Inter'],
-        'headline-sm':['Inter'],
-        'headline-md':['Inter'],
-        'headline-lg':['Inter'],
-        'code-sm':    ['JetBrains Mono'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+        'body-sm': ['Inter'],
+        'body-md': ['Inter'],
+        'headline-sm': ['Inter'],
+        'headline-md': ['Inter'],
+        'headline-lg': ['Inter'],
+        'code-sm': ['JetBrains Mono'],
       },
-
       fontSize: {
-        'body-sm':    ['12px', { lineHeight: '16px', fontWeight: '400' }],
-        'body-md':    ['14px', { lineHeight: '20px', fontWeight: '400' }],
-        'headline-sm':['15px', { lineHeight: '22px', fontWeight: '600' }],
-        'headline-md':['18px', { lineHeight: '26px', letterSpacing: '-0.01em', fontWeight: '600' }],
-        'headline-lg':['24px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '700' }],
-        'code-sm':    ['12px', { lineHeight: '16px', fontWeight: '500' }],
+        'body-sm': ['12px', { lineHeight: '16px', fontWeight: '400' }],
+        'body-md': ['14px', { lineHeight: '20px', fontWeight: '400' }],
+        'headline-sm': ['15px', { lineHeight: '22px', fontWeight: '600' }],
+        'headline-md': ['18px', { lineHeight: '26px', letterSpacing: '-0.01em', fontWeight: '600' }],
+        'headline-lg': ['24px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'code-sm': ['12px', { lineHeight: '16px', fontWeight: '500' }],
       },
-
       borderRadius: {
         card: '12px',
         btn:  '8px',
-        pill: '999px',
       },
-
       boxShadow: {
-        card:    '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
-        modal:   '0 20px 60px rgba(0,0,0,0.15)',
-        sidebar: '2px 0 8px rgba(232,119,34,0.15)',   // warm orange shadow for sidebar
-        orange:  '0 4px 14px rgba(232,119,34,0.35)',  // orange button glow
+        card: '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
+        modal: '0 20px 60px rgba(0,0,0,0.15)',
       },
-
       spacing: {
-        gutter:              '16px',
-        'stack-sm':          '8px',
-        'stack-md':          '16px',
-        'stack-lg':          '24px',
+        gutter: '16px',
+        'stack-sm': '8px',
+        'stack-md': '16px',
+        'stack-lg': '24px',
         'container-padding': '24px',
-        'sidebar-width':     '240px',
-        'navbar-height':     '60px',
-        'topbar-height':     '36px',   // LPU announcement bar height
-      },
-
-      backgroundImage: {
-        // Warm beige dot pattern used on login page background
-        'lpu-dots': "radial-gradient(#E8772218 1.5px, transparent 1.5px)",
-      },
-      backgroundSize: {
-        'dots-sm': '20px 20px',
+        'sidebar-width': '240px',
+        'navbar-height': '60px',
       },
     },
   },
