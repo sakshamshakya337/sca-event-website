@@ -1,75 +1,97 @@
 import jwt from 'jsonwebtoken'
+import Joi from 'joi'
 import User from '../models/User.js'
 import ApiResponse from '../utils/ApiResponse.js'
 import ApiError from '../utils/ApiError.js'
 
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET || 'fallback-secret-key-change-in-production', {
-    expiresIn: '7d'
-  })
+// ── Constants ─────────────────────────────────────────────────────────────────
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET is not set. Set it in your .env file.')
+  process.exit(1)
 }
 
+const MAX_LOGIN_ATTEMPTS = 5
+const LOCK_DURATION_MS = 15 * 60 * 1000 // 15 minutes
+
+// ── Token ─────────────────────────────────────────────────────────────────────
+const generateToken = (userId) => {
+  return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '7d' })
+}
+
+// ── Validation Schemas ────────────────────────────────────────────────────────
+const loginSchema = Joi.object({
+  email: Joi.string().trim().max(254).required(),
+  password: Joi.string().min(6).max(128).required(),
+  role: Joi.string().valid('student', 'faculty', 'admin', 'superadmin').optional(),
+})
+
+const signupSchema = Joi.object({
+  role: Joi.string().valid('student', 'faculty').required(),
+  firstName: Joi.string().trim().min(1).max(50).required(),
+  lastName: Joi.string().trim().min(1).max(50).required(),
+  personalEmail: Joi.string().email().max(254).required(),
+  phone: Joi.string().trim().max(20).optional().allow(''),
+  password: Joi.string().min(8).max(128).required(),
+  // Student fields
+  registrationNumber: Joi.when('role', {
+    is: 'student',
+    then: Joi.string().trim().min(1).max(30).required(),
+    otherwise: Joi.string().optional().allow(''),
+  }),
+  program: Joi.string().trim().max(100).optional().allow(''),
+  degree: Joi.string().trim().max(50).optional().allow(''),
+  semester: Joi.string().trim().max(10).optional().allow(''),
+  section: Joi.string().trim().max(20).optional().allow(''),
+  // Faculty fields
+  employeeId: Joi.when('role', {
+    is: 'faculty',
+    then: Joi.string().trim().min(1).max(30).required(),
+    otherwise: Joi.string().optional().allow(''),
+  }),
+  department: Joi.string().trim().max(100).optional().allow(''),
+  designation: Joi.string().trim().max(100).optional().allow(''),
+  officialEmail: Joi.string().email().max(254).optional().allow(''),
+})
+
+const changePasswordSchema = Joi.object({
+  newPassword: Joi.string().min(8).max(128).required(),
+})
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 export const buildSignupDuplicateQuery = ({ role, personalEmail, officialEmail, registrationNumber, employeeId }) => {
   const normalizedRole = role?.toLowerCase()
-  const normalizedPersonalEmail = personalEmail?.trim().toLowerCase()
-  const normalizedOfficialEmail = officialEmail?.trim().toLowerCase()
-  const normalizedRegistrationNumber = registrationNumber?.trim().toUpperCase()
-  const normalizedEmployeeId = employeeId?.trim().toUpperCase()
-
   const conditions = []
 
-  if (normalizedPersonalEmail) {
-    conditions.push({ personalEmail: normalizedPersonalEmail })
+  if (personalEmail) conditions.push({ personalEmail: personalEmail.trim().toLowerCase() })
+  if (officialEmail) conditions.push({ officialEmail: officialEmail.trim().toLowerCase() })
+  if (normalizedRole === 'student' && registrationNumber) {
+    conditions.push({ registrationNumber: registrationNumber.trim().toUpperCase() })
   }
-
-  if (normalizedOfficialEmail) {
-    conditions.push({ officialEmail: normalizedOfficialEmail })
-  }
-
-  if (normalizedRole === 'student' && normalizedRegistrationNumber) {
-    conditions.push({ registrationNumber: normalizedRegistrationNumber })
-  }
-
-  if (normalizedRole === 'faculty' && normalizedEmployeeId) {
-    conditions.push({ employeeId: normalizedEmployeeId })
+  if (normalizedRole === 'faculty' && employeeId) {
+    conditions.push({ employeeId: employeeId.trim().toUpperCase() })
   }
 
   return conditions.length > 0 ? { $or: conditions } : {}
 }
 
+// ── Controllers ───────────────────────────────────────────────────────────────
 export const signup = async (req, res, next) => {
   try {
-    const {
-      role,
-      firstName,
-      lastName,
-      personalEmail,
-      phone,
-      password,
-      registrationNumber,
-      program,
-      degree,
-      semester,
-      section,
-      employeeId,
-      department,
-      designation,
-      officialEmail
-    } = req.body
-
-    if (!role || !firstName || !lastName || !personalEmail || !password) {
-      throw new ApiError(400, 'Required fields are missing')
+    // Validate input
+    const { error, value } = signupSchema.validate(req.body, { abortEarly: false, stripUnknown: true })
+    if (error) {
+      const messages = error.details.map(d => d.message).join('; ')
+      throw new ApiError(400, messages)
     }
 
-    // Check if user already exists using only the relevant identifiers for the selected role
-    const duplicateQuery = buildSignupDuplicateQuery({
-      role,
-      personalEmail,
-      officialEmail,
-      registrationNumber,
-      employeeId
-    })
+    const {
+      role, firstName, lastName, personalEmail, phone, password,
+      registrationNumber, program, degree, semester, section,
+      employeeId, department, designation, officialEmail
+    } = value
 
+    const duplicateQuery = buildSignupDuplicateQuery({ role, personalEmail, officialEmail, registrationNumber, employeeId })
     const existingUser = Object.keys(duplicateQuery).length > 0
       ? await User.findOne(duplicateQuery)
       : null
@@ -78,13 +100,12 @@ export const signup = async (req, res, next) => {
       throw new ApiError(400, 'User with this email or ID already exists')
     }
 
-    // Create new user
     const userData = {
       role: role.toLowerCase(),
-      firstName,
-      lastName,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
       personalEmail: personalEmail.toLowerCase(),
-      phone,
+      phone: phone?.trim() || '',
       password,
       isVerified: false,
       isActive: true,
@@ -92,30 +113,25 @@ export const signup = async (req, res, next) => {
     }
 
     if (role === 'student') {
-      userData.registrationNumber = registrationNumber?.toUpperCase()
-      userData.program = program
-      userData.degree = degree
-      userData.semester = semester
-      userData.section = section
+      userData.registrationNumber = registrationNumber.toUpperCase()
+      userData.program = program || ''
+      userData.degree = degree || ''
+      userData.semester = semester || ''
+      userData.section = section || ''
     } else if (role === 'faculty') {
-      userData.employeeId = employeeId?.toUpperCase()
-      userData.department = department
-      userData.designation = designation
-      userData.officialEmail = officialEmail?.toLowerCase()
+      userData.employeeId = employeeId.toUpperCase()
+      userData.department = department || ''
+      userData.designation = designation || ''
+      if (officialEmail) userData.officialEmail = officialEmail.toLowerCase()
     }
 
     const user = await User.create(userData)
-
-    // Generate token
     const token = generateToken(user._id)
 
-    // Remove password from response
     const userResponse = user.toObject()
     delete userResponse.password
 
-    res.status(201).json(
-      new ApiResponse(201, { user: userResponse, token }, 'Signup successful')
-    )
+    res.status(201).json(new ApiResponse(201, { user: userResponse, token }, 'Signup successful'))
   } catch (error) {
     next(error)
   }
@@ -123,75 +139,79 @@ export const signup = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
-    const { email, password, role } = req.body
-    console.log('🔑 Login attempt:', { email, role, passwordLength: password?.length })
-
-    if (!email || !password) {
-      throw new ApiError(400, 'Email or registration number and password are required')
+    // Validate input
+    const { error, value } = loginSchema.validate(req.body, { abortEarly: false, stripUnknown: true })
+    if (error) {
+      throw new ApiError(400, 'Invalid email or password format')
     }
 
+    const { email, password, role } = value
     const identifier = email.trim()
     const normalizedEmail = identifier.toLowerCase()
-    const normalizedRegistration = identifier.toUpperCase()
+    const normalizedId = identifier.toUpperCase()
 
-    // Find user by email or registration number. Role is optional for the single login form.
+    // Find user
     let user
     if (role?.toLowerCase() === 'student') {
-      user = await User.findOne({ registrationNumber: normalizedRegistration }).select('+password')
+      user = await User.findOne({ registrationNumber: normalizedId }).select('+password')
     } else {
       user = await User.findOne({
         $or: [
           { personalEmail: normalizedEmail },
           { officialEmail: normalizedEmail },
-          { registrationNumber: normalizedRegistration },
-          { employeeId: normalizedRegistration }
+          { registrationNumber: normalizedId },
+          { employeeId: normalizedId }
         ]
       }).select('+password')
     }
 
-    console.log('👤 Found user:', user ? { id: user._id, role: user.role, hasPassword: !!user.password } : null)
-
+    // Generic error to avoid user enumeration
     if (!user) {
       throw new ApiError(401, 'Invalid credentials')
     }
 
-    // Check if user is active
     if (!user.isActive) {
-      throw new ApiError(403, 'Account is deactivated')
+      throw new ApiError(403, 'Account is deactivated. Contact administrator.')
     }
 
-    // Check if user is verified (except admin/superadmin)
+    // Check account lockout
+    const now = Date.now()
+    if (user.lockUntil && user.lockUntil > now) {
+      const minutesLeft = Math.ceil((user.lockUntil - now) / 60000)
+      throw new ApiError(429, `Account locked due to too many failed attempts. Try again in ${minutesLeft} minute(s).`)
+    }
+
     if (user.role !== 'admin' && user.role !== 'superadmin' && !user.isVerified) {
-      throw new ApiError(403, 'Account not verified yet')
+      throw new ApiError(403, 'Account not verified yet. Please wait for admin approval.')
     }
 
-    // Check password if user has a password set
-    let isMatch = false
-    if (user.password) {
-      isMatch = await user.comparePassword(password)
-      console.log('🔐 Password match:', isMatch)
-      if (!isMatch) {
-        throw new ApiError(401, 'Invalid credentials')
+    // Verify password
+    const isMatch = user.password ? await user.comparePassword(password) : false
+
+    if (!isMatch) {
+      // Increment failed attempts
+      user.loginAttempts = (user.loginAttempts || 0) + 1
+      if (user.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+        user.lockUntil = new Date(now + LOCK_DURATION_MS)
+        user.loginAttempts = 0
+        await user.save()
+        throw new ApiError(429, 'Too many failed attempts. Account locked for 15 minutes.')
       }
-    } else {
-      console.log('⚠️ User has no password set')
+      await user.save()
+      throw new ApiError(401, 'Invalid credentials')
     }
 
-    // Update last login
+    // Successful login — reset lockout state
     user.lastLogin = new Date()
     user.loginAttempts = 0
+    user.lockUntil = undefined
     await user.save()
 
-    // Generate token
     const token = generateToken(user._id)
-
-    // Remove password from response
     const userResponse = user.toObject()
     delete userResponse.password
 
-    res.status(200).json(
-      new ApiResponse(200, { user: userResponse, token }, 'Login successful')
-    )
+    res.status(200).json(new ApiResponse(200, { user: userResponse, token }, 'Login successful'))
   } catch (error) {
     next(error)
   }
@@ -199,35 +219,25 @@ export const login = async (req, res, next) => {
 
 export const changePassword = async (req, res, next) => {
   try {
-    const { newPassword } = req.body
-
-    // Validation
-    if (!newPassword || newPassword.length < 6) {
-      throw new ApiError(400, 'Password must be at least 6 characters long')
+    const { error, value } = changePasswordSchema.validate(req.body, { stripUnknown: true })
+    if (error) {
+      throw new ApiError(400, 'Password must be at least 8 characters long')
     }
 
-    // Find user
+    const { newPassword } = value
     const user = await User.findById(req.user.id).select('+password')
-    if (!user) {
-      throw new ApiError(404, 'User not found')
-    }
+    if (!user) throw new ApiError(404, 'User not found')
 
-    // Update password
     user.password = newPassword
     user.mustChangePassword = false
     user.passwordChangedAt = new Date()
     await user.save()
 
-    // Generate new token
     const token = generateToken(user._id)
-
-    // Remove password from response
     const userResponse = user.toObject()
     delete userResponse.password
 
-    res.status(200).json(
-      new ApiResponse(200, { user: userResponse, token }, 'Password changed successfully')
-    )
+    res.status(200).json(new ApiResponse(200, { user: userResponse, token }, 'Password changed successfully'))
   } catch (error) {
     next(error)
   }
@@ -236,9 +246,7 @@ export const changePassword = async (req, res, next) => {
 export const getCurrentUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id)
-    if (!user) {
-      throw new ApiError(404, 'User not found')
-    }
+    if (!user) throw new ApiError(404, 'User not found')
     res.status(200).json(new ApiResponse(200, user, 'User fetched successfully'))
   } catch (error) {
     next(error)

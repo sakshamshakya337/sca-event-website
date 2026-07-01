@@ -18,8 +18,7 @@ const startServer = async () => {
 
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`)
-    console.log(`🌍 Environment: ${process.env.NODE_ENV}`)
-    console.log(`☁️  Cloudinary cloud_name: ${process.env.CLOUDINARY_CLOUD_NAME}`)
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`)
   })
 }
 

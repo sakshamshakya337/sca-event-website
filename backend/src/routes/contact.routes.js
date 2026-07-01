@@ -1,11 +1,12 @@
 import express from 'express'
 import { protect, authorize } from '../middleware/auth.middleware.js'
 import * as contactController from '../controllers/contact.controller.js'
+import { contactLimiter } from '../middleware/rateLimiter.js'
 
 const router = express.Router()
 
-// Public route
-router.post('/', contactController.submitQuery)
+// Public route — rate limited
+router.post('/', contactLimiter, contactController.submitQuery)
 
 // Protected routes
 router.use(protect)

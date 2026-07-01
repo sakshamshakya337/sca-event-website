@@ -1,6 +1,7 @@
 import express from 'express'
 import { protect, authorize } from '../middleware/auth.middleware.js'
 import * as userController from '../controllers/user.controller.js'
+import { uploadLimiter } from '../middleware/rateLimiter.js'
 
 const router = express.Router()
 
@@ -9,13 +10,10 @@ router.use(protect)
 
 // ── Self routes ──────────────────────────────────────────────────────────────
 router.get('/me/stats', userController.getUserStats)
-router.put('/me/profile', userController.upload.single('profilePhoto'), userController.updateProfile)
+router.put('/me/profile', uploadLimiter, userController.upload.single('profilePhoto'), userController.updateProfile)
 
 // ── Named collection routes (MUST be before /:id) ───────────────────────────
-// Student list for faculty/admin
 router.get('/students', authorize('faculty', 'admin', 'superadmin'), userController.getStudents)
-
-// Faculty list for faculty/admin
 router.get('/faculty', authorize('faculty', 'admin', 'superadmin'), userController.getFaculty)
 
 // ── Admin-only collection routes ─────────────────────────────────────────────

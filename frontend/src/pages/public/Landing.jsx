@@ -70,7 +70,7 @@ function FullBgCarousel({ children }) {
 
   return (
     <div
-      className="relative min-h-[520px] md:min-h-[640px] w-full overflow-hidden flex items-center group"
+      className="relative min-h-[480px] sm:min-h-[560px] md:min-h-[640px] w-full overflow-hidden flex items-center group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -195,19 +195,19 @@ function VideoSection() {
   ].join('')
 
   return (
-    <section className="py-20 bg-surface-container-low">
-      <div className="container mx-auto px-6">
+    <section className="py-14 sm:py-20 bg-surface-container-low">
+      <div className="container mx-auto px-4 sm:px-6">
 
         {/* Section header */}
-        <div className="text-center mb-12 space-y-3">
+        <div className="text-center mb-8 sm:mb-12 space-y-3">
           <span className="text-[#E87722] font-mono text-xs tracking-widest uppercase
                            py-1 px-3 border border-[#E87722]/30 rounded-full inline-block">
             See It In Action
           </span>
-          <h2 className="text-[32px] text-on-surface font-bold">
+          <h2 className="text-2xl sm:text-[32px] text-on-surface font-bold">
             SCA Events Walkthrough
           </h2>
-          <p className="text-on-surface-variant max-w-xl mx-auto">
+          <p className="text-on-surface-variant max-w-xl mx-auto text-sm sm:text-base px-4 sm:px-0">
             A quick walkthrough of how faculty, students and admins collaborate
             on events through the platform.
           </p>
@@ -216,7 +216,7 @@ function VideoSection() {
         {/* Video player card */}
         <div className="max-w-4xl mx-auto">
           <div
-            className="relative rounded-2xl overflow-hidden
+            className="relative rounded-xl sm:rounded-2xl overflow-hidden
                        shadow-[0_20px_60px_rgba(0,0,0,0.25)]
                        border border-outline-variant group"
             style={{ aspectRatio: '16/9' }}
@@ -383,41 +383,41 @@ export default function Landing() {
 
       {/* ── HERO — Full background carousel with text overlay ── */}
       <FullBgCarousel>
-        <div className="container mx-auto px-6 pt-[60px]">
-          <div className="max-w-2xl space-y-6 py-16 md:py-24">
+        <div className="container mx-auto px-4 sm:px-6 pt-[60px]">
+          <div className="max-w-2xl space-y-5 py-12 sm:py-16 md:py-24">
 
             <span className="text-[#E87722] font-mono text-xs tracking-widest uppercase
                              py-1 px-3 border border-[#E87722]/50 rounded-full inline-block">
               SCA EVENT MANAGEMENT SYSTEM
             </span>
 
-            <h1 className="text-[40px] md:text-[56px] leading-tight font-extrabold
+            <h1 className="text-[32px] sm:text-[42px] md:text-[56px] leading-tight font-extrabold
                            text-white drop-shadow-lg">
               Manage Events. <br />
               <span className="text-[#F5A623]">Empower Students.</span>
             </h1>
 
-            <p className="text-white/80 text-lg max-w-lg leading-relaxed drop-shadow">
+            <p className="text-white/80 text-base sm:text-lg max-w-lg leading-relaxed drop-shadow">
               A unified platform for the School of Computer Application at LPU —
               manage events, assign tasks, track progress across all roles.
             </p>
 
-            <div className="flex flex-wrap gap-4 pt-2">
+            <div className="flex flex-wrap gap-3 sm:gap-4 pt-2">
               <Link
                 to="/portal"
-                className="bg-[#E87722] hover:bg-[#C4611A] text-white px-8 py-4
+                className="bg-[#E87722] hover:bg-[#C4611A] text-white px-6 sm:px-8 py-3 sm:py-4
                            rounded-btn font-bold flex items-center gap-2
                            shadow-[0_4px_20px_rgba(232,119,34,0.5)]
-                           transition-all active:scale-95"
+                           transition-all active:scale-95 text-sm sm:text-base"
               >
                 Enter Portal
-                <ArrowRight size={20} />
+                <ArrowRight size={18} />
               </Link>
               <Link
                 to="/about"
-                className="border-2 border-white/70 text-white px-8 py-4 rounded-btn
+                className="border-2 border-white/70 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-btn
                            font-bold hover:bg-white/10 transition-all flex items-center gap-2
-                           backdrop-blur-sm active:scale-95"
+                           backdrop-blur-sm active:scale-95 text-sm sm:text-base"
               >
                 Learn More
                 <ChevronDown size={16} />
@@ -431,15 +431,14 @@ export default function Landing() {
       {/* ── VIDEO SECTION ── */}
       <VideoSection />
 
-      {/* ── Upcoming Approved Events ── */}
-      <section className="py-24 bg-surface-card">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
+      <section className="py-14 sm:py-24 bg-surface-card">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 sm:mb-10">
             <div>
-              <h2 className="text-[32px] text-on-surface font-bold">
+              <h2 className="text-2xl sm:text-[32px] text-on-surface font-bold">
                 Upcoming Approved Events
               </h2>
-              <p className="text-on-surface-variant max-w-2xl">
+              <p className="text-on-surface-variant max-w-2xl text-sm sm:text-base mt-1">
                 Only SCA approved events appear here with registration details and event imagery.
               </p>
             </div>
@@ -469,7 +468,7 @@ export default function Landing() {
               No upcoming events are approved yet.
             </div>
           ) : (
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {approvedEvents.map((event) => (
                 <article
                   key={event._id}
@@ -481,34 +480,32 @@ export default function Landing() {
                       <img src={event.imageUrl} alt={event.title} className="w-full h-auto" />
                     ) : (
                       <div className="flex items-center justify-center text-center
-                                      text-on-surface-variant px-4 py-12">
+                                      text-on-surface-variant px-4 py-10">
                         <div>
-                          <p className="font-semibold">No image uploaded</p>
-                          <p className="text-sm mt-2">
-                            This event was approved without a banner image.
-                          </p>
+                          <p className="font-semibold text-sm">No image uploaded</p>
+                          <p className="text-xs mt-1">This event was approved without a banner image.</p>
                         </div>
                       </div>
                     )}
                   </div>
-                  <div className="p-6 space-y-4">
+                  <div className="p-5 space-y-3">
                     <div className="flex items-center justify-between gap-4">
                       <span className="inline-flex rounded-full bg-primary-fixed
-                                       text-on-primary-fixed px-3 py-1 text-sm font-semibold">
+                                       text-on-primary-fixed px-3 py-1 text-xs font-semibold">
                         {event.type || 'Event'}
                       </span>
-                      <span className="text-sm text-on-surface-variant">
+                      <span className="text-xs text-on-surface-variant">
                         {formatDate(event.date)}
                       </span>
                     </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-bold text-on-surface">{event.title}</h3>
-                      <p className="text-on-surface-variant line-clamp-3">
+                    <div className="space-y-1.5">
+                      <h3 className="text-base sm:text-lg font-bold text-on-surface">{event.title}</h3>
+                      <p className="text-on-surface-variant line-clamp-3 text-sm">
                         {event.description || 'No description provided.'}
                       </p>
                     </div>
-                    <div className="space-y-3">
-                      <p className="text-sm text-on-surface-variant">
+                    <div className="space-y-2">
+                      <p className="text-xs text-on-surface-variant">
                         <span className="font-semibold text-on-surface">Venue:</span>{' '}
                         {event.venue}
                       </p>
@@ -518,7 +515,7 @@ export default function Landing() {
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex items-center justify-center rounded-full
-                                     bg-primary px-4 py-3 text-sm font-semibold text-on-primary
+                                     bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary
                                      hover:opacity-90 transition-colors"
                         >
                           Register Now
@@ -534,18 +531,18 @@ export default function Landing() {
       </section>
 
       {/* ── Features Section ── */}
-      <section className="py-24 bg-background" id="about">
-        <div className="container mx-auto px-6">
-          <div className="max-w-2xl mx-auto text-center mb-16 space-y-4">
-            <h2 className="text-[32px] text-on-surface font-bold">
+      <section className="py-14 sm:py-24 bg-background" id="about">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="max-w-2xl mx-auto text-center mb-10 sm:mb-16 space-y-4">
+            <h2 className="text-2xl sm:text-[32px] text-on-surface font-bold">
               Everything you need to run SCA events
             </h2>
-            <p className="text-on-surface-variant">
+            <p className="text-on-surface-variant text-sm sm:text-base">
               A comprehensive toolset designed for the specific workflow of University
               event coordination, from approval to execution.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
             {[
               {
                 icon: ShieldCheck,
@@ -565,16 +562,16 @@ export default function Landing() {
             ].map(({ icon: Icon, title, desc }) => (
               <div
                 key={title}
-                className="bg-surface-container p-8 rounded-card border border-outline-variant
+                className="bg-surface-container p-6 sm:p-8 rounded-card border border-outline-variant
                            hover:shadow-card transition-shadow group"
               >
-                <div className="w-14 h-14 bg-primary-container/10 rounded-card flex items-center
-                                justify-center text-primary mb-6
+                <div className="w-12 h-12 bg-primary-container/10 rounded-card flex items-center
+                                justify-center text-primary mb-5
                                 group-hover:bg-primary group-hover:text-on-primary transition-colors">
-                  <Icon size={36} />
+                  <Icon size={28} />
                 </div>
-                <h3 className="text-lg font-semibold text-on-surface mb-3">{title}</h3>
-                <p className="text-on-surface-variant leading-relaxed">{desc}</p>
+                <h3 className="text-base sm:text-lg font-semibold text-on-surface mb-2">{title}</h3>
+                <p className="text-on-surface-variant leading-relaxed text-sm">{desc}</p>
               </div>
             ))}
           </div>
@@ -582,15 +579,15 @@ export default function Landing() {
       </section>
 
       {/* ── How It Works ── */}
-      <section className="py-24 bg-surface-card relative overflow-hidden">
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <section className="py-14 sm:py-24 bg-surface-card relative overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div>
-              <h2 className="text-[32px] text-on-surface font-bold mb-12">
+              <h2 className="text-2xl sm:text-[32px] text-on-surface font-bold mb-8 sm:mb-12">
                 Streamlined workflow for{' '}
                 <span className="text-primary">Academic Excellence</span>
               </h2>
-              <div className="space-y-10">
+              <div className="space-y-8">
                 {[
                   {
                     num: '1', color: 'bg-secondary text-on-secondary',
@@ -608,19 +605,19 @@ export default function Landing() {
                     desc: 'Assigned students track their progress, check off completed tasks, and provide real-time updates through their dashboard.',
                   },
                 ].map(({ num, color, title, desc }) => (
-                  <div key={num} className="flex gap-6">
-                    <div className={`flex-none w-10 h-10 rounded-full ${color} flex items-center justify-center font-bold`}>
+                  <div key={num} className="flex gap-5">
+                    <div className={`flex-none w-9 h-9 sm:w-10 sm:h-10 rounded-full ${color} flex items-center justify-center font-bold text-sm shrink-0`}>
                       {num}
                     </div>
-                    <div className="space-y-2">
-                      <h4 className="font-bold text-lg text-on-surface">{title}</h4>
-                      <p className="text-on-surface-variant">{desc}</p>
+                    <div className="space-y-1.5">
+                      <h4 className="font-bold text-base sm:text-lg text-on-surface">{title}</h4>
+                      <p className="text-on-surface-variant text-sm">{desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="relative">
+            <div className="relative hidden lg:block">
               <div className="absolute inset-0 bg-primary/5 rounded-[40px] -rotate-3" />
               <div
                 className="relative z-10 aspect-square rounded-[40px] overflow-hidden
@@ -629,9 +626,9 @@ export default function Landing() {
                   backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA2TVxD18ns2BQsXhcTj1GS6bR4oqmlGnyxLI7pgptCg4kATxv2qBujBFq0tULC1CKMt-qAScaSJOQfc_9kmK8iug2DF2CFdL_5clSTpdpAQiaJ-IOZedbhBRub03neO5Ha1zO6uov7CTeN2x6aUaQN_T-GrsMsWeiNx9OFGWEj43Wp2L0nPGTGoLU4wnfMCcEc9bhKdvQErDfQIrhVRkxMFQuoBXSqIfeu8JSSSpI5mBlGGOm3j6lINCEJBoBdGEOR8Qk68k_BP5w')",
                 }}
               />
-              <div className="absolute -bottom-6 -left-6 bg-surface-card p-6 rounded-2xl
+              <div className="absolute -bottom-6 -left-6 bg-surface-card p-5 rounded-2xl
                               shadow-card border border-outline-variant max-w-[200px] z-20">
-                <p className="font-mono text-primary font-bold">98% Efficient</p>
+                <p className="font-mono text-primary font-bold text-sm">98% Efficient</p>
                 <p className="text-xs text-on-surface-variant">
                   Reduced paperwork and coordination delays.
                 </p>
@@ -642,25 +639,25 @@ export default function Landing() {
       </section>
 
       {/* ── Final CTA ── */}
-      <section className="py-20 bg-surface-container">
-        <div className="container mx-auto px-6 text-center">
-          <div className="max-w-3xl mx-auto space-y-8">
-            <h2 className="text-[36px] text-on-surface font-bold">
+      <section className="py-14 sm:py-20 bg-surface-container">
+        <div className="container mx-auto px-4 sm:px-6 text-center">
+          <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8">
+            <h2 className="text-2xl sm:text-[36px] text-on-surface font-bold">
               Ready to elevate your department's events?
             </h2>
-            <p className="text-on-surface-variant text-lg">
+            <p className="text-on-surface-variant text-base sm:text-lg">
               Join the School of Computer Application's official management portal today
               and streamline your institutional workflow.
             </p>
             <div className="flex justify-center">
               <Link
                 to="/portal"
-                className="bg-primary text-on-primary px-10 py-5 rounded-btn font-bold
-                           text-lg shadow-md hover:opacity-90 transition-all active:scale-95
+                className="bg-primary text-on-primary px-8 sm:px-10 py-4 sm:py-5 rounded-btn font-bold
+                           text-base sm:text-lg shadow-md hover:opacity-90 transition-all active:scale-95
                            flex items-center gap-3"
               >
                 Access Student Portal
-                <LogIn size={24} />
+                <LogIn size={22} />
               </Link>
             </div>
           </div>

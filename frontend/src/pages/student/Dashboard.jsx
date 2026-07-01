@@ -1,9 +1,10 @@
 ﻿import { useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
-import { CalendarCheck, CheckSquare, Star, GraduationCap, Terminal, Plus } from 'lucide-react'
+import { CalendarCheck, CheckSquare } from 'lucide-react'
 import useEventStore from '../../store/eventStore'
 import useTaskStore from '../../store/taskStore'
+import { normalizeEventStatus, getEventStatusLabel } from '../../utils/eventUtils'
 
 export default function LayoutDashboard() {
   const navigate = useNavigate()
@@ -20,137 +21,202 @@ export default function LayoutDashboard() {
 
   return (
     <PageWrapper>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-5 relative overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-on-surface-variant font-semibold">My Events</p>
-              <h2 className="text-3xl mt-3 text-primary font-bold">{events.length}</h2>
+      {/* ── Stats ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        {[
+          {
+            label: 'My Events',
+            value: events.length,
+            sub: 'Events assigned to you by faculty or admin.',
+            icon: <CalendarCheck className="w-6 h-6" />,
+            iconCls: 'text-secondary bg-secondary-fixed',
+          },
+          {
+            label: 'Tasks Pending',
+            value: pendingTasks,
+            sub: 'Tasks assigned directly to you.',
+            icon: <CheckSquare className="w-6 h-6" />,
+            iconCls: 'text-amber-700 bg-amber-100',
+          },
+          {
+            label: 'Tasks Completed',
+            value: completedTasks,
+            sub: 'Tasks you have completed.',
+            icon: <CheckSquare className="w-6 h-6" />,
+            iconCls: 'text-green-700 bg-green-100',
+          },
+        ].map(({ label, value, sub, icon, iconCls }) => (
+          <div
+            key={label}
+            className="bg-surface-container-lowest rounded-xl border border-outline-variant p-5 flex flex-col justify-between shadow-sm"
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-on-surface-variant font-semibold">{label}</p>
+                <h2 className="text-3xl mt-3 text-primary font-bold">{value}</h2>
+              </div>
+              <div className={`p-3 rounded-xl ${iconCls}`}>{icon}</div>
             </div>
-            <div className="text-secondary p-3 bg-secondary-fixed rounded-xl">
-              <CalendarCheck className="w-6 h-6" />
-            </div>
+            <p className="mt-4 text-sm text-on-surface-variant">{sub}</p>
           </div>
-          <div className="mt-6 text-sm text-on-surface-variant">Events assigned to you by faculty or admin.</div>
-        </div>
-
-        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-5 relative overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-on-surface-variant font-semibold">Tasks Pending</p>
-              <h2 className="text-3xl mt-3 text-primary font-bold">{pendingTasks}</h2>
-            </div>
-            <div className="text-amber-700 p-3 bg-amber-100 rounded-xl">
-              <CheckSquare className="w-6 h-6" />
-            </div>
-          </div>
-          <div className="mt-6 text-sm text-on-surface-variant">Tasks assigned directly to you.</div>
-        </div>
-
-        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-5 relative overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-on-surface-variant font-semibold">Tasks Completed</p>
-              <h2 className="text-3xl mt-3 text-primary font-bold">{completedTasks}</h2>
-            </div>
-            <div className="text-green-700 p-3 bg-green-100 rounded-xl">
-              <CheckSquare className="w-6 h-6" />
-            </div>
-          </div>
-          <div className="mt-6 text-sm text-on-surface-variant">Tasks you have completed.</div>
-        </div>
+        ))}
       </div>
 
-      <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      {/* ── My Events ── */}
+      <section className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
           <div>
-            <h3 className="text-headline-lg font-semibold text-primary">My Events</h3>
-            <p className="text-on-surface-variant mt-2">Events where you are added as a participant.</p>
+            <h3 className="text-xl font-semibold text-primary">My Events</h3>
+            <p className="text-on-surface-variant text-sm mt-1">Events where you are added as a participant.</p>
           </div>
-          <Link to="/student/events" className="text-secondary font-semibold hover:underline">View all</Link>
+          <Link to="/student/events" className="text-secondary font-semibold hover:underline text-sm self-start sm:self-auto">
+            View all
+          </Link>
         </div>
 
-        <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-surface-container-high border-b border-outline-variant">
-                <tr>
-                  <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Event Name</th>
-                  <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Date</th>
-                  <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Status</th>
-                  <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/50">
-                {events.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-10 text-center text-on-surface-variant">You don't have any assigned events yet.</td>
-                  </tr>
-                ) : (
-                  events.slice(0, 3).map((event) => (
-                    <tr key={event._id} className="hover:bg-surface-bright transition-colors cursor-pointer" onClick={() => navigate(`/student/events/${event._id}`)}>
-                      <td className="px-6 py-4 font-semibold text-primary">{event.title}</td>
-                      <td className="px-6 py-4 text-body-sm text-on-surface-variant">{event.date}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold uppercase ${event.status === 'approved' ? 'bg-green-100 text-green-800' : event.status === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-surface-container-highest text-on-surface-variant'}`}>
-                          {event.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-secondary font-semibold">View</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+        {events.length === 0 ? (
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-8 text-center text-on-surface-variant text-sm">
+            You don't have any assigned events yet.
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Mobile: card view */}
+            <div className="sm:hidden space-y-3">
+              {events.slice(0, 3).map(event => (
+                <div
+                  key={event._id}
+                  className="bg-surface-container-lowest rounded-xl border border-outline-variant p-4 cursor-pointer"
+                  onClick={() => navigate(`/student/events/${event._id}`)}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-semibold text-primary text-sm">{event.title}</p>
+                    <span className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase ${
+                      normalizeEventStatus(event.status) === 'approved' ? 'bg-green-100 text-green-800' :
+                      normalizeEventStatus(event.status) === 'pending' ? 'bg-amber-100 text-amber-800' :
+                      'bg-surface-container-highest text-on-surface-variant'
+                    }`}>
+                      {getEventStatusLabel(event.status)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-on-surface-variant mt-1">{event.date}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: table */}
+            <div className="hidden sm:block bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-surface-container-high border-b border-outline-variant">
+                    <tr>
+                      <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Event Name</th>
+                      <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Date</th>
+                      <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Status</th>
+                      <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/50">
+                    {events.slice(0, 3).map(event => (
+                      <tr
+                        key={event._id}
+                        className="hover:bg-surface-container-low transition-colors cursor-pointer"
+                        onClick={() => navigate(`/student/events/${event._id}`)}
+                      >
+                        <td className="px-6 py-4 font-semibold text-primary text-sm">{event.title}</td>
+                        <td className="px-6 py-4 text-sm text-on-surface-variant">{event.date}</td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold uppercase ${
+                            normalizeEventStatus(event.status) === 'approved' ? 'bg-green-100 text-green-800' :
+                            normalizeEventStatus(event.status) === 'pending' ? 'bg-amber-100 text-amber-800' :
+                            'bg-surface-container-highest text-on-surface-variant'
+                          }`}>
+                            {getEventStatusLabel(event.status)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-secondary font-semibold text-sm">View</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
       </section>
 
-      <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      {/* ── My Tasks ── */}
+      <section className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
           <div>
-            <h3 className="text-headline-lg font-semibold text-primary">My Tasks</h3>
-            <p className="text-on-surface-variant mt-2">Tasks assigned to you for current events.</p>
+            <h3 className="text-xl font-semibold text-primary">My Tasks</h3>
+            <p className="text-on-surface-variant text-sm mt-1">Tasks assigned to you for current events.</p>
           </div>
-          <button className="rounded-2xl border border-outline-variant px-4 py-2 text-on-surface-variant bg-surface-container-lowest" disabled>Search tasks</button>
+          <Link to="/student/tasks" className="text-secondary font-semibold hover:underline text-sm self-start sm:self-auto">
+            View all
+          </Link>
         </div>
 
-        <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-surface-container-high border-b border-outline-variant">
-                <tr>
-                  <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Task</th>
-                  <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Event</th>
-                  <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Priority</th>
-                  <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/50">
-                {myTasks.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-10 text-center text-on-surface-variant">No assigned tasks yet. Faculty will assign tasks after adding you to an event.</td>
-                  </tr>
-                ) : (
-                  myTasks.slice(0, 4).map((task) => (
-                    <tr key={task._id} className="hover:bg-surface-bright transition-colors">
-                      <td className={`px-6 py-4 font-semibold ${task.isDone ? 'line-through text-on-surface-variant' : 'text-primary'}`}>
-                        {task.title}
-                      </td>
-                      <td className="px-6 py-4 text-body-sm text-on-surface-variant">{task.event?.title || 'N/A'}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold uppercase ${task.priority === 'High' ? 'bg-red-100 text-red-700' : task.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                          {task.priority}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">{task.isDone ? 'Completed' : 'Pending'}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+        {myTasks.length === 0 ? (
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-8 text-center text-on-surface-variant text-sm">
+            No assigned tasks yet. Faculty will assign tasks after adding you to an event.
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Mobile: card view */}
+            <div className="sm:hidden space-y-3">
+              {myTasks.slice(0, 4).map(task => (
+                <div key={task._id} className="bg-surface-container-lowest rounded-xl border border-outline-variant p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className={`font-semibold text-sm ${task.isDone ? 'line-through text-on-surface-variant' : 'text-primary'}`}>
+                      {task.title}
+                    </p>
+                    <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase ${
+                      task.priority === 'High' ? 'bg-red-100 text-red-700' :
+                      task.priority === 'Medium' ? 'bg-amber-100 text-amber-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>{task.priority}</span>
+                  </div>
+                  <p className="text-xs text-on-surface-variant mt-1">{task.event?.title || 'N/A'}</p>
+                  <p className="text-xs mt-1 font-medium">{task.isDone ? '✓ Completed' : 'Pending'}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: table */}
+            <div className="hidden sm:block bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-surface-container-high border-b border-outline-variant">
+                    <tr>
+                      <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Task</th>
+                      <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Event</th>
+                      <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Priority</th>
+                      <th className="px-6 py-4 text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/50">
+                    {myTasks.slice(0, 4).map(task => (
+                      <tr key={task._id} className="hover:bg-surface-container-low transition-colors">
+                        <td className={`px-6 py-4 font-semibold text-sm ${task.isDone ? 'line-through text-on-surface-variant' : 'text-primary'}`}>
+                          {task.title}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-on-surface-variant">{task.event?.title || 'N/A'}</td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold uppercase ${
+                            task.priority === 'High' ? 'bg-red-100 text-red-700' :
+                            task.priority === 'Medium' ? 'bg-amber-100 text-amber-700' :
+                            'bg-green-100 text-green-700'
+                          }`}>{task.priority}</span>
+                        </td>
+                        <td className="px-6 py-4 text-sm">{task.isDone ? 'Completed' : 'Pending'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
       </section>
     </PageWrapper>
   )

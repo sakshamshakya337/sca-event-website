@@ -100,40 +100,40 @@ export default function StudentEventDetail() {
           {event.imageUrl && (
             <img src={event.imageUrl} alt={event.title} className="w-full h-52 object-cover" />
           )}
-          <div className="p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center text-xl font-bold shrink-0">
+          <div className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center text-lg sm:text-xl font-bold shrink-0">
                   {event.title?.[0]}
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-on-surface">{event.title}</h1>
-                  <div className="flex flex-wrap gap-3 mt-2 text-sm text-on-surface-variant">
+                  <h1 className="text-lg sm:text-xl font-bold text-on-surface">{event.title}</h1>
+                  <div className="flex flex-wrap gap-2 sm:gap-3 mt-2 text-xs sm:text-sm text-on-surface-variant">
                     <span className="flex items-center gap-1.5">
-                      <CalendarDays size={14} className="text-outline" />
+                      <CalendarDays size={13} className="text-outline" />
                       {event.date
                         ? new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
                         : '—'}
                     </span>
                     {event.time && (
                       <span className="flex items-center gap-1.5">
-                        <Clock size={14} className="text-outline" />
+                        <Clock size={13} className="text-outline" />
                         {event.time}
                       </span>
                     )}
                     <span className="flex items-center gap-1.5">
-                      <MapPin size={14} className="text-outline" />
+                      <MapPin size={13} className="text-outline" />
                       {event.venue || '—'}
                     </span>
                   </div>
                   {event.description && (
-                    <p className="mt-3 text-sm text-on-surface-variant leading-relaxed">{event.description}</p>
+                    <p className="mt-3 text-xs sm:text-sm text-on-surface-variant leading-relaxed">{event.description}</p>
                   )}
                 </div>
               </div>
 
-              <div className="flex flex-col items-end gap-2 shrink-0">
-                {event.isImportant && <Star size={18} className="text-amber-500" fill="currentColor" />}
+              <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 shrink-0">
+                {event.isImportant && <Star size={16} className="text-amber-500" fill="currentColor" />}
                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase border ${cfg.cls}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
                   {getEventStatusLabel(event.status)}
@@ -163,7 +163,7 @@ export default function StudentEventDetail() {
         </div>
 
         {/* Checklist — todos + assigned tasks unified */}
-        <div className="bg-white border border-outline-variant rounded-xl p-6">
+        <div className="bg-white border border-outline-variant rounded-xl p-4 sm:p-6">
           <h3 className="font-bold text-on-surface text-base mb-4 flex items-center gap-2">
             <ClipboardList size={18} className="text-primary" />
             My Checklist

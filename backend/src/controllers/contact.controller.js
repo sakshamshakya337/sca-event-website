@@ -1,22 +1,28 @@
 import ContactQuery from '../models/ContactQuery.js'
 import ApiResponse from '../utils/ApiResponse.js'
 import ApiError from '../utils/ApiError.js'
+import Joi from 'joi'
+
+const contactSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(100).required(),
+  email: Joi.string().email().max(254).required(),
+  subject: Joi.string().trim().min(3).max(200).required(),
+  message: Joi.string().trim().min(10).max(2000).required(),
+  category: Joi.string().valid('Event Query', 'Technical Issue', 'Registration Dispute', 'Feedback', 'Other').optional(),
+  role: Joi.string().valid('student', 'faculty', 'admin', 'other').optional(),
+  universityId: Joi.string().trim().max(30).optional().allow(''),
+})
 
 // Submit contact query (public)
 export const submitQuery = async (req, res, next) => {
   try {
-    const { name, email, subject, message, category, role, universityId } = req.body
+    const { error, value } = contactSchema.validate(req.body, { abortEarly: false, stripUnknown: true })
+    if (error) {
+      const messages = error.details.map(d => d.message).join('; ')
+      throw new ApiError(400, messages)
+    }
 
-    const query = await ContactQuery.create({
-      name,
-      email,
-      subject,
-      message,
-      category,
-      role,
-      universityId
-    })
-
+    const query = await ContactQuery.create(value)
     res.status(201).json(new ApiResponse(201, query, 'Query submitted successfully'))
   } catch (error) {
     next(error)

@@ -1,6 +1,7 @@
 import User from '../models/User.js'
 import ApiResponse from '../utils/ApiResponse.js'
 import ApiError from '../utils/ApiError.js'
+import Joi from 'joi'
 import passwordGenerator from '../utils/passwordGenerator.js'
 import cloudinary from '../config/cloudinary.js'
 import multer from 'multer'
@@ -118,36 +119,45 @@ export const getUserById = async (req, res, next) => {
   }
 }
 
+// Validation schema for admin creating users
+const createUserSchema = Joi.object({
+  role: Joi.string().valid('student', 'faculty').required(),
+  firstName: Joi.string().trim().min(1).max(50).required(),
+  lastName: Joi.string().trim().min(1).max(50).required(),
+  personalEmail: Joi.string().email().max(254).required(),
+  officialEmail: Joi.string().email().max(254).optional().allow(''),
+  phone: Joi.string().trim().max(20).optional().allow(''),
+  registrationNumber: Joi.string().trim().max(30).optional().allow(''),
+  program: Joi.string().trim().max(100).optional().allow(''),
+  degree: Joi.string().trim().max(50).optional().allow(''),
+  semester: Joi.string().trim().max(10).optional().allow(''),
+  section: Joi.string().trim().max(20).optional().allow(''),
+  employeeId: Joi.string().trim().max(30).optional().allow(''),
+  department: Joi.string().trim().max(100).optional().allow(''),
+  designation: Joi.string().trim().max(100).optional().allow(''),
+})
+
 // Create user (admin only)
 export const createUser = async (req, res, next) => {
   try {
+    const { error, value } = createUserSchema.validate(req.body, { abortEarly: false, stripUnknown: true })
+    if (error) {
+      const messages = error.details.map(d => d.message).join('; ')
+      throw new ApiError(400, messages)
+    }
+
     const {
-      role,
-      firstName,
-      lastName,
-      personalEmail,
-      officialEmail,
-      phone,
-      registrationNumber,
-      program,
-      degree,
-      semester,
-      section,
-      employeeId,
-      department,
-      designation
-    } = req.body
+      role, firstName, lastName, personalEmail, officialEmail, phone,
+      registrationNumber, program, degree, semester, section,
+      employeeId, department, designation
+    } = value
 
-    // Check if email already exists
-    const existingUser = await User.findOne({
-      $or: [
-        { personalEmail: personalEmail.toLowerCase() },
-        { officialEmail: officialEmail?.toLowerCase() },
-        { registrationNumber: registrationNumber?.toUpperCase() },
-        { employeeId: employeeId?.toUpperCase() }
-      ]
-    })
+    const orConditions = [{ personalEmail: personalEmail.toLowerCase() }]
+    if (officialEmail) orConditions.push({ officialEmail: officialEmail.toLowerCase() })
+    if (registrationNumber) orConditions.push({ registrationNumber: registrationNumber.toUpperCase() })
+    if (employeeId) orConditions.push({ employeeId: employeeId.toUpperCase() })
 
+    const existingUser = await User.findOne({ $or: orConditions })
     if (existingUser) {
       throw new ApiError(400, 'User with this email, registration number, or employee ID already exists')
     }
@@ -156,34 +166,37 @@ export const createUser = async (req, res, next) => {
 
     const userData = {
       role,
-      firstName,
-      lastName,
-      personalEmail,
-      officialEmail,
-      phone,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      personalEmail: personalEmail.toLowerCase(),
+      officialEmail: officialEmail?.toLowerCase(),
+      phone: phone?.trim() || '',
       password: tempPassword,
       mustChangePassword: true,
-      isVerified: true // Admin-created users are automatically verified
+      isVerified: true,
     }
 
     if (role === 'student') {
       userData.registrationNumber = registrationNumber?.toUpperCase()
-      userData.program = program
-      userData.degree = degree
-      userData.semester = semester
-      userData.section = section
+      userData.program = program || ''
+      userData.degree = degree || ''
+      userData.semester = semester || ''
+      userData.section = section || ''
     } else if (role === 'faculty') {
       userData.employeeId = employeeId?.toUpperCase()
-      userData.department = department
-      userData.designation = designation
-      userData.officialEmail = officialEmail
+      userData.department = department || ''
+      userData.designation = designation || ''
     }
 
     const user = await User.create(userData)
 
-    // TODO: Send email with temp password
+    // Log temp password server-side only — never return it in the response body
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[DEV] Temp password for ${personalEmail}: ${tempPassword}`)
+    }
+    // TODO: send tempPassword via email using nodemailer
 
-    res.status(201).json(new ApiResponse(201, { user, tempPassword }, 'User created successfully'))
+    res.status(201).json(new ApiResponse(201, { user }, 'User created successfully. Temporary password has been generated.'))
   } catch (error) {
     next(error)
   }
@@ -197,37 +210,38 @@ export const updateProfile = async (req, res, next) => {
       throw new ApiError(404, 'User not found')
     }
 
-    const {
-      firstName,
-      lastName,
-      personalEmail,
-      phone,
-      department,
-      designation
-    } = req.body
-
-    if (Object.prototype.hasOwnProperty.call(req.body, 'firstName') && firstName?.trim()) {
-      user.firstName = firstName.trim()
-    }
-    if (Object.prototype.hasOwnProperty.call(req.body, 'lastName')) {
-      user.lastName = lastName?.trim() || 'User'
-    }
-    if (Object.prototype.hasOwnProperty.call(req.body, 'personalEmail') && personalEmail?.trim()) {
-      user.personalEmail = personalEmail.trim().toLowerCase()
-    }
-    if (Object.prototype.hasOwnProperty.call(req.body, 'phone')) {
-      user.phone = phone?.trim() || ''
-    }
-    if (Object.prototype.hasOwnProperty.call(req.body, 'department')) {
-      user.department = department?.trim() || ''
-    }
-    if (Object.prototype.hasOwnProperty.call(req.body, 'designation')) {
-      user.designation = designation?.trim() || ''
+    // Whitelist only allowed fields — never trust raw req.body keys
+    const allowedFields = ['firstName', 'lastName', 'personalEmail', 'phone', 'department', 'designation']
+    const sanitized = {}
+    for (const field of allowedFields) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        sanitized[field] = typeof req.body[field] === 'string' ? req.body[field].trim() : req.body[field]
+      }
     }
 
-    if (!user.lastName) {
-      user.lastName = 'User'
+    // Validate
+    const profileSchema = Joi.object({
+      firstName: Joi.string().trim().min(1).max(50).optional(),
+      lastName: Joi.string().trim().min(1).max(50).optional(),
+      personalEmail: Joi.string().email().max(254).optional(),
+      phone: Joi.string().trim().max(20).optional().allow(''),
+      department: Joi.string().trim().max(100).optional().allow(''),
+      designation: Joi.string().trim().max(100).optional().allow(''),
+    })
+    const { error, value } = profileSchema.validate(sanitized, { abortEarly: false, stripUnknown: true })
+    if (error) {
+      const messages = error.details.map(d => d.message).join('; ')
+      throw new ApiError(400, messages)
     }
+
+    if (value.firstName) user.firstName = value.firstName
+    if (value.lastName !== undefined) user.lastName = value.lastName || 'User'
+    if (value.personalEmail) user.personalEmail = value.personalEmail.toLowerCase()
+    if (value.phone !== undefined) user.phone = value.phone
+    if (value.department !== undefined) user.department = value.department
+    if (value.designation !== undefined) user.designation = value.designation
+
+    if (!user.lastName) user.lastName = 'User'
 
     let oldProfilePhotoPublicId
 

@@ -195,64 +195,44 @@ export default function StudentProfile() {
 
       <div className="max-w-6xl mx-auto">
         <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col lg:flex-row">
-          <div className="lg:w-80 bg-primary-container p-8 flex flex-col items-center text-center">
+          {/* Sidebar */}
+          <div className="lg:w-80 bg-primary-container p-6 sm:p-8 flex flex-col items-center text-center">
             <div className="relative group cursor-pointer">
               {photoPreview ? (
-                <img
-                  src={photoPreview}
-                  alt="Profile"
-                  className="w-32 h-32 rounded-full object-cover border-4 border-primary/20 shadow-lg"
-                />
+                <img src={photoPreview} alt="Profile" className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-primary/20 shadow-lg" />
               ) : (
-                <div className="w-32 h-32 rounded-full bg-tertiary flex items-center justify-center text-white text-4xl font-bold border-4 border-primary/20 shadow-lg">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-tertiary flex items-center justify-center text-white text-3xl sm:text-4xl font-bold border-4 border-primary/20 shadow-lg">
                   {getInitials()}
                 </div>
               )}
               <label className="absolute inset-0 rounded-full bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                <Edit2 className="text-white" size={24} />
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handlePhotoChange}
-                />
+                <Edit2 className="text-white" size={22} />
+                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
               </label>
             </div>
-            <h3 className="mt-6 text-headline-lg text-white font-bold">
+            <h3 className="mt-4 sm:mt-6 text-lg sm:text-headline-lg text-white font-bold">
               {user?.firstName || 'Student'} {user?.lastName || 'User'}
             </h3>
             <div className="mt-2 inline-flex px-3 py-1 bg-tertiary rounded-full text-[10px] font-bold text-white uppercase tracking-widest">
               {user?.role?.toUpperCase() || 'Student'}
             </div>
-            <p className="mt-4 text-body-sm text-on-primary-container">{user?.personalEmail || 'student@university.edu'}</p>
-            <p className="mt-1 text-body-sm text-primary-container/60">Member since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'August 2023'}</p>
-            <label className="mt-8 w-full py-2.5 border border-white/30 text-white rounded-lg text-headline-sm hover:bg-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer">
-              <Upload size={16} />
+            <p className="mt-3 text-xs sm:text-body-sm text-on-primary-container break-all px-2">{user?.personalEmail || 'student@university.edu'}</p>
+            <p className="mt-1 text-xs text-primary-container/60">Member since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'August 2023'}</p>
+            <label className="mt-6 w-full py-2.5 border border-white/30 text-white rounded-lg text-sm hover:bg-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer">
+              <Upload size={15} />
               {photoUploading ? 'Uploading...' : 'Upload Photo'}
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handlePhotoChange}
-                disabled={photoUploading}
-              />
+              <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} disabled={photoUploading} />
             </label>
-            <div className="mt-auto pt-10 text-left w-full border-t border-white/10">
+            <div className="mt-auto pt-8 text-left w-full border-t border-white/10">
               <h4 className="text-white/60 text-[10px] font-bold uppercase tracking-widest mb-4">Account Stats</h4>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-white font-bold">0</p>
-                  <p className="text-white/60 text-[10px]">Events Joined</p>
-                </div>
-                <div>
-                  <p className="text-white font-bold">0</p>
-                  <p className="text-white/60 text-[10px]">Tasks Assigned</p>
-                </div>
+                <div><p className="text-white font-bold">0</p><p className="text-white/60 text-[10px]">Events Joined</p></div>
+                <div><p className="text-white font-bold">0</p><p className="text-white/60 text-[10px]">Tasks Assigned</p></div>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 bg-surface-container-lowest p-8 space-y-10">
+          <div className="flex-1 bg-surface-container-lowest p-5 sm:p-8 space-y-8 sm:space-y-10">
             <form onSubmit={handleProfileSubmit} className="space-y-10">
               <div>
                 <div className="flex items-center gap-2 mb-6">

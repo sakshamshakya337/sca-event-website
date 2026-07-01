@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   personalEmail: {
     type: String,
     required: true,
+    unique: true,
     lowercase: true,
     trim: true
   },
@@ -24,14 +25,14 @@ const userSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
 
   // Student-only fields
-  registrationNumber: { type: String, trim: true, uppercase: true },
+  registrationNumber: { type: String, trim: true, uppercase: true, sparse: true },
   program: String,
   degree: String,
   semester: String,
   section: String,
 
   // Faculty-only fields
-  employeeId: { type: String, trim: true, uppercase: true },
+  employeeId: { type: String, trim: true, uppercase: true, sparse: true },
   department: String,
   designation: String,
 
@@ -66,9 +67,10 @@ userSchema.virtual('fullName').get(function () {
 })
 
 // Indexes
-userSchema.index({ registrationNumber: 1 })
-userSchema.index({ employeeId: 1 })
-userSchema.index({ personalEmail: 1 })
+userSchema.index({ registrationNumber: 1 }, { unique: true, sparse: true })
+userSchema.index({ employeeId: 1 }, { unique: true, sparse: true })
+userSchema.index({ personalEmail: 1 }, { unique: true })
+userSchema.index({ officialEmail: 1 }, { unique: true, sparse: true })
 userSchema.index({ role: 1, isVerified: 1 })
 
 export default mongoose.model('User', userSchema)

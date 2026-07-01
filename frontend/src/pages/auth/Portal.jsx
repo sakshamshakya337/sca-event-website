@@ -12,6 +12,8 @@ export default function Portal() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [attempts, setAttempts] = useState(0)
+  const [lockedUntil, setLockedUntil] = useState(null)
 
   const { theme } = useUiStore()
   const isDark = theme === 'dark'
@@ -21,20 +23,44 @@ export default function Portal() {
 
   const handleLogin = async (e) => {
     e.preventDefault()
-    setLoading(true)
     setError(null)
+
+    // Client-side lockout (mirrors server-side)
+    if (lockedUntil && Date.now() < lockedUntil) {
+      const secs = Math.ceil((lockedUntil - Date.now()) / 1000)
+      setError(`Too many attempts. Try again in ${secs}s.`)
+      return
+    }
+
+    // Basic client-side validation
+    const trimmedEmail = email.trim()
+    if (!trimmedEmail) {
+      setError('Please enter your email or ID.')
+      return
+    }
+    if (!password || password.length < 6) {
+      setError('Password must be at least 6 characters.')
+      return
+    }
+    if (password.length > 128) {
+      setError('Password is too long.')
+      return
+    }
+
+    setLoading(true)
 
     try {
       const res = await api.post('/auth/login', {
-        email,
-        password
+        email: trimmedEmail,
+        password,
       })
 
       const { user, token } = res.data.data
+      setAttempts(0)
+      setLockedUntil(null)
       login(user, token)
       toast.success('Login successful!')
 
-      // Fire a live notification
       const { addNotification } = (await import('../../store/notificationsStore')).default.getState()
       addNotification({
         title: 'Welcome back!',
@@ -45,19 +71,26 @@ export default function Portal() {
       if (user.mustChangePassword) {
         navigate('/change-password')
       } else {
-        // Use role returned from backend
         const roleNavMap = {
-          'student': '/student',
-          'faculty': '/faculty',
-          'admin': '/admin',
-          'superadmin': '/superadmin'
+          student: '/student',
+          faculty: '/faculty',
+          admin: '/admin',
+          superadmin: '/superadmin',
         }
         navigate(roleNavMap[user.role] || '/student')
       }
     } catch (err) {
-      console.error('Login failed:', err)
-      setError(err.response?.data?.message || 'Login failed')
-      toast.error(err.response?.data?.message || 'Login failed')
+      const newAttempts = attempts + 1
+      setAttempts(newAttempts)
+
+      // Lock client UI after 5 failed attempts for 15 min (same as server)
+      if (newAttempts >= 5) {
+        setLockedUntil(Date.now() + 15 * 60 * 1000)
+        setError('Too many failed attempts. Please wait 15 minutes.')
+      } else {
+        const msg = err.response?.data?.message || 'Login failed. Check your credentials.'
+        setError(msg)
+      }
     } finally {
       setLoading(false)
     }
@@ -194,7 +227,7 @@ export default function Portal() {
             )}
 
             <button
-              disabled={loading}
+              disabled={loading || (lockedUntil && Date.now() < lockedUntil)}
               className="w-full py-3 font-semibold rounded-btn transition-all flex items-center justify-center gap-2 bg-primary text-on-primary hover:opacity-90 active:scale-[0.98] shadow-md mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
@@ -202,6 +235,8 @@ export default function Portal() {
                   <Loader2 className="animate-spin" size={16} />
                   Logging in...
                 </>
+              ) : lockedUntil && Date.now() < lockedUntil ? (
+                'Account locked — try later'
               ) : (
                 <>
                   Enter Portal

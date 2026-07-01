@@ -1,6 +1,7 @@
 import express from 'express'
 import { protect, authorize } from '../middleware/auth.middleware.js'
 import * as eventController from '../controllers/event.controller.js'
+import { uploadLimiter } from '../middleware/rateLimiter.js'
 
 const router = express.Router()
 
@@ -13,7 +14,7 @@ router.use(protect)
 
 router.get('/stats', eventController.getEventStats)
 router.get('/my', authorize('faculty'), eventController.getMyEvents)
-router.post('/', authorize('faculty', 'admin', 'superadmin'), eventController.upload.single('image'), eventController.createEvent)
+router.post('/', authorize('faculty', 'admin', 'superadmin'), uploadLimiter, eventController.upload.single('image'), eventController.createEvent)
 
 // Admin routes for approval and assignment
 router.put('/:id/approve', authorize('admin', 'superadmin'), eventController.approveEvent)
@@ -22,7 +23,7 @@ router.put('/:id/assign-faculty', authorize('admin', 'superadmin'), eventControl
 router.put('/:id/assign-students', authorize('admin', 'superadmin', 'faculty'), eventController.assignStudents)
 
 router.get('/:id', eventController.getEventById)
-router.put('/:id', eventController.upload.single('image'), eventController.updateEvent)
+router.put('/:id', uploadLimiter, eventController.upload.single('image'), eventController.updateEvent)
 router.put('/:id/complete', eventController.completeEvent)
 router.delete('/:id', eventController.deleteEvent)
 
