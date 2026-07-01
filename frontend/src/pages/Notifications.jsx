@@ -1,6 +1,15 @@
 import React from 'react'
 import PageWrapper from '../components/layout/PageWrapper'
-import { CheckCircle2, Info, AlertTriangle, AlertCircle, Trash2, MailOpen, Bell, BellOff } from 'lucide-react'
+import {
+  CheckCircle2,
+  Info,
+  AlertTriangle,
+  AlertCircle,
+  Trash2,
+  MailOpen,
+  Bell,
+  BellOff,
+} from "lucide-react";
 import useNotificationsStore from '../store/notificationsStore'
 
 export default function Notifications() {
