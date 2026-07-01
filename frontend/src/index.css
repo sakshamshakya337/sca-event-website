@@ -3,128 +3,276 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
 @layer base {
   :root {
-    --sidebar-width: 240px;
-    --navbar-height: 60px;
-    
-    /* Light mode colors */
-    --color-background: #F6FAFE;
-    --color-on-background: #171C1F;
-    --color-surface: #F6FAFE;
-    --color-surface-bright: #F6FAFE;
-    --color-surface-card: #FFFFFF;
-    --color-surface-sidebar: #F1F5F9;
-    --color-surface-dim: #D6DADE;
-    --color-surface-container: #EAEFF2;
+    --sidebar-width:   240px;
+    --navbar-height:    60px;
+    --topbar-height:    36px;
+
+    /* ── Page Backgrounds ───────────────────────────────────────────── */
+    --color-background:               #FAF3EE;   /* warm beige — LPU page bg */
+    --color-on-background:            #1C1B1F;
+
+    /* ── Surface scale ──────────────────────────────────────────────── */
+    --color-surface:                  #FAF3EE;   /* same warm beige */
+    --color-surface-bright:           #FFFFFF;
+    --color-surface-card:             #FFFFFF;   /* white cards */
+    --color-surface-sidebar:          #E87722;   /* LPU orange sidebar */
+    --color-surface-dim:              #EAD9CC;
+    --color-surface-container:        #F2E8DF;   /* slightly darker beige */
     --color-surface-container-lowest: #FFFFFF;
-    --color-surface-container-low: #F0F4F8;
-    --color-surface-container-high: #E4E9ED;
-    --color-surface-container-highest: #DFE3E7;
-    --color-surface-variant: #DFE3E7;
-    --color-surface-tint: #455F87;
-    --color-primary: #022448;
-    --color-primary-fixed: #D5E3FF;
-    --color-primary-fixed-dim: #ADC8F5;
-    --color-primary-container: #1E3A5F;
-    --color-secondary: #0051D5;
-    --color-secondary-fixed: #DBE1FF;
-    --color-secondary-fixed-dim: #B4C5FF;
-    --color-secondary-container: #316BF3;
-    --color-tertiary: #0A0085;
-    --color-tertiary-fixed: #E1E0FF;
-    --color-tertiary-fixed-dim: #C0C1FF;
-    --color-tertiary-container: #1E18B2;
-    --color-error: #BA1A1A;
-    --color-error-container: #FFDAD6;
-    --color-outline: #74777F;
-    --color-outline-variant: #C4C6CF;
-    --color-on-primary: #FFFFFF;
-    --color-on-primary-fixed: #001C3B;
-    --color-on-primary-fixed-variant: #2D486D;
-    --color-on-primary-container: #8AA4CF;
-    --color-on-secondary: #FFFFFF;
-    --color-on-secondary-fixed: #00174B;
-    --color-on-secondary-fixed-variant: #003EA8;
-    --color-on-secondary-container: #FEFCFF;
-    --color-on-tertiary: #FFFFFF;
-    --color-on-tertiary-fixed: #07006C;
-    --color-on-tertiary-fixed-variant: #2F2EBE;
-    --color-on-tertiary-container: #9699FF;
-    --color-on-error: #FFFFFF;
-    --color-on-error-container: #93000A;
-    --color-on-surface: #171C1F;
-    --color-on-surface-variant: #43474E;
-    --color-inverse-surface: #2C3134;
-    --color-inverse-on-surface: #EDF1F5;
-    --color-inverse-primary: #ADC8F5;
+    --color-surface-container-low:    #FAF3EE;
+    --color-surface-container-high:   #ECD8C8;
+    --color-surface-container-highest:#E3CCBA;
+    --color-surface-variant:          #F2E8DF;
+    --color-surface-tint:             #E87722;
+
+    /* ── Primary — LPU Orange ───────────────────────────────────────── */
+    --color-primary:                  #E87722;   /* main orange */
+    --color-primary-fixed:            #FDDCBB;   /* light orange tint */
+    --color-primary-fixed-dim:        #F5A623;   /* amber */
+    --color-primary-container:        #C4611A;   /* dark orange (hover) */
+
+    /* ── Secondary — LPU Blue (links) ──────────────────────────────── */
+    --color-secondary:                #0051D5;
+    --color-secondary-fixed:          #DBE8FF;
+    --color-secondary-fixed-dim:      #ADC8F5;
+    --color-secondary-container:      #1E3A5F;
+
+    /* ── Tertiary — deeper navy ─────────────────────────────────────── */
+    --color-tertiary:                 #1E3A5F;
+    --color-tertiary-fixed:           #D5E3FF;
+    --color-tertiary-fixed-dim:       #ADC8F5;
+    --color-tertiary-container:       #022448;
+
+    /* ── Error ──────────────────────────────────────────────────────── */
+    --color-error:                    #BA1A1A;
+    --color-error-container:          #FFDAD6;
+
+    /* ── Outlines ───────────────────────────────────────────────────── */
+    --color-outline:                  #A08060;   /* warm tan outline */
+    --color-outline-variant:          #DDD0C4;   /* lighter warm border */
+
+    /* ── On-colors ──────────────────────────────────────────────────── */
+    --color-on-primary:               #FFFFFF;
+    --color-on-primary-fixed:         #331400;
+    --color-on-primary-fixed-variant: #7A3A10;
+    --color-on-primary-container:     #FFFFFF;
+    --color-on-secondary:             #FFFFFF;
+    --color-on-secondary-fixed:       #00174B;
+    --color-on-secondary-fixed-variant:#003EA8;
+    --color-on-secondary-container:   #FFFFFF;
+    --color-on-tertiary:              #FFFFFF;
+    --color-on-tertiary-fixed:        #001C3B;
+    --color-on-tertiary-fixed-variant:#2D486D;
+    --color-on-tertiary-container:    #8AA4CF;
+    --color-on-error:                 #FFFFFF;
+    --color-on-error-container:       #93000A;
+    --color-on-surface:               #1C1B1F;   /* near-black text */
+    --color-on-surface-variant:       #4A4039;   /* warm gray secondary text */
+    --color-inverse-surface:          #342D28;
+    --color-inverse-on-surface:       #F5EDE7;
+    --color-inverse-primary:          #FFB77C;
   }
 
+  /* ─────────────────────────────────────────────────────────────────────────
+     DARK MODE — LPU dark variant
+     Sidebar stays orange · Backgrounds go deep navy/charcoal
+  ──────────────────────────────────────────────────────────────────────────*/
   .dark {
-    /* Dark mode colors */
-    --color-background: #0B1120;
-    --color-on-background: #E2E8F0;
-    --color-surface: #0B1120;
-    --color-surface-bright: #1E293B;
-    --color-surface-card: #1E293B;
-    --color-surface-sidebar: #1E293B;
-    --color-surface-dim: #334155;
-    --color-surface-container: #1a2332;
-    --color-surface-container-lowest: #0B1120;
-    --color-surface-container-low: #141b28;
-    --color-surface-container-high: #242d3c;
-    --color-surface-container-highest: #2d3748;
-    --color-surface-variant: #334155;
-    --color-surface-tint: #93C5FD;
-    --color-primary: #93C5FD;
-    --color-primary-fixed: #1E3A5F;
-    --color-primary-fixed-dim: #2D486D;
-    --color-primary-container: #1E3A5F;
-    --color-secondary: #60A5FA;
-    --color-secondary-fixed: #1E40AF;
-    --color-secondary-fixed-dim: #316BF3;
-    --color-secondary-container: #1E40AF;
-    --color-tertiary: #A5B4FC;
-    --color-tertiary-fixed: #1E18B2;
-    --color-tertiary-fixed-dim: #2F2EBE;
-    --color-tertiary-container: #1E18B2;
-    --color-error: #FFB4A9;
-    --color-error-container: #93000A;
-    --color-outline: #64748B;
-    --color-outline-variant: #334155;
-    --color-on-primary: #0B1120;
-    --color-on-primary-fixed: #D5E3FF;
-    --color-on-primary-fixed-variant: #ADC8F5;
-    --color-on-primary-container: #ADC8F5;
-    --color-on-secondary: #0B1120;
-    --color-on-secondary-fixed: #DBE1FF;
-    --color-on-secondary-fixed-variant: #B4C5FF;
-    --color-on-secondary-container: #B4C5FF;
-    --color-on-tertiary: #0B1120;
-    --color-on-tertiary-fixed: #E1E0FF;
-    --color-on-tertiary-fixed-variant: #C0C1FF;
-    --color-on-tertiary-container: #C0C1FF;
-    --color-on-error: #690005;
-    --color-on-error-container: #FFDAD6;
-    --color-on-surface: #E2E8F0;
-    --color-on-surface-variant: #94A3B8;
-    --color-inverse-surface: #F8FAFC;
-    --color-inverse-on-surface: #1E293B;
-    --color-inverse-primary: #3B82F6;
+    --color-background:               #1A1210;   /* deep warm dark */
+    --color-on-background:            #EDE0D9;
+
+    --color-surface:                  #1A1210;
+    --color-surface-bright:           #2C2118;
+    --color-surface-card:             #2C2118;   /* dark warm card */
+    --color-surface-sidebar:          #C4611A;   /* darker orange for dark mode sidebar */
+    --color-surface-dim:              #342D28;
+    --color-surface-container:        #231912;
+    --color-surface-container-lowest: #110C08;
+    --color-surface-container-low:    #1E1510;
+    --color-surface-container-high:   #2E231B;
+    --color-surface-container-highest:#392B22;
+    --color-surface-variant:          #342D28;
+    --color-surface-tint:             #FFB77C;
+
+    --color-primary:                  #FFB77C;   /* light orange for dark mode */
+    --color-primary-fixed:            #5C2600;
+    --color-primary-fixed-dim:        #7A3A10;
+    --color-primary-container:        #C4611A;
+
+    --color-secondary:                #ADC8F5;
+    --color-secondary-fixed:          #003EA8;
+    --color-secondary-fixed-dim:      #1E3A5F;
+    --color-secondary-container:      #1E3A5F;
+
+    --color-tertiary:                 #8AA4CF;
+    --color-tertiary-fixed:           #1E3A5F;
+    --color-tertiary-fixed-dim:       #2D486D;
+    --color-tertiary-container:       #022448;
+
+    --color-error:                    #FFB4A9;
+    --color-error-container:          #93000A;
+
+    --color-outline:                  #7D6960;
+    --color-outline-variant:          #4A3B33;
+
+    --color-on-primary:               #1A0800;
+    --color-on-primary-fixed:         #FDDCBB;
+    --color-on-primary-fixed-variant: #F5A623;
+    --color-on-primary-container:     #FDDCBB;
+    --color-on-secondary:             #001C3B;
+    --color-on-secondary-fixed:       #DBE8FF;
+    --color-on-secondary-fixed-variant:#ADC8F5;
+    --color-on-secondary-container:   #ADC8F5;
+    --color-on-tertiary:              #001C3B;
+    --color-on-tertiary-fixed:        #D5E3FF;
+    --color-on-tertiary-fixed-variant:#ADC8F5;
+    --color-on-tertiary-container:    #ADC8F5;
+    --color-on-error:                 #690005;
+    --color-on-error-container:       #FFDAD6;
+    --color-on-surface:               #EDE0D9;
+    --color-on-surface-variant:       #B3A097;
+    --color-inverse-surface:          #EDE0D9;
+    --color-inverse-on-surface:       #2C2118;
+    --color-inverse-primary:          #E87722;
   }
 
+  /* ── Base body styles ───────────────────────────────────────────────── */
   body {
     @apply font-sans antialiased;
     background-color: var(--color-background);
-    color: var(--color-on-surface);
+    color:            var(--color-on-surface);
+  }
+
+  /* ── Smooth scrolling ───────────────────────────────────────────────── */
+  html {
+    scroll-behavior: smooth;
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   COMPONENT LAYER — LPU-specific reusable classes
+───────────────────────────────────────────────────────────────────────────── */
+@layer components {
+
+  /* Orange primary button — matches LPU Login / CTA buttons */
+  .btn-primary {
+    @apply bg-[#E87722] hover:bg-[#C4611A] active:bg-[#A3500F]
+           text-white font-semibold rounded-btn px-6 py-2.5
+           transition-colors duration-150
+           shadow-[0_4px_14px_rgba(232,119,34,0.35)]
+           hover:shadow-[0_4px_18px_rgba(232,119,34,0.50)]
+           disabled:bg-[#D4A87A] disabled:cursor-not-allowed disabled:shadow-none;
+  }
+
+  /* Outlined secondary button */
+  .btn-secondary {
+    @apply border border-[#E87722] text-[#E87722]
+           hover:bg-[#FDF0E6] font-semibold rounded-btn px-6 py-2.5
+           transition-colors duration-150;
+  }
+
+  /* White card — same as LPU dashboard panels */
+  .card-lpu {
+    @apply bg-surface-card rounded-card border border-[#DDD0C4]
+           shadow-card overflow-hidden;
+  }
+
+  /* Orange card header strip — like LPU dashboard section headers */
+  .card-header-lpu {
+    @apply bg-[#E87722] text-white font-semibold text-sm
+           px-4 py-2.5 flex items-center gap-2;
+  }
+
+  /* Orange sidebar item active state */
+  .sidebar-item-active {
+    @apply bg-white/20 text-white font-semibold
+           border-l-4 border-white;
+  }
+
+  /* Sidebar item default */
+  .sidebar-item {
+    @apply text-white/80 hover:bg-white/10 hover:text-white
+           transition-colors duration-100 font-medium;
+  }
+
+  /* Orange badge — LPU uses these for quick links */
+  .badge-orange {
+    @apply bg-[#E87722] text-white text-xs font-semibold
+           px-3 py-1 rounded-pill;
+  }
+
+  /* Blue badge — LPU uses these for secondary quick links */
+  .badge-blue {
+    @apply bg-[#0051D5] text-white text-xs font-semibold
+           px-3 py-1 rounded-pill;
+  }
+
+  /* LPU Announcement topbar */
+  .topbar-lpu {
+    @apply bg-[#F5A623] text-[#331400] text-xs font-medium
+           px-4 flex items-center justify-center;
+    height: var(--topbar-height);
+  }
+
+  /* Form input — warm style */
+  .input-lpu {
+    @apply w-full px-4 py-2.5 rounded-lg text-sm
+           bg-[#FAF3EE] border border-[#DDD0C4]
+           text-[#1C1B1F] placeholder:text-[#A08060]
+           focus:outline-none focus:ring-2 focus:ring-[#E87722]
+           focus:border-transparent transition-all;
+  }
+
+  /* Table header — orange background like LPU tables */
+  .table-header-lpu {
+    @apply bg-[#E87722] text-white text-xs font-semibold uppercase tracking-wide;
+  }
+
+  /* Table row alternating — warm beige stripe */
+  .table-row-lpu {
+    @apply border-b border-[#DDD0C4]
+           even:bg-[#FAF3EE] odd:bg-white
+           hover:bg-[#FDF0E6] transition-colors;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   UTILITY LAYER
+───────────────────────────────────────────────────────────────────────────── */
 @layer utilities {
   .font-mono {
     font-family: 'JetBrains Mono', monospace;
   }
+
   .scrollbar-thin {
     scrollbar-width: thin;
+    scrollbar-color: #E87722 #F2E8DF;
   }
+
+  /* Warm dot-grid pattern — login page background */
+  .bg-lpu-dots {
+    background-image: radial-gradient(#E8772218 1.5px, transparent 1.5px);
+    background-size: 20px 20px;
+  }
+
+  /* Orange glow — used on active elements */
+  .glow-orange {
+    box-shadow: 0 0 0 3px rgba(232, 119, 34, 0.25);
+  }
+
+  /* Text colors */
+  .text-lpu-orange  { color: #E87722; }
+  .text-lpu-amber   { color: #F5A623; }
+  .text-lpu-navy    { color: #1E3A5F; }
+  .text-lpu-blue    { color: #0051D5; }
+
+  /* Background colors */
+  .bg-lpu-orange    { background-color: #E87722; }
+  .bg-lpu-amber     { background-color: #F5A623; }
+  .bg-lpu-beige     { background-color: #FAF3EE; }
+  .bg-lpu-navy      { background-color: #1E3A5F; }
 }
