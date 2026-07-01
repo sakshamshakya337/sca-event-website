@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MdCalendarToday, MdCheckBox, MdPeople, MdTerminal, MdNotifications, MdDarkMode, MdAdd, MdDelete, MdEdit, MdSettings, MdChevronRight, MdExpandMore, MdPersonAdd, MdPersonRemove, MdTrendingUp, MdHistory, MdCancel, MdChevronLeft, MdEvent } from 'react-icons/md'
+import {Calendar as CalendarIcon, CheckSquare, Users, Terminal, Bell, Moon, Plus, Trash2, Edit2, Settings, ChevronRight, ChevronDown, UserPlus, UserMinus, TrendingUp, History, X, ChevronLeft, Calendar as CalendarEvent } from 'lucide-react'
 import PageWrapper from '../../components/layout/PageWrapper'
 import Calendar from '../../components/Calendar'
 import useEventStore from '../../store/eventStore'
@@ -51,7 +51,7 @@ export default function FacultyDashboard() {
               <h3 className="text-headline-lg text-[28px] font-bold text-primary mt-2">{myEvents.length}</h3>
             </div>
             <div className="bg-blue-100 p-3 rounded-xl">
-              <MdCalendarToday className="text-blue-700" size={24} />
+              <CalendarIcon className="text-blue-700" size={24} />
             </div>
           </div>
 
@@ -61,7 +61,7 @@ export default function FacultyDashboard() {
               <h3 className="text-headline-lg text-[28px] font-bold text-yellow-700 mt-2">{pending}</h3>
             </div>
             <div className="bg-yellow-100 p-3 rounded-xl">
-              <MdCheckBox className="text-yellow-700" size={24} />
+              <CheckSquare className="text-yellow-700" size={24} />
             </div>
           </div>
 
@@ -71,7 +71,7 @@ export default function FacultyDashboard() {
               <h3 className="text-headline-lg text-[28px] font-bold text-green-700 mt-2">{approved}</h3>
             </div>
             <div className="bg-green-100 p-3 rounded-xl">
-              <MdCheckBox className="text-green-700" size={24} />
+              <CheckSquare className="text-green-700" size={24} />
             </div>
           </div>
 
@@ -81,7 +81,7 @@ export default function FacultyDashboard() {
               <h3 className="text-headline-lg text-[28px] font-bold text-purple-700 mt-2">{completed}</h3>
             </div>
             <div className="bg-purple-100 p-3 rounded-xl">
-              <MdHistory className="text-purple-700" size={24} />
+              <History className="text-purple-700" size={24} />
             </div>
           </div>
         </div>
@@ -90,7 +90,7 @@ export default function FacultyDashboard() {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-headline-md font-headline-md text-primary flex items-center gap-2">
-              <MdEvent className="text-secondary" />
+              <CalendarIcon className="text-secondary" />
               Event Calendar
             </h3>
             <div className="flex items-center bg-surface-container rounded-lg p-1">
@@ -173,7 +173,7 @@ export default function FacultyDashboard() {
                           {expandedRow === event.id ? (
                             <MdExpandMore className="text-secondary" size={20} />
                           ) : (
-                            <MdChevronRight className="text-on-surface-variant" size={20} />
+                            <ChevronRight className="text-on-surface-variant" size={20} />
                           )}
                           <span className="text-body-md font-semibold text-primary">{event.title}</span>
                         </div>
@@ -198,10 +198,10 @@ export default function FacultyDashboard() {
                             className="p-1.5 hover:bg-surface-container-high rounded transition-colors text-on-surface-variant"
                             title="Edit Event"
                           >
-                            <MdEdit size={18} />
+                            <Edit2 size={18} />
                           </button>
                           <button className="p-1.5 hover:bg-surface-container-high rounded transition-colors text-on-surface-variant">
-                            <MdSettings size={18} />
+                            <Settings size={18} />
                           </button>
                         </div>
                       </td>

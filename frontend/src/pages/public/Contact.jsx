@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, ChevronDown, Menu } from 'lucide-react'
-import { MdSend, MdVerified, MdCheckCircle, MdRefresh, MdMail, MdPublic, MdHelp } from 'react-icons/md'
+import { ArrowRight, Menu, Send, ShieldCheck, CheckCircle2, RefreshCw, Mail } from 'lucide-react'
 import api from '../../config/axios'
 
 export default function Contact() {
@@ -59,32 +58,32 @@ export default function Contact() {
   }
 
   return (
-    <div className="bg-[#f6fafe] text-[#171c1f] font-[Inter]">
+    <div className="bg-background text-on-background font-sans">
       {/* Public TopAppBar */}
-      <nav className={`fixed top-0 w-full h-[60px] z-50 backdrop-blur-md flex justify-between items-center px-6 transition-all duration-300 ${scrolled ? 'bg-[#f6fafe] shadow-md' : 'bg-[#f6fafe]/90'}`}>
+      <nav className={`fixed top-0 w-full h-[60px] z-50 backdrop-blur-md flex justify-between items-center px-6 transition-all duration-300 ${scrolled ? 'bg-background shadow-md' : 'bg-background/90'}`}>
         <Link to="/" className="flex items-center gap-3">
           <img src="/sca.png" alt="SCA Logo" className="h-10 w-auto" />
         </Link>
         <div className="hidden md:flex items-center gap-6">
-          <Link className="text-[#43474e] font-medium hover:text-[#0051d5] transition-colors" to="/about">About</Link>
-          <Link className="text-[#43474e] font-medium hover:text-[#0051d5] transition-colors" to="/events">Events</Link>
-          <Link className="text-[#43474e] font-medium hover:text-[#0051d5] transition-colors" to="/contact">Contact</Link>
-          <Link to="/portal" className="bg-[#0051d5] text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-[#003ea8] active:scale-95 transition-all">
+          <Link className="text-on-surface-variant font-medium hover:text-primary transition-colors" to="/about">About</Link>
+          <Link className="text-on-surface-variant font-medium hover:text-primary transition-colors" to="/events">Events</Link>
+          <Link className="text-on-surface-variant font-medium hover:text-primary transition-colors" to="/contact">Contact</Link>
+          <Link to="/portal" className="bg-primary text-on-primary px-6 py-2 rounded-btn font-semibold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-md">
             Enter Portal
             <ArrowRight size={16} />
           </Link>
         </div>
-        <button className="md:hidden text-[#171c1f]">
+        <button className="md:hidden text-on-surface">
           <Menu size={24} />
         </button>
       </nav>
       {/* Main Content */}
       <main className="pt-[60px] min-h-screen flex flex-col items-center justify-center py-12">
-        <div className="w-full max-w-[600px] bg-white rounded-xl border border-[#c4c6cf] shadow-sm overflow-hidden">
+        <div className="w-full max-w-[600px] bg-surface-card rounded-card border border-outline-variant shadow-card overflow-hidden">
           {/* Card Header */}
-          <div className="p-6 border-b border-[#c4c6cf]">
-            <h1 className="text-[32px] text-[#022448] mb-1 font-bold">Contact Us</h1>
-            <p className="text-sm text-[#43474e]">Have a question or issue? We'll get back to you shortly.</p>
+          <div className="p-6 border-b border-outline-variant">
+            <h1 className="text-[32px] text-on-surface mb-1 font-bold">Contact Us</h1>
+            <p className="text-sm text-on-surface-variant">Have a question or issue? We'll get back to you shortly.</p>
           </div>
           {/* Contact Form */}
           <form className="p-6 flex flex-col gap-4" onSubmit={handleSubmit}>
@@ -92,14 +91,12 @@ export default function Contact() {
               {/* Name Field */}
               <div className="flex flex-col gap-1.5">
                 <label
-                  className={`text-xs font-semibold ${
-                    focusedField === 'name' ? 'text-[#0051d5]' : 'text-[#43474e]'
-                  }`}
+                  className={`text-xs font-semibold ${focusedField === 'name' ? 'text-primary' : 'text-on-surface-variant'}`}
                 >
                   Name
                 </label>
                 <input
-                  className="w-full px-4 py-2.5 bg-white rounded-lg border border-[#c4c6cf] focus:border-[#0051d5] focus:ring-2 focus:ring-[#0051d5]/10 transition-all text-sm"
+                  className="w-full px-4 py-2.5 bg-surface-card rounded-btn border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-sm"
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -111,14 +108,12 @@ export default function Contact() {
               {/* Mail Field */}
               <div className="flex flex-col gap-1.5">
                 <label
-                  className={`text-xs font-semibold ${
-                    focusedField === 'email' ? 'text-[#0051d5]' : 'text-[#43474e]'
-                  }`}
+                  className={`text-xs font-semibold ${focusedField === 'email' ? 'text-primary' : 'text-on-surface-variant'}`}
                 >
                   Mail
                 </label>
                 <input
-                  className="w-full px-4 py-2.5 bg-white rounded-lg border border-[#c4c6cf] focus:border-[#0051d5] focus:ring-2 focus:ring-[#0051d5]/10 transition-all text-sm"
+                  className="w-full px-4 py-2.5 bg-surface-card rounded-btn border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-sm"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -132,35 +127,31 @@ export default function Contact() {
               {/* University ID */}
               <div className="flex flex-col gap-1.5">
                 <label
-                  className={`text-xs font-semibold ${
-                    focusedField === 'id' ? 'text-[#0051d5]' : 'text-[#43474e]'
-                  }`}
+                  className={`text-xs font-semibold ${focusedField === 'id' ? 'text-primary' : 'text-on-surface-variant'}`}
                 >
                   University ID
                 </label>
                 <div className="relative">
                   <input
-                    className="w-full px-4 py-2.5 bg-white rounded-lg border border-[#c4c6cf] focus:border-[#0051d5] focus:ring-2 focus:ring-[#0051d5]/10 transition-all text-sm"
+                    className="w-full px-4 py-2.5 bg-surface-card rounded-btn border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-sm"
                     type="text"
                     value={formData.universityId}
                     onChange={(e) => setFormData({ ...formData, universityId: e.target.value })}
                     onFocus={() => setFocusedField('id')}
                     onBlur={() => setFocusedField(null)}
                   />
-                  <MdVerified className="absolute right-3 top-1/2 -translate-y-1/2 text-[#43474e]" size={18} />
+                  <ShieldCheck className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
                 </div>
               </div>
               {/* Role */}
               <div className="flex flex-col gap-1.5">
                 <label
-                  className={`text-xs font-semibold ${
-                    focusedField === 'role' ? 'text-[#0051d5]' : 'text-[#43474e]'
-                  }`}
+                  className={`text-xs font-semibold ${focusedField === 'role' ? 'text-primary' : 'text-on-surface-variant'}`}
                 >
                   Role
                 </label>
                 <select
-                  className="w-full px-4 py-2.5 bg-white rounded-lg border border-[#c4c6cf] focus:border-[#0051d5] focus:ring-2 focus:ring-[#0051d5]/10 transition-all text-sm appearance-none"
+                  className="w-full px-4 py-2.5 bg-surface-card rounded-btn border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-sm appearance-none"
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   onFocus={() => setFocusedField('role')}
@@ -176,14 +167,12 @@ export default function Contact() {
             {/* Category */}
             <div className="flex flex-col gap-1.5">
               <label
-                className={`text-xs font-semibold ${
-                  focusedField === 'category' ? 'text-[#0051d5]' : 'text-[#43474e]'
-                  }`}
+                className={`text-xs font-semibold ${focusedField === 'category' ? 'text-primary' : 'text-on-surface-variant'}`}
               >
                 Category
               </label>
               <select
-                className="w-full px-4 py-2.5 bg-white rounded-lg border border-[#c4c6cf] focus:border-[#0051d5] focus:ring-2 focus:ring-[#0051d5]/10 transition-all text-sm"
+                className="w-full px-4 py-2.5 bg-surface-card rounded-btn border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-sm"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 onFocus={() => setFocusedField('category')}
@@ -198,14 +187,12 @@ export default function Contact() {
             {/* Subject */}
             <div className="flex flex-col gap-1.5">
               <label
-                className={`text-xs font-semibold ${
-                  focusedField === 'subject' ? 'text-[#0051d5]' : 'text-[#43474e]'
-                  }`}
+                className={`text-xs font-semibold ${focusedField === 'subject' ? 'text-primary' : 'text-on-surface-variant'}`}
               >
                 Subject
               </label>
               <input
-                className="w-full px-4 py-2.5 bg-white rounded-lg border border-[#c4c6cf] focus:border-[#0051d5] focus:ring-2 focus:ring-[#0051d5]/10 transition-all text-sm"
+                className="w-full px-4 py-2.5 bg-surface-card rounded-btn border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-sm"
                 type="text"
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
@@ -217,14 +204,12 @@ export default function Contact() {
             {/* Message */}
             <div className="flex flex-col gap-1.5">
               <label
-                className={`text-xs font-semibold ${
-                  focusedField === 'message' ? 'text-[#0051d5]' : 'text-[#43474e]'
-                  }`}
+                className={`text-xs font-semibold ${focusedField === 'message' ? 'text-primary' : 'text-on-surface-variant'}`}
               >
                 Message
               </label>
               <textarea
-                className="w-full px-4 py-2.5 bg-white rounded-lg border border-[#c4c6cf] focus:border-[#0051d5] focus:ring-2 focus:ring-[#0051d5]/10 transition-all text-sm resize-none"
+                className="w-full px-4 py-2.5 bg-surface-card rounded-btn border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-sm resize-none"
                 placeholder="Type your detailed message here..."
                 rows={4}
                 value={formData.message}
@@ -236,20 +221,20 @@ export default function Contact() {
             </div>
             {/* Submit Button */}
             <button
-              className="mt-2 w-full bg-[#0051d5] hover:bg-[#003ea8] text-white font-semibold py-3 rounded-lg transition-all transform active:scale-[0.98] flex justify-center items-center gap-2 disabled:opacity-70"
+              className="mt-2 w-full bg-primary text-on-primary font-semibold py-3 rounded-btn transition-all transform active:scale-[0.98] flex justify-center items-center gap-2 disabled:opacity-70 hover:opacity-90"
               disabled={isSubmitting || isSubmitted}
             >
               {isSubmitting ? (
                 <>
-                  <MdRefresh className="animate-spin" size={20} /> Sending...
+                  <RefreshCw className="animate-spin" size={20} /> Sending...
                 </>
               ) : isSubmitted ? (
                 <>
-                  <MdCheckCircle size={20} /> Message Sent!
+                  <CheckCircle2 size={20} /> Message Sent!
                 </>
               ) : (
                 <>
-                  Submit Query <MdSend size={20} />
+                  Submit Query <Send size={20} />
                 </>
               )}
             </button>
@@ -257,13 +242,13 @@ export default function Contact() {
         </div>
         {/* Secondary Contact Info */}
         <div className="mt-6 text-center">
-          <p className="text-sm text-[#43474e] flex items-center justify-center gap-2">
+          <p className="text-sm text-on-surface-variant flex items-center justify-center gap-2">
             Or reach us at:
             <a
-              className="text-[#0051d5] font-bold hover:underline decoration-2 underline-offset-4 flex items-center gap-1 transition-all"
+              className="text-primary font-bold hover:underline decoration-2 underline-offset-4 flex items-center gap-1 transition-all"
               href="mailto:sca@lpu.edu.in"
             >
-              <MdMail size={18} />
+              <Mail size={18} />
               sca@lpu.edu.in
             </a>
           </p>
@@ -271,40 +256,39 @@ export default function Contact() {
       </main>
       
       {/* Footer */}
-      <footer className="bg-[#1e3a5f] text-white py-16 border-t border-white/10">
+      <footer className="bg-secondary text-on-secondary py-16 border-t border-outline-variant">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div className="col-span-2 space-y-6">
               <div className="flex items-center gap-3">
                 <img src="/sca-white.png" alt="SCA Logo" className="h-10 w-auto" />
               </div>
-              <p className="text-[#8aa4cf] max-w-sm">
+              <p className="text-on-secondary/70 max-w-sm">
                 Dedicated to enhancing the event management experience for the School of Computer Application at Lovely Professional University.
               </p>
             </div>
             <div>
-              <h5 className="font-bold mb-6 text-white">Quick Links</h5>
-              <ul className="space-y-4 text-[#8aa4cf]">
-                <li><Link className="hover:text-[#dbe1ff] transition-colors" to="/about">About</Link></li>
-                <li><Link className="hover:text-[#dbe1ff] transition-colors" to="/contact">Contact</Link></li>
-                <li><Link className="hover:text-[#dbe1ff] transition-colors" to="/portal">Faculty Portal</Link></li>
+              <h5 className="font-bold mb-6 text-on-secondary">Quick Links</h5>
+              <ul className="space-y-4 text-on-secondary/70">
+                <li><Link className="hover:text-on-secondary transition-colors" to="/about">About</Link></li>
+                <li><Link className="hover:text-on-secondary transition-colors" to="/contact">Contact</Link></li>
+                <li><Link className="hover:text-on-secondary transition-colors" to="/portal">Faculty Portal</Link></li>
               </ul>
             </div>
             <div>
-              <h5 className="font-bold mb-6 text-white">Legal</h5>
-              <ul className="space-y-4 text-[#8aa4cf]">
-                <li><Link className="hover:text-[#dbe1ff] transition-colors" to="#">Terms of Use</Link></li>
-                <li><Link className="hover:text-[#dbe1ff] transition-colors" to="#">Privacy Policy</Link></li>
-                <li><Link className="hover:text-[#dbe1ff] transition-colors" to="#">LPU Guidelines</Link></li>
+              <h5 className="font-bold mb-6 text-on-secondary">Legal</h5>
+              <ul className="space-y-4 text-on-secondary/70">
+                <li><Link className="hover:text-on-secondary transition-colors" to="#">Terms of Use</Link></li>
+                <li><Link className="hover:text-on-secondary transition-colors" to="#">Privacy Policy</Link></li>
+                <li><Link className="hover:text-on-secondary transition-colors" to="#">LPU Guidelines</Link></li>
               </ul>
             </div>
           </div>
-          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-[#8aa4cf] text-xs">
+          <div className="pt-8 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-4 text-on-secondary/70 text-xs">
             <div className="flex flex-col items-center md:items-start gap-1">
               <p>© 2026 SCA — School of Computer Application, LPU. All Rights Reserved.</p>
-              <p>Developed and maintained by - <a href="https://www.sakshamshakya.tech/" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Saksham shakya</a></p>
-            </div>
-           
+              <p>Developed and maintained by - <a href="https://www.sakshamshakya.tech/" target="_blank" rel="noreferrer" className="hover:text-on-secondary transition-colors">Saksham shakya</a></p>
+            </div>           
           </div>
         </div>
       </footer>

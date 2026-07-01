@@ -2,24 +2,24 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
 import {
-  MdDashboard,
-  MdEvent,
-  MdAdd,
-  MdCheckCircle,
-  MdPeople,
-  MdSearch,
-  MdNotifications,
-  MdChevronRight,
-  MdStar,
-  MdLocationOn,
-  MdAccessTime,
-  MdDateRange,
-  MdVerified,
-  MdSettings,
-  MdHelp,
-  MdPerson,
-  MdLinkOff
-} from 'react-icons/md'
+  LayoutDashboard,
+  Calendar,
+  Plus,
+  CheckCircle2,
+  Users,
+  Search,
+  Bell,
+  ChevronRight,
+  Star,
+  MapPin,
+  Clock,
+  Calendar as CalendarRange,
+  ShieldCheck,
+  Settings,
+  HelpCircle,
+  User,
+  Link2Off
+} from 'lucide-react'
 import api from '../../config/axios'
 import useAuthStore from '../../store/authStore'
 
@@ -143,7 +143,7 @@ export default function CreateEvent() {
               <div className="space-y-2">
                 <label className="text-headline-sm text-primary block">Expected Audience</label>
                 <div className="relative">
-                  <MdPeople className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
+                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
                   <input
                     className="w-full h-12 pl-12 pr-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none"
                     type="number"
@@ -160,7 +160,7 @@ export default function CreateEvent() {
               <div className="space-y-2">
                 <label className="text-headline-sm text-primary block">Event Date</label>
                 <div className="relative">
-                  <MdDateRange className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
+                  <CalendarRange className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
                   <input
                     className="w-full h-12 pl-12 pr-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none"
                     type="date"
@@ -173,7 +173,7 @@ export default function CreateEvent() {
               <div className="space-y-2">
                 <label className="text-headline-sm text-primary block">Event Time</label>
                 <div className="relative">
-                  <MdAccessTime className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
+                  <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
                   <input
                     className="w-full h-12 pl-12 pr-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none"
                     type="time"
@@ -188,7 +188,7 @@ export default function CreateEvent() {
             <div className="space-y-2">
               <label className="text-headline-sm text-primary block">Venue</label>
               <div className="relative">
-                <MdLocationOn className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
                 <input
                   className="w-full h-12 pl-12 pr-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none"
                   placeholder="Enter precise location"
@@ -248,7 +248,7 @@ export default function CreateEvent() {
             <div className="flex items-center justify-between p-4 bg-secondary/5 rounded-xl border border-secondary/20">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-secondary">
-                  <MdStar size={20} fill="currentColor" />
+                  <Star size={20} fill="currentColor" />
                 </div>
                 <div>
                   <p className="text-headline-sm text-primary leading-tight">Mark as Important</p>
@@ -270,7 +270,7 @@ export default function CreateEvent() {
             <div className="flex items-center justify-between p-4 bg-error/5 rounded-xl border border-error/20">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-error/20 flex items-center justify-center text-error">
-                  <MdLinkOff size={20} />
+                  <Link2Off size={20} />
                 </div>
                 <div>
                   <p className="text-headline-sm text-primary leading-tight">Registration Not Required</p>
@@ -356,7 +356,7 @@ export default function CreateEvent() {
                 disabled={loading}
               >
                 {loading ? 'Creating...' : 'Create Event'}
-                <MdChevronRight size={18} />
+                <ChevronRight size={18} />
               </button>
             </div>
           </form>

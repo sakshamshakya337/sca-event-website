@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { MdChevronLeft, MdChevronRight, MdCalendarMonth } from 'react-icons/md'
+import { Calendar as CalendarIcon,ChevronLeft, ChevronRight } from 'lucide-react'
 import { normalizeEventStatus } from '../utils/eventUtils'
 
 export default function Calendar({ events, onEventClick }) {
@@ -86,13 +86,13 @@ export default function Calendar({ events, onEventClick }) {
             onClick={goToPrevMonth}
             className="p-2 hover:bg-surface-container-high rounded-lg transition-colors"
           >
-            <MdChevronLeft size={20} />
+            <ChevronLeft size={20} />
           </button>
           <button
             onClick={goToNextMonth}
             className="p-2 hover:bg-surface-container-high rounded-lg transition-colors"
           >
-            <MdChevronRight size={20} />
+            <ChevronRight size={20} />
           </button>
           <h3 className="text-lg font-semibold text-on-surface ml-2">
             {monthNames[month]} {year}

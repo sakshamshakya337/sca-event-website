@@ -1,6 +1,6 @@
 import { useLocation, Link, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
-import { MdNotifications, MdSunny, MdDarkMode, MdChevronRight, MdAdd, MdMenu } from 'react-icons/md'
+import { Bell, Sun, Moon, ChevronRight, Plus, Menu } from 'lucide-react'
 import useUiStore from '../../store/uiStore'
 import useNotificationsStore from '../../store/notificationsStore'
 import { getCloudinaryUrl } from '../../lib/utils'
@@ -40,7 +40,6 @@ export default function Navbar({ breadcrumb = [] }) {
     if (user?.role === 'faculty') {
       navigate('/faculty/events/create')
     } else if (user?.role === 'admin' || user?.role === 'superadmin') {
-      // Admins can create events too, so let's use the same page or create an admin one
       navigate('/faculty/events/create')
     }
   }
@@ -50,13 +49,13 @@ export default function Navbar({ breadcrumb = [] }) {
       <div className="flex items-center gap-4">
         <button 
           onClick={toggleSidebar}
-          className="p-2 hover:bg-surface-container rounded-full cursor-pointer text-on-surface-variant hover:text-primary transition-colors"
+          className="p-2 hover:bg-surface-container rounded-lg cursor-pointer text-on-surface-variant hover:text-primary transition-colors"
         >
-          <MdMenu size={24} />
+          <Menu size={24} />
         </button>
-        <nav className="flex items-center text-on-surface-variant font-body-sm text-body-sm">
+        <nav className="flex items-center text-on-surface-variant font-body-md">
           <span>Home</span>
-          <MdChevronRight className="w-4 h-4 mx-2" />
+          <ChevronRight className="w-4 h-4 mx-2" />
           <span className="text-primary font-bold">{getPageTitle()}</span>
         </nav>
       </div>
@@ -65,11 +64,11 @@ export default function Navbar({ breadcrumb = [] }) {
         <div className="relative">
           <button 
             onClick={() => navigate(`/${user?.role}/notifications`)}
-            className="p-2 hover:bg-surface-container rounded-full relative cursor-pointer group"
+            className="p-2 hover:bg-surface-container rounded-lg relative cursor-pointer group"
           >
-            <MdNotifications className="w-5 h-5 text-on-surface-variant group-hover:text-primary transition-colors" />
+            <Bell className="w-5 h-5 text-on-surface-variant group-hover:text-primary transition-colors" />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-error text-white text-[10px] flex items-center justify-center rounded-full font-bold border-2 border-surface">
+              <span className="absolute top-1 right-1 w-4 h-4 bg-error text-on-error text-[10px] flex items-center justify-center rounded-full font-bold border-2 border-surface">
                 {unreadCount}
               </span>
             )}
@@ -78,12 +77,12 @@ export default function Navbar({ breadcrumb = [] }) {
         
         <button 
           onClick={toggleTheme}
-          className="p-2 hover:bg-surface-container rounded-full cursor-pointer"
+          className="p-2 hover:bg-surface-container rounded-lg cursor-pointer"
         >
           {theme === 'dark' ? (
-            <MdSunny className="w-5 h-5 text-on-surface-variant" />
+            <Sun className="w-5 h-5 text-on-surface-variant" />
           ) : (
-            <MdDarkMode className="w-5 h-5 text-on-surface-variant" />
+            <Moon className="w-5 h-5 text-on-surface-variant" />
           )}
         </button>
         
@@ -91,9 +90,9 @@ export default function Navbar({ breadcrumb = [] }) {
         {user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'faculty' ? (
           <button 
             onClick={handleCreateEvent}
-            className="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-opacity-90 transition-all font-body-md text-body-md active:scale-95"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-btn hover:opacity-90 transition-all font-body-md active:scale-95 shadow-md"
           >
-            <MdAdd size={16} />
+            <Plus size={16} />
             Create New Event
           </button>
         ) : null}
@@ -109,7 +108,7 @@ export default function Navbar({ breadcrumb = [] }) {
             }}
           />
         ) : null}
-        <div className={`w-10 h-10 rounded-full bg-[#8B5CF6] items-center justify-center text-white text-sm font-bold cursor-pointer ${user?.profilePhotoUrl ? 'hidden' : 'flex'}`}>
+        <div className={`w-10 h-10 rounded-full bg-primary-container items-center justify-center text-on-primary-container text-sm font-bold cursor-pointer ${user?.profilePhotoUrl ? 'hidden' : 'flex'}`}>
           {getInitials()}
         </div>
       </div>

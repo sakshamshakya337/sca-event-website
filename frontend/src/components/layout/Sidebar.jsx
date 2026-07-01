@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
-import { MdDashboard, MdEvent, MdChecklist, MdPeople, MdVerifiedUser, MdContactMail, MdSettings, MdHelp, MdLogout, MdMenu, MdNotifications } from 'react-icons/md'
+import { LayoutDashboard, Calendar, CheckSquare, Users, ShieldCheck, Mail, Settings, HelpCircle, LogOut, Menu, Bell } from 'lucide-react'
 import useAuthStore from '../../store/authStore'
 import useUiStore from '../../store/uiStore'
 import { useNavigate } from 'react-router-dom'
@@ -8,32 +8,32 @@ import { getCloudinaryUrl } from '../../lib/utils'
 
 const roleNavItems = {
   student: [
-    { path: '/student', label: 'Dashboard', icon: MdDashboard },
-    { path: '/student/events', label: 'My Events', icon: MdEvent },
-    { path: '/student/tasks', label: 'My Tasks', icon: MdChecklist },
-    { path: '/student/notifications', label: 'Notifications', icon: MdNotifications },
+    { path: '/student', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/student/events', label: 'My Events', icon: Calendar },
+    { path: '/student/tasks', label: 'My Tasks', icon: CheckSquare },
+    { path: '/student/notifications', label: 'Notifications', icon: Bell },
   ],
   faculty: [
-    { path: '/faculty', label: 'Dashboard', icon: MdDashboard },
-    { path: '/faculty/events', label: 'My Events', icon: MdEvent },
-    { path: '/faculty/tasks', label: 'My Tasks', icon: MdChecklist },
-    { path: '/faculty/notifications', label: 'Notifications', icon: MdNotifications },
+    { path: '/faculty', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/faculty/events', label: 'My Events', icon: Calendar },
+    { path: '/faculty/tasks', label: 'My Tasks', icon: CheckSquare },
+    { path: '/faculty/notifications', label: 'Notifications', icon: Bell },
   ],
   admin: [
-    { path: '/admin', label: 'Dashboard', icon: MdDashboard },
-    { path: '/admin/events', label: 'All Events', icon: MdEvent },
-    { path: '/admin/users', label: 'Manage Users', icon: MdPeople },
-    { path: '/admin/verify', label: 'Verify Users', icon: MdVerifiedUser },
-    { path: '/admin/queries', label: 'Contact Queries', icon: MdContactMail },
-    { path: '/admin/notifications', label: 'Notifications', icon: MdNotifications },
+    { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/admin/events', label: 'All Events', icon: Calendar },
+    { path: '/admin/users', label: 'Manage Users', icon: Users },
+    { path: '/admin/verify', label: 'Verify Users', icon: ShieldCheck },
+    { path: '/admin/queries', label: 'Contact Queries', icon: Mail },
+    { path: '/admin/notifications', label: 'Notifications', icon: Bell },
   ],
   superadmin: [
-    { path: '/superadmin', label: 'Dashboard', icon: MdDashboard },
-    { path: '/admin/events', label: 'All Events', icon: MdEvent },
-    { path: '/admin/users', label: 'Manage Users', icon: MdPeople },
-    { path: '/admin/verify', label: 'Verify Users', icon: MdVerifiedUser },
-    { path: '/admin/queries', label: 'Contact Queries', icon: MdContactMail },
-    { path: '/admin/notifications', label: 'Notifications', icon: MdNotifications },
+    { path: '/superadmin', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/admin/events', label: 'All Events', icon: Calendar },
+    { path: '/admin/users', label: 'Manage Users', icon: Users },
+    { path: '/admin/verify', label: 'Verify Users', icon: ShieldCheck },
+    { path: '/admin/queries', label: 'Contact Queries', icon: Mail },
+    { path: '/admin/notifications', label: 'Notifications', icon: Bell },
   ],
 }
 
@@ -72,21 +72,17 @@ export default function Sidebar() {
         />
       )}
       
-      {/* Sidebar */}
-      <aside className={`fixed left-0 top-0 h-screen z-40 bg-surface-container-low border-r border-outline-variant flex flex-col py-6 gap-6 transition-all duration-300 ${sidebarOpen ? 'w-[240px] translate-x-0' : 'w-[240px] -translate-x-full lg:w-[64px] lg:translate-x-0'}`}>
+      {/* Sidebar - Academic Elite Theme */}
+      <aside className={`fixed left-0 top-0 h-screen z-40 bg-surface-sidebar border-r border-outline-variant flex flex-col py-6 gap-6 transition-all duration-300 ${sidebarOpen ? 'w-[240px] translate-x-0' : 'w-[240px] -translate-x-full lg:w-[64px] lg:translate-x-0'}`}>
         <div className="px-6 mb-6 flex items-center justify-between">
           <div className={`flex items-center gap-3 ${!sidebarOpen && 'lg:hidden'}`}>
             <img src="/sca.png" alt="SCA Logo" className="h-10 w-auto" />
-            {/* <div>
-              <h1 className="font-headline-md text-headline-md font-bold text-primary"></h1>
-              <p className="font-body-sm text-body-sm text-on-surface-variant">University Management</p>
-            </div> */}
           </div>
           <button 
             onClick={toggleSidebar}
             className="p-2 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-primary"
           >
-            <MdMenu size={24} />
+            <Menu size={24} />
           </button>
         </div>
         
@@ -99,13 +95,13 @@ export default function Sidebar() {
               className={({ isActive }) =>
                 `flex items-center px-6 py-3 transition-all ${
                   isActive
-                    ? 'bg-primary-container text-white border-l-3 border-secondary'
-                    : 'text-on-surface-variant hover:bg-surface-container-high'
+                    ? 'bg-primary-container text-on-primary-container border-l-4 border-primary'
+                    : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
                 } ${!sidebarOpen && 'lg:justify-center lg:px-0'}`
               }
             >
               <item.icon className={`w-5 h-5 ${sidebarOpen ? 'mr-3' : ''}`} />
-              {sidebarOpen && <span className="font-body-md text-body-md">{item.label}</span>}
+              {sidebarOpen && <span className="font-body-md">{item.label}</span>}
             </NavLink>
           ))}
         </nav>
@@ -116,8 +112,8 @@ export default function Sidebar() {
               to={`/${user?.role}/profile`}
               className="flex items-center py-2 text-on-surface-variant hover:text-primary transition-colors"
             >
-              <MdSettings className="w-5 h-5 mr-3 text-[20px]" />
-              <span className="font-body-md text-body-md">Settings</span>
+              <Settings className="w-5 h-5 mr-3 text-[20px]" />
+              <span className="font-body-md">Settings</span>
             </NavLink>
           </div>
           
@@ -134,14 +130,14 @@ export default function Sidebar() {
                   }}
                 />
               ) : null}
-              <div className={`w-10 h-10 rounded-full bg-primary-container items-center justify-center text-white font-bold ${user?.profilePhotoUrl ? 'hidden' : 'flex'}`}>
+              <div className={`w-10 h-10 rounded-full bg-primary-container items-center justify-center text-on-primary-container font-bold ${user?.profilePhotoUrl ? 'hidden' : 'flex'}`}>
                 {getInitials()}
               </div>
               <div className="flex flex-col">
-                <span className="font-headline-sm text-headline-sm text-primary">
+                <span className="font-headline-sm text-primary">
                   {user?.firstName} {user?.lastName}
                 </span>
-                <span className="font-code-sm text-code-sm text-on-surface-variant">
+                <span className="font-code-sm text-on-surface-variant">
                   {getIdentifier()}
                 </span>
               </div>
@@ -151,8 +147,8 @@ export default function Sidebar() {
               onClick={handleLogout}
               className="mt-3 flex items-center text-error hover:opacity-80 transition-opacity"
             >
-              <MdLogout className="w-5 h-5 mr-2 text-[18px]" />
-              <span className="font-body-sm text-body-sm font-semibold">LogOut</span>
+              <LogOut className="w-5 h-5 mr-2 text-[18px]" />
+              <span className="font-body-sm font-semibold">LogOut</span>
             </button>
           </div>
         </div>
