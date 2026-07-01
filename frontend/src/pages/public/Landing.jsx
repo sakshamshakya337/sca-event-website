@@ -1,46 +1,60 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, ChevronDown, ShieldCheck, Calendar, CheckSquare, LogIn, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  ArrowRight, ChevronDown, ShieldCheck, Calendar,
+  CheckSquare, LogIn, ChevronLeft, ChevronRight, Play
+} from 'lucide-react'
 import api from '../../config/axios'
 import { formatDate } from '../../lib/utils'
 import PublicLayout from '../../components/layout/PublicLayout'
 
-// ── Carousel images — replace these paths with your 6 actual images in /public ──
+// ─────────────────────────────────────────────────────────────────────────────
+// CONFIGURATION — change these two values only
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Paste your YouTube video ID here (the part after ?v= in the URL)
+// Example: https://www.youtube.com/watch?v=dQw4w9WgXcQ  →  'dQw4w9WgXcQ'
+const YOUTUBE_ID = 'Phu9v6IUblw'
+
+// Hero background carousel images
 const CAROUSEL_SLIDES = [
   {
-    src: '/landing.png',
-    label: 'Event Dashboard',
-    sub: 'Real-time planning & progress tracking',
+    src: 'https://res.cloudinary.com/amqo58is/image/upload/v1782934075/51e539c9-3500-49c1-878b-ff1ac476e49b_jsmcjj.jpg',
+    label: 'School Commencement Ceremony',
+    sub: 'School Dean is acknowledged students for their achievements and milestones',
   },
   {
-    src: '/sca event website/academic elite/screen.png',
-    label: 'Academic Events',
-    sub: 'Workshops, seminars & cultural programs',
+    src: 'https://res.cloudinary.com/amqo58is/image/upload/v1782934082/IMG_2142.HEIC_hb79nq.jpg',
+    label: 'LPU Experience 2026',
+    sub: 'Welcoming new students to the university community',
   },
   {
-    src: '/sca event website/academic elite/landing.jpeg',
-    label: 'Campus Activities',
-    sub: 'Connecting students across departments',
+    src: 'https://res.cloudinary.com/amqo58is/image/upload/v1782934081/IMG_0931_j9e7dk.jpg',
+    label: 'LPU 9th Innotek Inter University Event',
+    sub: 'Connecting students across departments and universities for collaboration',
   },
   {
-    src: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80',
-    label: 'Event Management',
+    src: 'https://res.cloudinary.com/amqo58is/image/upload/v1782934080/IMG_0878_d2vykp.jpg',
+    label: 'LPU 9th Innotek Inter University Event',
     sub: 'Faculty-led event coordination',
   },
   {
-    src: 'https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=800&q=80',
-    label: 'Student Collaboration',
-    sub: 'Task assignment & team management',
+    src: 'https://res.cloudinary.com/amqo58is/image/upload/v1782934087/IMG_1222.HEIC_n0nuhi.jpg',
+    label: 'School Commencement Ceremony',
+    sub: 'Celebrating student achievements and milestones',
   },
   {
-    src: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800&q=80',
-    label: 'Live Approvals',
-    sub: 'Seamless admin approval workflow',
+    src: 'https://res.cloudinary.com/amqo58is/image/upload/v1782934088/IMG_9329.HEIC_xwzbug.jpg',
+    label: 'Spectra',
+    sub: 'Showcasing student talent through events',
   },
 ]
 
-// ── Auto-play carousel component ─────────────────────────────────────────────
-function HeroCarousel() {
+// ─────────────────────────────────────────────────────────────────────────────
+// FULL BACKGROUND CAROUSEL
+// Images fill entire hero behind text — dark overlay keeps text readable
+// ─────────────────────────────────────────────────────────────────────────────
+function FullBgCarousel({ children }) {
   const [current, setCurrent] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
   const total = CAROUSEL_SLIDES.length
@@ -48,63 +62,78 @@ function HeroCarousel() {
   const next = useCallback(() => setCurrent(c => (c + 1) % total), [total])
   const prev = useCallback(() => setCurrent(c => (c - 1 + total) % total), [total])
 
-  // Auto-advance every 4 seconds, pause on hover
   useEffect(() => {
     if (isHovered) return
-    const id = setInterval(next, 4000)
+    const id = setInterval(next, 5000)
     return () => clearInterval(id)
   }, [next, isHovered])
 
   return (
     <div
-      className="relative rounded-2xl overflow-hidden shadow-card border border-outline-variant group"
+      className="relative min-h-[520px] md:min-h-[640px] w-full overflow-hidden flex items-center group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Slides */}
-      <div className="relative h-[360px] md:h-[400px] bg-surface-container-high">
-        {CAROUSEL_SLIDES.map((slide, idx) => (
-          <div
-            key={idx}
-            className={`absolute inset-0 transition-opacity duration-700 ${
-              idx === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
-            }`}
-          >
-            <img
-              src={slide.src}
-              alt={slide.label}
-              className="w-full h-full object-cover"
-              onError={e => { e.target.src = '/landing.png' }}
-            />
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-            {/* Slide caption */}
-            <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
-              <p className="text-white font-bold text-base leading-tight">{slide.label}</p>
-              <p className="text-white/70 text-xs mt-0.5">{slide.sub}</p>
-            </div>
-          </div>
-        ))}
+      {/* Background image slides */}
+      {CAROUSEL_SLIDES.map((slide, idx) => (
+        <div
+          key={idx}
+          className={`absolute inset-0 transition-opacity duration-1000 ${
+            idx === current ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <img
+            src={slide.src}
+            alt={slide.label}
+            className="w-full h-full object-cover"
+            onError={e => {
+              e.target.src = 'https://res.cloudinary.com/amqo58is/image/upload/v1782934088/IMG_9329.HEIC_xwzbug.jpg'
+            }}
+          />
+        </div>
+      ))}
 
-        {/* Prev / Next buttons */}
-        <button
-          onClick={prev}
-          aria-label="Previous slide"
-          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 backdrop-blur-sm"
-        >
-          <ChevronLeft size={18} />
-        </button>
-        <button
-          onClick={next}
-          aria-label="Next slide"
-          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 backdrop-blur-sm"
-        >
-          <ChevronRight size={18} />
-        </button>
+      {/* Gradient overlay — stronger left (text area), lighter right */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/50 to-black/25 z-10" />
+      {/* Bottom fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-black/40 to-transparent z-10" />
+
+      {/* Prev button */}
+      <button
+        onClick={prev}
+        aria-label="Previous slide"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full
+                   bg-black/40 hover:bg-black/70 text-white flex items-center justify-center
+                   backdrop-blur-sm border border-white/20 transition-all duration-200
+                   opacity-0 group-hover:opacity-100"
+      >
+        <ChevronLeft size={20} />
+      </button>
+
+      {/* Next button */}
+      <button
+        onClick={next}
+        aria-label="Next slide"
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full
+                   bg-black/40 hover:bg-black/70 text-white flex items-center justify-center
+                   backdrop-blur-sm border border-white/20 transition-all duration-200
+                   opacity-0 group-hover:opacity-100"
+      >
+        <ChevronRight size={20} />
+      </button>
+
+      {/* Slide caption — bottom right */}
+      <div className="absolute bottom-14 right-6 z-20 text-right pointer-events-none">
+        <p className="text-white font-semibold text-sm drop-shadow">
+          {CAROUSEL_SLIDES[current].label}
+        </p>
+        <p className="text-white/60 text-xs mt-0.5">
+          {CAROUSEL_SLIDES[current].sub}
+        </p>
       </div>
 
       {/* Dot indicators */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5">
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
         {CAROUSEL_SLIDES.map((_, idx) => (
           <button
             key={idx}
@@ -112,41 +141,24 @@ function HeroCarousel() {
             aria-label={`Go to slide ${idx + 1}`}
             className={`rounded-full transition-all duration-300 ${
               idx === current
-                ? 'w-5 h-2 bg-primary shadow-sm'
-                : 'w-2 h-2 bg-white/50 hover:bg-white/80'
+                ? 'w-6 h-2 bg-[#E87722]'
+                : 'w-2 h-2 bg-white/40 hover:bg-white/70'
             }`}
           />
         ))}
       </div>
 
       {/* Progress bar */}
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/10 z-30">
+      <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/10 z-30">
         <div
           key={current}
-          className="h-full bg-primary origin-left"
-          style={{
-            animation: isHovered ? 'none' : 'progressBar 4s linear forwards',
-          }}
+          className="h-full bg-[#E87722] origin-left"
+          style={{ animation: isHovered ? 'none' : 'progressBar 5s linear forwards' }}
         />
       </div>
 
-      {/* Bottom info bar */}
-      <div className="bg-surface-container-low border-t border-outline-variant px-5 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-            <CheckSquare size={16} />
-          </div>
-          <div>
-            <p className="font-semibold text-on-surface text-sm">Live Planning</p>
-            <p className="text-xs text-on-surface-variant">Real-time engagement metrics</p>
-          </div>
-        </div>
-        <div className="flex -space-x-2">
-          <div className="w-7 h-7 rounded-full border-2 border-surface-container-low bg-secondary text-[9px] flex items-center justify-center text-on-secondary font-bold">S</div>
-          <div className="w-7 h-7 rounded-full border-2 border-surface-container-low bg-primary text-[9px] flex items-center justify-center text-on-primary font-bold">F</div>
-          <div className="w-7 h-7 rounded-full border-2 border-surface-container-low bg-tertiary text-[9px] flex items-center justify-center text-on-tertiary font-bold">A</div>
-        </div>
-      </div>
+      {/* Content sits on top */}
+      <div className="relative z-20 w-full">{children}</div>
 
       <style>{`
         @keyframes progressBar {
@@ -158,6 +170,193 @@ function HeroCarousel() {
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// YOUTUBE VIDEO SECTION
+// Interactive thumbnail → click to load and play the YouTube iframe
+// Uses YouTube's privacy-enhanced mode (no tracking until play)
+// ─────────────────────────────────────────────────────────────────────────────
+function VideoSection() {
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  // YouTube thumbnail URL (highest quality)
+  const thumbnailUrl = `https://img.youtube.com/vi/${YOUTUBE_ID}/maxresdefault.jpg`
+  // Fallback if maxresdefault doesn't exist
+  const thumbnailFallback = `https://img.youtube.com/vi/${YOUTUBE_ID}/hqdefault.jpg`
+
+  // YouTube embed URL with autoplay + relevant params
+  const embedUrl = [
+    `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}`,
+    '?autoplay=1',        // auto-play when iframe loads
+    '&rel=0',             // no related videos at end
+    '&modestbranding=1',  // minimal YouTube branding
+    '&color=white',       // white progress bar
+    '&iv_load_policy=3',  // no annotations
+    '&showinfo=0',        // no title bar
+  ].join('')
+
+  return (
+    <section className="py-20 bg-surface-container-low">
+      <div className="container mx-auto px-6">
+
+        {/* Section header */}
+        <div className="text-center mb-12 space-y-3">
+          <span className="text-[#E87722] font-mono text-xs tracking-widest uppercase
+                           py-1 px-3 border border-[#E87722]/30 rounded-full inline-block">
+            See It In Action
+          </span>
+          <h2 className="text-[32px] text-on-surface font-bold">
+            SCA Events Walkthrough
+          </h2>
+          <p className="text-on-surface-variant max-w-xl mx-auto">
+            A quick walkthrough of how faculty, students and admins collaborate
+            on events through the platform.
+          </p>
+        </div>
+
+        {/* Video player card */}
+        <div className="max-w-4xl mx-auto">
+          <div
+            className="relative rounded-2xl overflow-hidden
+                       shadow-[0_20px_60px_rgba(0,0,0,0.25)]
+                       border border-outline-variant group"
+            style={{ aspectRatio: '16/9' }}
+          >
+            {isPlaying ? (
+              /* ── YouTube iframe — loads only after user clicks play ── */
+              <iframe
+                src={embedUrl}
+                title="SCA EMS Introduction Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full"
+                style={{ border: 'none' }}
+              />
+            ) : (
+              /* ── Custom thumbnail + play button (before user clicks) ── */
+              <div
+                className="absolute inset-0 cursor-pointer"
+                onClick={() => setIsPlaying(true)}
+                role="button"
+                aria-label="Play SCA EMS introduction video"
+              >
+                {/* Thumbnail image */}
+                <img
+                  src={thumbnailUrl}
+                  alt="SCA EMS video thumbnail"
+                  className="w-full h-full object-cover"
+                  onError={e => { e.target.src = thumbnailFallback }}
+                />
+
+                {/* Dark overlay on thumbnail */}
+                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20
+                                transition-colors duration-300" />
+
+                {/* Top-left label */}
+                <div className="absolute top-5 left-5 z-10">
+                  <span className="bg-black/60 backdrop-blur-sm text-white text-xs
+                                   font-semibold px-3 py-1.5 rounded-full border border-white/20">
+                    SCA Event Management System
+                  </span>
+                </div>
+
+                {/* Center play button */}
+                <div className="absolute inset-0 flex items-center justify-center z-10">
+                  <div className="flex flex-col items-center gap-4">
+                    {/* Outer ring pulse animation */}
+                    <div className="relative">
+                      <div className="absolute inset-0 rounded-full bg-[#E87722]/30
+                                      animate-ping scale-110" />
+                      <div className="relative w-20 h-20 rounded-full bg-[#E87722]
+                                      hover:bg-[#C4611A] flex items-center justify-center
+                                      shadow-[0_8px_32px_rgba(232,119,34,0.6)]
+                                      transition-all duration-200 active:scale-95
+                                      group-hover:scale-110">
+                        <Play size={34} className="text-white ml-1.5" fill="white" />
+                      </div>
+                    </div>
+                    <p className="text-white font-semibold text-sm drop-shadow-lg
+                                  bg-black/40 backdrop-blur-sm px-4 py-1.5 rounded-full">
+                      Watch Introduction
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bottom info bar */}
+                <div className="absolute bottom-0 left-0 right-0 z-10
+                                bg-gradient-to-t from-black/80 to-transparent
+                                px-6 py-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-semibold text-sm">
+                      SCA EMS — Platform Overview
+                    </p>
+                    <p className="text-white/60 text-xs mt-0.5">
+                      School of Computer Applications, LPU
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/70 text-xs">
+                    <div className="w-2 h-2 rounded-full bg-[#E87722] animate-pulse" />
+                    Click to play
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Below video — rewatch button + note */}
+          {isPlaying && (
+            <div className="mt-4 flex items-center justify-between">
+              <button
+                onClick={() => setIsPlaying(false)}
+                className="text-sm text-on-surface-variant hover:text-primary
+                           flex items-center gap-1.5 transition-colors"
+              >
+                <ChevronLeft size={14} />
+                Back to thumbnail
+              </button>
+              <a
+                href={`https://www.youtube.com/watch?v=${YOUTUBE_ID}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-[#E87722] hover:underline font-medium"
+              >
+                Open on YouTube ↗
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* Three feature chips below video */}
+        <div className="max-w-4xl mx-auto mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { icon: ShieldCheck, label: 'Role-Based Access',  desc: 'Admin, Faculty, Student' },
+            { icon: Calendar,    label: 'Event Lifecycle',    desc: 'Propose → Approve → Run' },
+            { icon: CheckSquare, label: 'Task Tracking',      desc: 'Real-time todo updates' },
+          ].map(({ icon: Icon, label, desc }) => (
+            <div
+              key={label}
+              className="flex items-center gap-3 bg-surface-card border border-outline-variant
+                         rounded-xl px-4 py-3 shadow-sm"
+            >
+              <div className="w-9 h-9 rounded-lg bg-[#E87722]/10 flex items-center
+                              justify-center text-[#E87722] shrink-0">
+                <Icon size={18} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-on-surface">{label}</p>
+                <p className="text-xs text-on-surface-variant">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </section>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN LANDING PAGE
+// ─────────────────────────────────────────────────────────────────────────────
 export default function Landing() {
   const [approvedEvents, setApprovedEvents] = useState([])
   const [isEventsLoading, setIsEventsLoading] = useState(false)
@@ -181,232 +380,312 @@ export default function Landing() {
 
   return (
     <PublicLayout>
-        {/* Hero Section */}
-        <section className="relative min-h-[520px] md:min-h-[640px] pt-[60px] bg-secondary-container flex items-center overflow-hidden">
-          <div className="absolute inset-0 opacity-[0.06]" style={{
-            backgroundImage: 'radial-gradient(rgba(255, 182, 139, 0.15) 1px, transparent 1px)',
-            backgroundSize: '24px 24px'
-          }}></div>
-          <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <span className="text-primary font-mono text-xs tracking-widest uppercase py-1 px-3 border border-primary/30 rounded-full inline-block">
-                SCA EVENT MANAGEMENT SYSTEM
-              </span>
-              <h1 className="text-[40px] md:text-[56px] leading-tight text-on-primary-container font-extrabold max-w-xl">
-                Manage Events. <br />
-                <span className="text-on-secondary-container">Empower Students.</span>
-              </h1>
-              <p className="text-on-surface-variant text-lg max-w-lg leading-relaxed">
-                A unified platform for the School of Computer Application at LPU — manage events, assign tasks, track progress across all roles.
+
+      {/* ── HERO — Full background carousel with text overlay ── */}
+      <FullBgCarousel>
+        <div className="container mx-auto px-6 pt-[60px]">
+          <div className="max-w-2xl space-y-6 py-16 md:py-24">
+
+            <span className="text-[#E87722] font-mono text-xs tracking-widest uppercase
+                             py-1 px-3 border border-[#E87722]/50 rounded-full inline-block">
+              SCA EVENT MANAGEMENT SYSTEM
+            </span>
+
+            <h1 className="text-[40px] md:text-[56px] leading-tight font-extrabold
+                           text-white drop-shadow-lg">
+              Manage Events. <br />
+              <span className="text-[#F5A623]">Empower Students.</span>
+            </h1>
+
+            <p className="text-white/80 text-lg max-w-lg leading-relaxed drop-shadow">
+              A unified platform for the School of Computer Application at LPU —
+              manage events, assign tasks, track progress across all roles.
+            </p>
+
+            <div className="flex flex-wrap gap-4 pt-2">
+              <Link
+                to="/portal"
+                className="bg-[#E87722] hover:bg-[#C4611A] text-white px-8 py-4
+                           rounded-btn font-bold flex items-center gap-2
+                           shadow-[0_4px_20px_rgba(232,119,34,0.5)]
+                           transition-all active:scale-95"
+              >
+                Enter Portal
+                <ArrowRight size={20} />
+              </Link>
+              <Link
+                to="/about"
+                className="border-2 border-white/70 text-white px-8 py-4 rounded-btn
+                           font-bold hover:bg-white/10 transition-all flex items-center gap-2
+                           backdrop-blur-sm active:scale-95"
+              >
+                Learn More
+                <ChevronDown size={16} />
+              </Link>
+            </div>
+
+          </div>
+        </div>
+      </FullBgCarousel>
+
+      {/* ── Stats Bar ── */}
+      <section className="bg-secondary py-8 border-y border-outline-variant">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            {[
+              { label: '4 User Roles',   sub: 'Access Levels' },
+              { label: 'Real-Time',      sub: 'Live Database' },
+              { label: 'JWT Auth',       sub: 'Secure Access' },
+              { label: 'LPU Exclusive',  sub: 'Institutional' },
+            ].map(({ label, sub }) => (
+              <div key={label} className="space-y-1">
+                <div className="text-secondary-fixed text-lg font-semibold">{label}</div>
+                <div className="text-on-secondary/60 text-xs uppercase tracking-wider">{sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── VIDEO SECTION ── */}
+      <VideoSection />
+
+      {/* ── Upcoming Approved Events ── */}
+      <section className="py-24 bg-surface-card">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
+            <div>
+              <h2 className="text-[32px] text-on-surface font-bold">
+                Upcoming Approved Events
+              </h2>
+              <p className="text-on-surface-variant max-w-2xl">
+                Only SCA approved events appear here with registration details and event imagery.
               </p>
-              <div className="flex flex-wrap gap-4 pt-4">
-                <Link to="/portal" className="bg-primary text-on-primary px-8 py-4 rounded-btn font-bold flex items-center gap-2 shadow-lg hover:opacity-90 transition-all active:scale-95">
-                  Enter Portal
-                  <ArrowRight size={24} />
-                </Link>
-                <Link to="/about" className="border-2 border-primary text-primary px-8 py-4 rounded-btn font-bold hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2 active:scale-95">
-                  Learn More
-                  <ChevronDown size={16} />
-                </Link>
-              </div>
             </div>
-            <div className="hidden lg:block relative">
-              <div className="absolute -inset-10 bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
-              <HeroCarousel />
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-on-surface-variant">
+                {approvedEvents.length} approved event{approvedEvents.length === 1 ? '' : 's'}
+              </div>
+              <Link to="/events" className="text-sm text-primary font-medium hover:underline">
+                View All Events →
+              </Link>
             </div>
           </div>
-        </section>
 
-        {/* Stats Bar */}
-        <section className="bg-secondary py-8 border-y border-outline-variant">
-          <div className="container mx-auto px-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div className="space-y-1">
-                <div className="text-secondary-fixed text-lg font-semibold">4 User Roles</div>
-                <div className="text-on-secondary/60 text-xs uppercase tracking-wider">Access Levels</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-secondary-fixed text-lg font-semibold">Real-Time</div>
-                <div className="text-on-secondary/60 text-xs uppercase tracking-wider">Live Database</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-secondary-fixed text-lg font-semibold">JWT Auth</div>
-                <div className="text-on-secondary/60 text-xs uppercase tracking-wider">Secure Access</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-secondary-fixed text-lg font-semibold">LPU Exclusive</div>
-                <div className="text-on-secondary/60 text-xs uppercase tracking-wider">Institutional</div>
-              </div>
+          {isEventsLoading ? (
+            <div className="rounded-card border border-dashed border-outline-variant
+                            p-12 text-center text-on-surface-variant">
+              Loading events…
             </div>
-          </div>
-        </section>
-
-        {/* Upcoming Approved Events */}
-        <section className="py-24 bg-surface-card">
-          <div className="container mx-auto px-6">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
-              <div>
-                <h2 className="text-[32px] text-on-surface font-bold">Upcoming Approved Events</h2>
-                <p className="text-on-surface-variant max-w-2xl">Only SCA approved events appear here with registration details and event imagery.</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="text-sm text-on-surface-variant">{approvedEvents.length} approved event{approvedEvents.length === 1 ? '' : 's'}</div>
-                <Link to="/events" className="text-sm text-primary font-medium hover:underline">View All Events →</Link>
-              </div>
+          ) : eventsError ? (
+            <div className="rounded-card border border-error-container
+                            bg-error-container p-12 text-center text-on-error-container">
+              {eventsError}
             </div>
-
-            {isEventsLoading ? (
-              <div className="rounded-card border border-dashed border-outline-variant p-12 text-center text-on-surface-variant">Loading events…</div>
-            ) : eventsError ? (
-              <div className="rounded-card border border-error-container bg-error-container p-12 text-center text-on-error-container">{eventsError}</div>
-            ) : approvedEvents.length === 0 ? (
-              <div className="rounded-card border border-dashed border-outline-variant p-12 text-center text-on-surface-variant">No upcoming events are approved yet.</div>
-            ) : (
-              <>
-                <div className="grid gap-6 lg:grid-cols-3">
-                  {approvedEvents.map((event) => (
-                    <article key={event._id} className="overflow-hidden rounded-card border border-outline-variant shadow-sm hover:shadow-card transition-shadow bg-surface-card">
-                      <div className="overflow-hidden bg-surface-container-low">
-                        {event.imageUrl ? (
-                          <img src={event.imageUrl} alt={event.title} className="w-full h-auto" />
-                        ) : (
-                          <div className="flex items-center justify-center text-center text-on-surface-variant px-4 py-12">
-                            <div>
-                              <p className="font-semibold">No image uploaded</p>
-                              <p className="text-sm mt-2">This event was approved without a banner image.</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-6 space-y-4">
-                        <div className="flex items-center justify-between gap-4">
-                          <span className="inline-flex rounded-full bg-primary-fixed text-on-primary-fixed px-3 py-1 text-sm font-semibold">{event.type || 'Event'}</span>
-                          <span className="text-sm text-on-surface-variant">{formatDate(event.date)}</span>
+          ) : approvedEvents.length === 0 ? (
+            <div className="rounded-card border border-dashed border-outline-variant
+                            p-12 text-center text-on-surface-variant">
+              No upcoming events are approved yet.
+            </div>
+          ) : (
+            <div className="grid gap-6 lg:grid-cols-3">
+              {approvedEvents.map((event) => (
+                <article
+                  key={event._id}
+                  className="overflow-hidden rounded-card border border-outline-variant
+                             shadow-sm hover:shadow-card transition-shadow bg-surface-card"
+                >
+                  <div className="overflow-hidden bg-surface-container-low">
+                    {event.imageUrl ? (
+                      <img src={event.imageUrl} alt={event.title} className="w-full h-auto" />
+                    ) : (
+                      <div className="flex items-center justify-center text-center
+                                      text-on-surface-variant px-4 py-12">
+                        <div>
+                          <p className="font-semibold">No image uploaded</p>
+                          <p className="text-sm mt-2">
+                            This event was approved without a banner image.
+                          </p>
                         </div>
-                        <div className="space-y-2">
-                          <h3 className="text-xl font-bold text-on-surface">{event.title}</h3>
-                          <p className="text-on-surface-variant line-clamp-3">{event.description || 'No description provided.'}</p>
-                        </div>
-                      <div className="space-y-3">
-                        <p className="text-sm text-on-surface-variant"><span className="font-semibold text-on-surface">Venue:</span> {event.venue}</p>
-                        {event.registerLink && !event.registrationNotRequired && (
-                          <a
-                            href={event.registerLink}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-3 text-sm font-semibold text-on-primary hover:opacity-90 transition-colors"
-                          >
-                            Register Now
-                          </a>
-                        )}
                       </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section className="py-24 bg-background" id="about">
-          <div className="container mx-auto px-6">
-            <div className="max-w-2xl mx-auto text-center mb-16 space-y-4">
-              <h2 className="text-[32px] text-on-surface font-bold">Everything you need to run SCA events</h2>
-              <p className="text-on-surface-variant">A comprehensive toolset designed for the specific workflow of University event coordination, from approval to execution.</p>
-            </div>
-            <div className="grid md:grid-cols-3 gap-4">
-              {/* Card 1 */}
-              <div className="bg-surface-container p-8 rounded-card border border-outline-variant hover:shadow-card transition-shadow group">
-                <div className="w-14 h-14 bg-primary-container/10 rounded-card flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-on-primary transition-colors">
-                  <ShieldCheck size={36} />
-                </div>
-                <h3 className="text-lg font-semibold text-on-surface mb-3">Role-Based Access</h3>
-                <p className="text-on-surface-variant leading-relaxed">Granular permissions for Admins, Faculty, Organizers, and Students. Everyone sees exactly what they need.</p>
-              </div>
-              {/* Card 2 */}
-              <div className="bg-surface-container p-8 rounded-card border border-outline-variant hover:shadow-card transition-shadow group">
-                <div className="w-14 h-14 bg-primary-container/10 rounded-card flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-on-primary transition-colors">
-                  <Calendar size={36} />
-                </div>
-                <h3 className="text-lg font-semibold text-on-surface mb-3">Event Lifecycle</h3>
-                <p className="text-on-surface-variant leading-relaxed">From initial proposal through approval queue to post-event reporting, manage the entire lifecycle in one place.</p>
-              </div>
-              {/* Card 3 */}
-              <div className="bg-surface-container p-8 rounded-card border border-outline-variant hover:shadow-card transition-shadow group">
-                <div className="w-14 h-14 bg-primary-container/10 rounded-card flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-on-primary transition-colors">
-                  <CheckSquare size={36} />
-                </div>
-                <h3 className="text-lg font-semibold text-on-surface mb-3">Tasks & Todo Tracking</h3>
-                <p className="text-on-surface-variant leading-relaxed">Assign specific tasks to student teams with deadlines and automatic reminders for seamless coordination.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* How It Works Section */}
-        <section className="py-24 bg-surface-card relative overflow-hidden">
-          <div className="container mx-auto px-6 relative z-10">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <div>
-                <h2 className="text-[32px] text-on-surface font-bold mb-12">Streamlined workflow for <span className="text-primary">Academic Excellence</span></h2>
-                <div className="space-y-10">
-                  {/* Step 1 */}
-                  <div className="flex gap-6">
-                    <div className="flex-none w-10 h-10 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-bold">1</div>
+                    )}
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="inline-flex rounded-full bg-primary-fixed
+                                       text-on-primary-fixed px-3 py-1 text-sm font-semibold">
+                        {event.type || 'Event'}
+                      </span>
+                      <span className="text-sm text-on-surface-variant">
+                        {formatDate(event.date)}
+                      </span>
+                    </div>
                     <div className="space-y-2">
-                      <h4 className="font-bold text-lg text-on-surface">Admin Creates Accounts</h4>
-                      <p className="text-on-surface-variant">Centralized system administrators provision secure faculty and student organizer accounts via JWT authentication.</p>
+                      <h3 className="text-xl font-bold text-on-surface">{event.title}</h3>
+                      <p className="text-on-surface-variant line-clamp-3">
+                        {event.description || 'No description provided.'}
+                      </p>
+                    </div>
+                    <div className="space-y-3">
+                      <p className="text-sm text-on-surface-variant">
+                        <span className="font-semibold text-on-surface">Venue:</span>{' '}
+                        {event.venue}
+                      </p>
+                      {event.registerLink && !event.registrationNotRequired && (
+                        <a
+                          href={event.registerLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center justify-center rounded-full
+                                     bg-primary px-4 py-3 text-sm font-semibold text-on-primary
+                                     hover:opacity-90 transition-colors"
+                        >
+                          Register Now
+                        </a>
+                      )}
                     </div>
                   </div>
-                  {/* Step 2 */}
-                  <div className="flex gap-6">
-                    <div className="flex-none w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold">2</div>
-                    <div className="space-y-2">
-                      <h4 className="font-bold text-lg text-on-surface">Faculty Orchestrate Events</h4>
-                      <p className="text-on-surface-variant">Faculty members initiate event registries, define scope, and assign dynamic todo lists to student leadership teams.</p>
-                    </div>
-                  </div>
-                  {/* Step 3 */}
-                  <div className="flex gap-6">
-                    <div className="flex-none w-10 h-10 rounded-full bg-tertiary text-on-tertiary flex items-center justify-center font-bold">3</div>
-                    <div className="space-y-2">
-                      <h4 className="font-bold text-lg text-on-surface">Students Execute & Track</h4>
-                      <p className="text-on-surface-variant">Assigned students track their progress, check off completed tasks, and provide real-time updates through their dashboard.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/5 rounded-[40px] -rotate-3"></div>
-                <div className="relative z-10 aspect-square rounded-[40px] overflow-hidden bg-cover bg-center shadow-card border-8 border-surface-card" style={{
-                  backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA2TVxD18ns2BQsXhcTj1GS6bR4oqmlGnyxLI7pgptCg4kATxv2qBujBFq0tULC1CKMt-qAScaSJOQfc_9kmK8iug2DF2CFdL_5clSTpdpAQiaJ-IOZedbhBRub03neO5Ha1zO6uov7CTeN2x6aUaQN_T-GrsMsWeiNx9OFGWEj43Wp2L0nPGTGoLU4wnfMCcEc9bhKdvQErDfQIrhVRkxMFQuoBXSqIfeu8JSSSpI5mBlGGOm3j6lINCEJBoBdGEOR8Qk68k_BP5w')"
-                }}></div>
-                <div className="absolute -bottom-6 -left-6 bg-surface-card p-6 rounded-2xl shadow-card border border-outline-variant max-w-[200px] z-20">
-                  <p className="font-mono text-primary font-bold">98% Efficient</p>
-                  <p className="text-xs text-on-surface-variant">Reduced paperwork and coordination delays.</p>
-                </div>
-              </div>
+                </article>
+              ))}
             </div>
-          </div>
-        </section>
+          )}
+        </div>
+      </section>
 
-        {/* Final CTA */}
-        <section className="py-20 bg-surface-container">
-          <div className="container mx-auto px-6 text-center">
-            <div className="max-w-3xl mx-auto space-y-8">
-              <h2 className="text-[36px] text-on-surface font-bold">Ready to elevate your department's events?</h2>
-              <p className="text-on-surface-variant text-lg">Join the School of Computer Application' official management portal today and streamline your institutional workflow.</p>
-              <div className="flex justify-center">
-                <Link to="/portal" className="bg-primary text-on-primary px-10 py-5 rounded-btn font-bold text-lg shadow-md hover:opacity-90 transition-all active:scale-95 flex items-center gap-3">
-                  Access Student Portal
-                  <LogIn size={24} />
-                </Link>
+      {/* ── Features Section ── */}
+      <section className="py-24 bg-background" id="about">
+        <div className="container mx-auto px-6">
+          <div className="max-w-2xl mx-auto text-center mb-16 space-y-4">
+            <h2 className="text-[32px] text-on-surface font-bold">
+              Everything you need to run SCA events
+            </h2>
+            <p className="text-on-surface-variant">
+              A comprehensive toolset designed for the specific workflow of University
+              event coordination, from approval to execution.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              {
+                icon: ShieldCheck,
+                title: 'Role-Based Access',
+                desc: 'Granular permissions for Admins, Faculty, Organizers, and Students. Everyone sees exactly what they need.',
+              },
+              {
+                icon: Calendar,
+                title: 'Event Lifecycle',
+                desc: 'From initial proposal through approval queue to post-event reporting, manage the entire lifecycle in one place.',
+              },
+              {
+                icon: CheckSquare,
+                title: 'Tasks & Todo Tracking',
+                desc: 'Assign specific tasks to student teams with deadlines and automatic reminders for seamless coordination.',
+              },
+            ].map(({ icon: Icon, title, desc }) => (
+              <div
+                key={title}
+                className="bg-surface-container p-8 rounded-card border border-outline-variant
+                           hover:shadow-card transition-shadow group"
+              >
+                <div className="w-14 h-14 bg-primary-container/10 rounded-card flex items-center
+                                justify-center text-primary mb-6
+                                group-hover:bg-primary group-hover:text-on-primary transition-colors">
+                  <Icon size={36} />
+                </div>
+                <h3 className="text-lg font-semibold text-on-surface mb-3">{title}</h3>
+                <p className="text-on-surface-variant leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── How It Works ── */}
+      <section className="py-24 bg-surface-card relative overflow-hidden">
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-[32px] text-on-surface font-bold mb-12">
+                Streamlined workflow for{' '}
+                <span className="text-primary">Academic Excellence</span>
+              </h2>
+              <div className="space-y-10">
+                {[
+                  {
+                    num: '1', color: 'bg-secondary text-on-secondary',
+                    title: 'Admin Creates Accounts',
+                    desc: 'Centralized system administrators provision secure faculty and student organizer accounts via JWT authentication.',
+                  },
+                  {
+                    num: '2', color: 'bg-primary text-on-primary',
+                    title: 'Faculty Orchestrate Events',
+                    desc: 'Faculty members initiate event registries, define scope, and assign dynamic todo lists to student leadership teams.',
+                  },
+                  {
+                    num: '3', color: 'bg-tertiary text-on-tertiary',
+                    title: 'Students Execute & Track',
+                    desc: 'Assigned students track their progress, check off completed tasks, and provide real-time updates through their dashboard.',
+                  },
+                ].map(({ num, color, title, desc }) => (
+                  <div key={num} className="flex gap-6">
+                    <div className={`flex-none w-10 h-10 rounded-full ${color} flex items-center justify-center font-bold`}>
+                      {num}
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-bold text-lg text-on-surface">{title}</h4>
+                      <p className="text-on-surface-variant">{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/5 rounded-[40px] -rotate-3" />
+              <div
+                className="relative z-10 aspect-square rounded-[40px] overflow-hidden
+                           bg-cover bg-center shadow-card border-8 border-surface-card"
+                style={{
+                  backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA2TVxD18ns2BQsXhcTj1GS6bR4oqmlGnyxLI7pgptCg4kATxv2qBujBFq0tULC1CKMt-qAScaSJOQfc_9kmK8iug2DF2CFdL_5clSTpdpAQiaJ-IOZedbhBRub03neO5Ha1zO6uov7CTeN2x6aUaQN_T-GrsMsWeiNx9OFGWEj43Wp2L0nPGTGoLU4wnfMCcEc9bhKdvQErDfQIrhVRkxMFQuoBXSqIfeu8JSSSpI5mBlGGOm3j6lINCEJBoBdGEOR8Qk68k_BP5w')",
+                }}
+              />
+              <div className="absolute -bottom-6 -left-6 bg-surface-card p-6 rounded-2xl
+                              shadow-card border border-outline-variant max-w-[200px] z-20">
+                <p className="font-mono text-primary font-bold">98% Efficient</p>
+                <p className="text-xs text-on-surface-variant">
+                  Reduced paperwork and coordination delays.
+                </p>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
+
+      {/* ── Final CTA ── */}
+      <section className="py-20 bg-surface-container">
+        <div className="container mx-auto px-6 text-center">
+          <div className="max-w-3xl mx-auto space-y-8">
+            <h2 className="text-[36px] text-on-surface font-bold">
+              Ready to elevate your department's events?
+            </h2>
+            <p className="text-on-surface-variant text-lg">
+              Join the School of Computer Application's official management portal today
+              and streamline your institutional workflow.
+            </p>
+            <div className="flex justify-center">
+              <Link
+                to="/portal"
+                className="bg-primary text-on-primary px-10 py-5 rounded-btn font-bold
+                           text-lg shadow-md hover:opacity-90 transition-all active:scale-95
+                           flex items-center gap-3"
+              >
+                Access Student Portal
+                <LogIn size={24} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </PublicLayout>
   )
 }
