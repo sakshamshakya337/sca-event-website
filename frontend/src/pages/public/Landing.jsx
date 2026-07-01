@@ -325,7 +325,7 @@ function VideoSection() {
           )}
         </div>
 
-        {/* Three feature chips below video */}
+        Three feature chips below video
         <div className="max-w-4xl mx-auto mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: ShieldCheck, label: 'Role-Based Access',  desc: 'Admin, Faculty, Student' },
@@ -427,25 +427,6 @@ export default function Landing() {
           </div>
         </div>
       </FullBgCarousel>
-
-      {/* ── Stats Bar ── */}
-      <section className="bg-secondary py-8 border-y border-outline-variant">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {[
-              { label: '4 User Roles',   sub: 'Access Levels' },
-              { label: 'Real-Time',      sub: 'Live Database' },
-              { label: 'JWT Auth',       sub: 'Secure Access' },
-              { label: 'LPU Exclusive',  sub: 'Institutional' },
-            ].map(({ label, sub }) => (
-              <div key={label} className="space-y-1">
-                <div className="text-secondary-fixed text-lg font-semibold">{label}</div>
-                <div className="text-on-secondary/60 text-xs uppercase tracking-wider">{sub}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── VIDEO SECTION ── */}
       <VideoSection />
