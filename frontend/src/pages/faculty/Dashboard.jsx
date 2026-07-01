@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { XCircle } from 'lucide-react'
 import {Calendar as CalendarIcon, CheckSquare, Users, Terminal, Bell, Moon, Plus, Trash2, Edit2, Settings, ChevronRight, ChevronDown, UserPlus, UserMinus, TrendingUp, History, X, ChevronLeft, Calendar as CalendarEvent } from 'lucide-react'
 import PageWrapper from '../../components/layout/PageWrapper'
 import Calendar from '../../components/Calendar'
@@ -41,6 +42,13 @@ export default function FacultyDashboard() {
             <h2 className="text-headline-lg font-headline-lg text-primary">Dashboard Overview</h2>
             <p className="text-body-md text-on-surface-variant">Manage and monitor your upcoming and past university events.</p>
           </div>
+          <button
+            onClick={() => navigate('/faculty/events/create')}
+            className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary text-sm font-semibold rounded-btn shadow-md hover:opacity-90 transition-all active:scale-95"
+          >
+            <Plus size={16} />
+            Create Event
+          </button>
         </div>
 
         {/* Stats Cards */}
@@ -171,7 +179,7 @@ export default function FacultyDashboard() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           {expandedRow === event.id ? (
-                            <MdExpandMore className="text-secondary" size={20} />
+                            <ChevronDown className="text-secondary" size={20} />
                           ) : (
                             <ChevronRight className="text-on-surface-variant" size={20} />
                           )}
@@ -230,7 +238,7 @@ export default function FacultyDashboard() {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-headline-md font-headline-md text-primary">{selectedEvent.title}</h3>
                 <button onClick={() => setSelectedEvent(null)} className="text-on-surface-variant hover:text-primary">
-                  <MdCancel size={24} />
+                  <XCircle size={24} />
                 </button>
               </div>
               <div className="space-y-3">

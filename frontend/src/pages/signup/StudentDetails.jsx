@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MdPerson, MdSchool, MdLock, MdVisibility, MdVisibilityOff, MdInfo, MdCheckCircle, MdArrowBack, MdArrowForward } from 'react-icons/md'
+import { User, GraduationCap, Lock, Eye, EyeOff, Info, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -73,7 +73,7 @@ export default function StudentDetails() {
         <div className="flex items-center gap-2">
           <span className="text-[#43474e] text-sm">Already have an account?</span>
           <Link to="/portal" className="text-[#0051d5] text-sm font-semibold hover:underline flex items-center gap-1">
-            LogIn <MdArrowForward className="text-sm" />
+            LogIn <ArrowRight size={14} />
           </Link>
         </div>
       </header>
@@ -84,7 +84,7 @@ export default function StudentDetails() {
         <div className="w-full max-w-[600px] flex items-center justify-between mb-6 px-4">
           <div className="flex flex-col items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center">
-              <MdCheckCircle className="text-lg" />
+              <CheckCircle2 size={18} />
             </div>
             <span className="text-sm font-semibold text-green-700">Role</span>
           </div>
@@ -107,7 +107,7 @@ export default function StudentDetails() {
               {/* Section: Personal Information */}
               <section>
                 <div className="flex items-center gap-2 mb-4">
-                  <MdPerson className="text-[#022448]" />
+                  <User size={16} className="text-[#022448]" />
                   <h2 className="text-sm font-semibold text-[#022448] uppercase tracking-wide">Personal Information</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -141,7 +141,7 @@ export default function StudentDetails() {
                     placeholder="Enter personal email"
                   />
                   <p className="text-xs text-[#74777f] flex items-center gap-1">
-                    <MdInfo className="text-xs" />
+                    <Info size={12} />
                     Verification link will be sent to this email.
                   </p>
                   {errors.personalEmail && <p className="text-red-500 text-xs">{errors.personalEmail.message}</p>}
@@ -167,7 +167,7 @@ export default function StudentDetails() {
               {/* Section: Academic Information */}
               <section>
                 <div className="flex items-center gap-2 mb-4">
-                  <MdSchool className="text-[#022448]" />
+                  <GraduationCap size={16} className="text-[#022448]" />
                   <h2 className="text-sm font-semibold text-[#022448] uppercase tracking-wide">Academic Information</h2>
                 </div>
                 <div className="flex flex-col gap-1.5 mb-4">
@@ -237,7 +237,7 @@ export default function StudentDetails() {
               {/* Section: Set Password */}
               <section>
                 <div className="flex items-center gap-2 mb-4">
-                  <MdLock className="text-[#022448]" />
+                  <Lock size={16} className="text-[#022448]" />
                   <h2 className="text-sm font-semibold text-[#022448] uppercase tracking-wide">Security</h2>
                 </div>
                 <div className="space-y-4">
@@ -255,7 +255,7 @@ export default function StudentDetails() {
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-[#74777f] hover:text-[#022448] transition-colors"
                       >
-                        {showPassword ? <MdVisibilityOff className="text-xl" /> : <MdVisibility className="text-xl" />}
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
                     {/* Strength Bar */}
@@ -274,13 +274,13 @@ export default function StudentDetails() {
                     {/* Requirements */}
                     <ul className="mt-3 space-y-1">
                       <li className={`flex items-center gap-2 text-xs ${password && password.length >= 8 ? 'text-green-600' : 'text-[#74777f]'}`}>
-                        {password && password.length >= 8 ? <MdCheckCircle className="text-xs font-bold" /> : <span>•</span>} At least 8 characters
+                        {password && password.length >= 8 ? <CheckCircle2 size={12} /> : <span>•</span>} At least 8 characters
                       </li>
                       <li className={`flex items-center gap-2 text-xs ${password && /[A-Z]/.test(password) ? 'text-green-600' : 'text-[#74777f]'}`}>
-                        {password && /[A-Z]/.test(password) ? <MdCheckCircle className="text-xs font-bold" /> : <span>•</span>} One uppercase letter
+                        {password && /[A-Z]/.test(password) ? <CheckCircle2 size={12} /> : <span>•</span>} One uppercase letter
                       </li>
                       <li className={`flex items-center gap-2 text-xs ${password && /[0-9]/.test(password) ? 'text-green-600' : 'text-[#74777f]'}`}>
-                        {password && /[0-9]/.test(password) ? <MdCheckCircle className="text-xs font-bold" /> : <span>•</span>} One number
+                        {password && /[0-9]/.test(password) ? <CheckCircle2 size={12} /> : <span>•</span>} One number
                       </li>
                     </ul>
                     {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
@@ -299,12 +299,12 @@ export default function StudentDetails() {
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-[#74777f] hover:text-[#022448] transition-colors"
                       >
-                        {showConfirmPassword ? <MdVisibilityOff className="text-xl" /> : <MdVisibility className="text-xl" />}
+                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
                     {password && watch('confirmPassword') && password === watch('confirmPassword') && (
                       <p className="text-green-600 text-xs font-semibold flex items-center gap-1 mt-1">
-                        <MdCheckCircle className="text-xs" /> Passwords match
+                        <CheckCircle2 size={12} /> Passwords match
                       </p>
                     )}
                     {errors.confirmPassword && <p className="text-red-500 text-xs">{errors.confirmPassword.message}</p>}
@@ -313,22 +313,21 @@ export default function StudentDetails() {
               </section>
             </div>
 
-            {/* Footer Actions */}
             <div className="bg-[#f0f4f8] p-6 flex items-center justify-between border-t border-[#c4c6cf]">
               <button
                 type="button"
                 onClick={() => navigate('/signup')}
-                className="px-5 py-2.5 flex items-center gap-2 text-[#43474e] text-sm font-semibold hover:bg-white rounded-lg transition-colors"
+                className="px-5 py-2.5 flex items-center gap-2 text-primary text-sm font-semibold border-2 border-primary rounded-btn hover:bg-primary hover:text-on-primary transition-all active:scale-[0.98]"
               >
-                <MdArrowBack />
+                <ArrowLeft size={16} />
                 Back
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-[#0051d5] text-white text-sm font-semibold rounded-lg hover:bg-[#316bf3] transition-all flex items-center gap-2 active:scale-[0.98]"
+                className="px-6 py-2.5 bg-primary text-on-primary text-sm font-semibold rounded-btn hover:opacity-90 transition-all flex items-center gap-2 active:scale-[0.98] shadow-md"
               >
                 Continue
-                <MdArrowForward />
+                <ArrowRight size={16} />
               </button>
             </div>
           </form>

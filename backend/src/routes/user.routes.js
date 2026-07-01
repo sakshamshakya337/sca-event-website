@@ -4,24 +4,27 @@ import * as userController from '../controllers/user.controller.js'
 
 const router = express.Router()
 
-
-
-// Protected routes
+// All routes require authentication
 router.use(protect)
 
+// ── Self routes ──────────────────────────────────────────────────────────────
 router.get('/me/stats', userController.getUserStats)
 router.put('/me/profile', userController.upload.single('profilePhoto'), userController.updateProfile)
 
+// ── Named collection routes (MUST be before /:id) ───────────────────────────
 // Student list for faculty/admin
 router.get('/students', authorize('faculty', 'admin', 'superadmin'), userController.getStudents)
 
-// Admin routes
-router.use(authorize('admin', 'superadmin'))
+// Faculty list for faculty/admin
+router.get('/faculty', authorize('faculty', 'admin', 'superadmin'), userController.getFaculty)
 
-router.get('/', userController.getAllUsers)
-router.get('/:id', userController.getUserById)
-router.post('/', userController.createUser)
-router.put('/:id', userController.updateUser)
-router.delete('/:id', userController.deleteUser)
+// ── Admin-only collection routes ─────────────────────────────────────────────
+router.get('/', authorize('admin', 'superadmin'), userController.getAllUsers)
+router.post('/', authorize('admin', 'superadmin'), userController.createUser)
+
+// ── Dynamic :id routes (MUST be after all named routes) ──────────────────────
+router.get('/:id', authorize('admin', 'superadmin'), userController.getUserById)
+router.put('/:id', authorize('admin', 'superadmin'), userController.updateUser)
+router.delete('/:id', authorize('admin', 'superadmin'), userController.deleteUser)
 
 export default router

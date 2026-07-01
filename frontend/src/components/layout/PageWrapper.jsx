@@ -8,7 +8,7 @@ export default function PageWrapper({ children }) {
   return (
     <>
       <Sidebar />
-      <div className={`flex flex-col min-h-screen transition-all duration-300 ${sidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+      <div className={`flex flex-col min-h-screen transition-all duration-300 ${sidebarOpen ? 'ml-[240px]' : 'ml-0 lg:ml-[64px]'}`}>
         <Navbar />
         <main className="p-6 flex flex-col gap-6">
           {children}

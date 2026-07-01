@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import PageWrapper from '../../components/layout/PageWrapper'
-import { MdSearch, MdCheck, MdEdit, MdDelete, MdAdd } from 'react-icons/md'
+import { Search, Check, Edit, Trash2, Plus } from 'lucide-react'
 import useAdminTaskStore from '../../store/adminTaskStore'
 
 export default function MyTasks() {
@@ -46,7 +46,7 @@ export default function MyTasks() {
           </div>
           <div className="flex items-center gap-4">
             <div className="relative hidden sm:block">
-              <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
               <input
                 type="text"
                 placeholder="Search tasks..."
@@ -81,7 +81,7 @@ export default function MyTasks() {
                             : 'border-2 border-outline-variant hover:border-secondary'
                         }`}
                       >
-                        {task.completed && <MdCheck size={16} className="font-bold" />}
+                        {task.completed && <Check size={16} className="font-bold" />}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -112,13 +112,13 @@ export default function MyTasks() {
                     <td className="px-6 py-4 text-right">
                       <div className={`flex justify-end gap-2 text-on-surface-variant transition-opacity ${task.completed ? 'text-on-surface-variant/50' : 'opacity-0 hover:opacity-100'}`}>
                         <button className="p-1.5 hover:bg-surface-container-high rounded-lg transition-colors">
-                          <MdEdit size={20} />
+                          <Edit2 size={20} />
                         </button>
                         <button 
                           onClick={() => deleteTask(task.id)}
                           className="p-1.5 hover:bg-error-container hover:text-error rounded-lg transition-colors"
                         >
-                          <MdDelete size={20} />
+                          <Trash2 size={20} />
                         </button>
                       </div>
                     </td>
@@ -131,7 +131,7 @@ export default function MyTasks() {
 
         <div className="fixed bottom-6 right-6">
           <button className="bg-secondary text-white px-4 py-3 rounded-lg font-bold shadow-lg hover:bg-secondary/90 transition-all active:scale-95 flex items-center gap-2">
-            <MdAdd size={20} />
+            <Plus size={20} />
             Add Task
           </button>
         </div>

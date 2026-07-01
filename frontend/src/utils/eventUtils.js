@@ -45,11 +45,12 @@ export const getUserId = (user) => {
 
 export const isEventVisibleToFaculty = (event, user) => {
   const userId = getUserId(user)
-  if (!userId) return false
+  if (!userId || !event) return false
 
-  const creatorId = typeof event?.createdBy === 'object'
-    ? event.createdBy._id?.toString?.()
-    : event?.createdBy?.toString?.()
+  const createdBy = event?.createdBy
+  const creatorId = createdBy
+    ? (typeof createdBy === 'object' ? createdBy._id?.toString?.() : createdBy?.toString?.())
+    : null
 
   const assignedFacultyIds = (event?.assignedFaculty || []).map((faculty) =>
     typeof faculty === 'object' ? faculty._id?.toString?.() : faculty?.toString?.()

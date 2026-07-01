@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
-import { MdArrowBack, MdInfo, MdCheckCircle, MdCancel, MdAccountBox, MdOpenInNew, MdForwardToInbox } from 'react-icons/md'
+import { ArrowLeft, Info, CheckCircle2, XCircle, UserSquare, ExternalLink, MailCheck } from 'lucide-react'
 import useAdminVerifyStore from '../../store/adminVerifyStore'
 import api from '../../config/axios'
 
@@ -64,7 +64,7 @@ export default function VerifyUserDetail() {
       <div className="max-w-[1400px] mx-auto">
         <div className="flex items-center gap-2 mb-6">
           <Link to="/admin/verify" className="flex items-center gap-2 text-secondary hover:underline">
-            <MdArrowBack size={20} />
+            <ArrowLeft size={20} />
             Back
           </Link>
         </div>
@@ -73,7 +73,7 @@ export default function VerifyUserDetail() {
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-sm">
               <div className="px-6 py-4 border-b border-outline-variant flex items-center gap-3">
-                <MdAccountBox size={24} className="text-primary" />
+                <UserSquare size={24} className="text-primary" />
                 <h2 className="text-headline-lg font-headline-lg text-primary">Applicant Details</h2>
               </div>
               <div className="p-6">
@@ -120,7 +120,7 @@ export default function VerifyUserDetail() {
 
             <div className="bg-white border border-outline-variant rounded-xl shadow-sm">
               <div className="px-6 py-4 border-b border-outline-variant flex items-center gap-3">
-                <MdInfo size={24} className="text-secondary" />
+                <Info size={24} className="text-secondary" />
                 <h3 className="text-headline-sm font-headline-sm text-primary">Verification Checklist</h3>
               </div>
               <div className="p-6">
@@ -159,7 +159,7 @@ export default function VerifyUserDetail() {
                   onChange={(e) => setNotes(e.target.value)}
                 />
                 <div className="mt-3 flex items-center gap-2 text-on-surface-variant text-[11px] font-medium">
-                  <MdInfo size={16} />
+                  <Info size={16} />
                   Notes are only visible to other administrators and faculty.
                 </div>
               </div>
@@ -171,14 +171,14 @@ export default function VerifyUserDetail() {
                   onClick={handleReject}
                   className="px-6 py-3 bg-error text-white rounded-lg font-headline-md hover:bg-error/90 transition-all active:scale-95 flex items-center gap-2"
                 >
-                  <MdCancel size={20} />
+                  <XCircle size={20} />
                   Reject Application
                 </button>
                 <button
                   onClick={handleApprove}
                   className="px-6 py-3 bg-green-600 text-white rounded-lg font-headline-md hover:bg-green-700 transition-all active:scale-95 flex items-center gap-2"
                 >
-                  <MdCheckCircle size={20} />
+                  <CheckCircle2 size={20} />
                   Approve Application
                 </button>
               </div>
@@ -199,22 +199,22 @@ export default function VerifyUserDetail() {
                     'bg-red-100 text-red-700 border-red-200'
                   }`}>
                     {verification.status === 'pending' && <div className="w-1.5 h-1.5 rounded-full bg-amber-700"></div>}
-                    {verification.status === 'approved' && <MdCheckCircle size={14} />}
-                    {verification.status === 'rejected' && <MdCancel size={14} />}
+                    {verification.status === 'approved' && <CheckCircle2 size={14} />}
+                    {verification.status === 'rejected' && <XCircle size={14} />}
                     {verification.status}
                   </span>
                 </div>
               </div>
               <div className="p-6 bg-primary-container text-on-primary-container border-t border-primary/10">
                 <div className="flex items-start gap-3">
-                  <MdForwardToInbox size={24} className="text-white/70" />
+                  <MailCheck size={24} className="text-white/70" />
                   <div>
                     <h4 className="font-bold text-headline-sm">Decision Workflow</h4>
                     <p className="font-body-md opacity-90 mt-1">
                       Upon submitting your final decision, an automated notification will be sent to the student's personal and university email addresses.
                     </p>
                     <div className="mt-4 pt-4 border-t border-white/20 flex items-center gap-2 text-white/70 text-[12px] italic">
-                      <MdInfo size={16} />
+                      <Info size={16} />
                       Review history will be logged for administrative auditing.
                     </div>
                   </div>
@@ -227,7 +227,7 @@ export default function VerifyUserDetail() {
                 <div className="px-6 py-4 border-b border-outline-variant flex items-center justify-between">
                   <h3 className="text-headline-sm font-headline-sm text-primary">ID Card Document</h3>
                   <a href={verification.universityIdUrl} target="_blank" rel="noopener noreferrer" className="text-secondary font-bold text-[12px] hover:underline flex items-center gap-1">
-                    View Full Size <MdOpenInNew size={14} />
+                    View Full Size <ExternalLink size={14} />
                   </a>
                 </div>
                 <div className="p-6">

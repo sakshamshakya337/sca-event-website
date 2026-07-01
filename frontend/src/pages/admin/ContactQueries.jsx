@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import PageWrapper from '../../components/layout/PageWrapper'
-import { MdSearch, MdRefresh, MdChevronLeft, MdChevronRight, MdMarkEmailUnread, MdTaskAlt, MdTimer, MdTrendingUp, MdDownload, MdCheckCircle } from 'react-icons/md'
+import { Search, RefreshCw, ChevronLeft, ChevronRight, MailOpen, ClipboardCheck, Timer, TrendingUp, Download, CheckCircle2 } from 'lucide-react'
 import useAdminQueriesStore from '../../store/adminQueriesStore'
 
 const statusLabelMap = {
@@ -41,7 +41,7 @@ export default function ContactQueries() {
               <p className="text-on-surface-variant font-body-md mt-1">Manage and respond to student, faculty, and stakeholder queries.</p>
             </div>
             <button className="flex items-center gap-2 px-5 py-2.5 border border-outline-variant rounded-lg text-primary font-headline-sm hover:bg-surface-container transition-all">
-              <MdDownload size={20} />
+              <Download size={20} />
               <span>Export Data</span>
             </button>
           </div>
@@ -53,7 +53,7 @@ export default function ContactQueries() {
                 <h3 className="text-headline-lg text-[28px] mt-2 text-primary">{queries.filter(q => q.status === 'pending').length}</h3>
               </div>
               <div className="bg-blue-100 p-3 rounded-xl">
-                <MdMarkEmailUnread className="text-blue-700" size={28} />
+                <MailOpen className="text-blue-700" size={28} />
               </div>
             </div>
 
@@ -63,7 +63,7 @@ export default function ContactQueries() {
                 <h3 className="text-headline-lg text-[28px] mt-2 text-primary">{Math.round((queries.filter(q => q.status === 'resolved').length / queries.length) * 100) || 0}%</h3>
               </div>
               <div className="bg-green-100 p-3 rounded-xl">
-                <MdTaskAlt className="text-green-700" size={28} />
+                <ClipboardCheck className="text-green-700" size={28} />
               </div>
             </div>
 
@@ -73,7 +73,7 @@ export default function ContactQueries() {
                 <h3 className="text-headline-lg text-[28px] mt-2 text-primary">4.2h</h3>
               </div>
               <div className="bg-orange-100 p-3 rounded-xl">
-                <MdTimer className="text-orange-700" size={28} />
+                <Timer className="text-orange-700" size={28} />
               </div>
             </div>
 
@@ -83,14 +83,14 @@ export default function ContactQueries() {
                 <h3 className="text-headline-lg text-[28px] mt-2 text-primary">+12%</h3>
               </div>
               <div className="bg-purple-100 p-3 rounded-xl">
-                <MdTrendingUp className="text-purple-700" size={28} />
+                <TrendingUp className="text-purple-700" size={28} />
               </div>
             </div>
           </div>
 
           <div className="bg-[#F8FAFC] p-4 rounded-xl flex items-center flex-wrap gap-4 border border-outline-variant">
             <div className="relative flex-1 min-w-[200px]">
-              <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
               <input
                 className="w-full bg-white border border-outline-variant rounded-lg pl-10 pr-4 py-2 text-body-md focus:ring-2 focus:ring-secondary/20 focus:outline-none"
                 placeholder="Search by name or subject..."
@@ -125,7 +125,7 @@ export default function ContactQueries() {
               </select>
             </div>
             <button className="bg-white border border-outline-variant p-2 rounded-lg text-on-surface-variant hover:text-primary hover:border-primary transition-all">
-              <MdRefresh size={20} />
+              <RefreshCw size={20} />
             </button>
           </div>
         </div>
@@ -183,7 +183,7 @@ export default function ContactQueries() {
                             onClick={() => markAsReplied(query.id)}
                             className="px-4 py-1.5 bg-green-600 text-white rounded-lg text-body-sm font-semibold hover:bg-green-700 transition-all flex items-center gap-2"
                           >
-                            Mark Resolved <MdCheckCircle size={16} />
+                            Mark Resolved <CheckCircle2 size={16} />
                           </button>
                         )}
                       </div>

@@ -1,22 +1,21 @@
-import { useState, useEffect } from 'react'
-import {
-  MdPhotoCamera,
-  MdCloudUpload,
-  MdEdit,
-  MdSave,
-  MdLock,
-  MdVisibility,
-  MdVisibilityOff,
-  MdCheckCircle,
-  MdClose,
-  MdContactMail,
-  MdCall,
-  MdSecurity,
-  MdAdminPanelSettings
-} from 'react-icons/md'
+﻿import { useState, useEffect } from 'react'
+
 import PageWrapper from '../../components/layout/PageWrapper'
 import useAuthStore from '../../store/authStore'
 import api from '../../config/axios'
+import {
+  CheckCircle2,
+  X,
+  Edit2,
+  Upload,
+  ShieldAlert,
+  Mail,
+  Phone,
+  Save,
+  ShieldCheck,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 export default function FacultyProfile() {
   const { user, setUser } = useAuthStore()
@@ -180,13 +179,13 @@ export default function FacultyProfile() {
     <PageWrapper>
       {showToast && (
         <div className="fixed top-6 right-6 z-50 flex items-center gap-3 bg-white border-l-4 border-green-500 p-4 rounded shadow-lg">
-          <MdCheckCircle className="w-6 h-6 text-green-500" />
+          <CheckCircle2 className="w-6 h-6 text-green-500" />
           <div>
             <p className="font-semibold text-on-surface">Profile updated successfully!</p>
             <p className="text-sm text-on-surface-variant">Changes saved to your account.</p>
           </div>
           <button onClick={() => setShowToast(false)} className="text-on-surface-variant hover:text-on-surface">
-            <MdClose className="w-5 h-5" />
+            <X className="w-5 h-5" />
           </button>
         </div>
       )}
@@ -207,7 +206,7 @@ export default function FacultyProfile() {
                 </div>
               )}
               <label className="absolute inset-0 rounded-full bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                <MdEdit className="text-white" size={24} />
+                <Edit2 className="text-white" size={24} />
                 <input
                   type="file"
                   accept="image/*"
@@ -225,7 +224,7 @@ export default function FacultyProfile() {
             <p className="mt-4 text-body-sm text-on-primary-container">{user?.personalEmail || user?.officialEmail || 'faculty@university.edu'}</p>
             <p className="mt-1 text-body-sm text-primary-container/60">Member since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'August 2023'}</p>
             <label className="mt-8 w-full py-2.5 border border-white/30 text-white rounded-lg text-headline-sm hover:bg-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer">
-              <MdCloudUpload size={16} />
+              <Upload size={16} />
               {photoUploading ? 'Uploading...' : 'Upload Photo'}
               <input
                 type="file"
@@ -254,7 +253,7 @@ export default function FacultyProfile() {
             <form onSubmit={handleProfileSubmit} className="space-y-10">
               <div>
                 <div className="flex items-center gap-2 mb-6">
-                  <MdAdminPanelSettings className="text-secondary" size={24} />
+                  <ShieldAlert className="text-secondary" size={24} />
                   <h4 className="text-headline-md text-primary font-bold">Professional Information</h4>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -285,8 +284,6 @@ export default function FacultyProfile() {
                     >
                       <option value="">Select Department</option>
                       <option value="School of Computer Applications">School of Computer Applications</option>
-                      <option value="School of Business">School of Business</option>
-                      <option value="School of Engineering">School of Engineering</option>
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -308,19 +305,10 @@ export default function FacultyProfile() {
 
               <div>
                 <div className="flex items-center gap-2 mb-6">
-                  <MdContactMail className="text-secondary" size={24} />
+                  <Mail className="text-secondary" size={24} />
                   <h4 className="text-headline-md text-primary font-bold">Contact Information</h4>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="block text-body-sm font-semibold text-on-surface-variant">Official Email</label>
-                    <input
-                      className="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm text-on-surface-variant italic"
-                      readOnly
-                      type="email"
-                      value={user?.officialEmail || 'faculty@sca.lpu.edu.in'}
-                    />
-                  </div>
                   <div className="space-y-2">
                     <label className="block text-body-sm font-semibold text-on-surface-variant">Personal Email</label>
                     <input
@@ -333,7 +321,7 @@ export default function FacultyProfile() {
                   <div className="space-y-2 md:col-span-2">
                     <label className="block text-body-sm font-semibold text-on-surface-variant">Phone Number</label>
                     <div className="relative">
-                      <MdCall className="absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant" size={16} />
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant" size={16} />
                       <input
                         className="w-full pl-10 pr-4 py-2.5 bg-surface-container border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-secondary/20 focus:outline-none"
                         type="text"
@@ -351,7 +339,7 @@ export default function FacultyProfile() {
                   disabled={loading}
                   className="px-6 py-2 bg-secondary text-white rounded-lg text-headline-sm hover:bg-secondary/90 active:scale-95 transition-all flex items-center gap-2"
                 >
-                  <MdSave className="w-5 h-5" />
+                  <Save className="w-5 h-5" />
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
@@ -359,7 +347,7 @@ export default function FacultyProfile() {
 
             <form onSubmit={handlePasswordSubmit} className="bg-surface-container-low p-6 rounded-xl border border-outline-variant">
               <div className="flex items-center gap-2 mb-6">
-                <MdSecurity className="text-secondary" size={24} />
+                <ShieldCheck className="text-secondary" size={24} />
                 <h4 className="text-headline-md text-primary font-bold">Security & Password</h4>
               </div>
               <div className="space-y-6">
@@ -379,7 +367,7 @@ export default function FacultyProfile() {
                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
                       >
-                        {showCurrentPassword ? <MdVisibilityOff size={20} /> : <MdVisibility size={20} />}
+                        {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>
                     </div>
                   </div>
@@ -399,7 +387,7 @@ export default function FacultyProfile() {
                         onClick={() => setShowNewPassword(!showNewPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
                       >
-                        {showNewPassword ? <MdVisibilityOff size={20} /> : <MdVisibility size={20} />}
+                        {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>
                     </div>
                   </div>
@@ -418,7 +406,7 @@ export default function FacultyProfile() {
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
                       >
-                        {showConfirmPassword ? <MdVisibilityOff size={20} /> : <MdVisibility size={20} />}
+                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>
                     </div>
                   </div>

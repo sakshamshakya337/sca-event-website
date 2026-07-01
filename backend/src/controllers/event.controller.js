@@ -122,15 +122,20 @@ export const getEventById = async (req, res, next) => {
     }
 
     // Check if user is authorized to view this event
+    const userId = req.user.id.toString()
+    const creatorId = event.createdBy
+      ? (event.createdBy._id ?? event.createdBy).toString()
+      : null
+
     const isAuthorized = 
       // Admin/superadmin can see all
       ['admin', 'superadmin'].includes(req.user.role) ||
       // Creator can see it
-      event.createdBy._id.toString() === req.user.id.toString() ||
+      creatorId === userId ||
       // Assigned faculty can see it
-      event.assignedFaculty.some(facultyId => facultyId.toString() === req.user.id.toString()) ||
+      (event.assignedFaculty || []).some(f => f && (f._id ?? f).toString() === userId) ||
       // Assigned student can see it
-      event.assignedStudents.some(studentId => studentId.toString() === req.user.id.toString())
+      (event.assignedStudents || []).some(s => s && (s._id ?? s).toString() === userId)
 
     if (!isAuthorized) {
       throw new ApiError(403, 'Not authorized to view this event')
@@ -411,14 +416,29 @@ export const assignFaculty = async (req, res, next) => {
       throw new ApiError(404, 'Event not found')
     }
 
-    const { facultyIds } = req.body
-    event.assignedFaculty = facultyIds
+    const { facultyId, action } = req.body
+
+    if (action === 'remove') {
+      // Remove a single faculty member
+      event.assignedFaculty = event.assignedFaculty.filter(
+        id => id.toString() !== facultyId
+      )
+    } else if (facultyId) {
+      // Add a single faculty member (avoid duplicates)
+      if (!event.assignedFaculty.some(id => id.toString() === facultyId)) {
+        event.assignedFaculty.push(facultyId)
+      }
+    } else if (req.body.facultyIds) {
+      // Full replace (backward compat)
+      event.assignedFaculty = req.body.facultyIds
+    }
 
     await event.save()
-    await event.populate('assignedFaculty', 'firstName lastName')
-    await event.populate('assignedStudents', 'firstName lastName')
+    await event.populate('assignedFaculty', 'firstName lastName department designation')
+    await event.populate('assignedStudents', 'firstName lastName registrationNumber')
+    await event.populate('createdBy', 'firstName lastName')
 
-    res.status(200).json(new ApiResponse(200, event, 'Faculty assigned successfully'))
+    res.status(200).json(new ApiResponse(200, event, 'Faculty updated successfully'))
   } catch (error) {
     next(error)
   }

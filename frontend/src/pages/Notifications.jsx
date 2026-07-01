@@ -1,90 +1,160 @@
 import React from 'react'
 import PageWrapper from '../components/layout/PageWrapper'
-import { MdCheckCircle, MdInfo, MdWarning, MdError, MdDelete, MdMarkEmailRead } from 'react-icons/md'
+import { CheckCircle2, Info, AlertTriangle, AlertCircle, Trash2, MailOpen, Bell, BellOff } from 'lucide-react'
 import useNotificationsStore from '../store/notificationsStore'
 
 export default function Notifications() {
-  const { notifications, markAsRead, markAllAsRead, deleteNotification, getUnreadCount } = useNotificationsStore()
+  const {
+    notifications,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    clearAll,
+    getUnreadCount,
+  } = useNotificationsStore()
 
   const getIcon = (type) => {
-    switch(type) {
+    switch (type) {
       case 'success':
-        return <MdCheckCircle className="w-6 h-6 text-green-600" />
+        return <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
       case 'warning':
-        return <MdWarning className="w-6 h-6 text-amber-600" />
+        return <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
       case 'error':
-        return <MdError className="w-6 h-6 text-red-600" />
+        return <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
       default:
-        return <MdInfo className="w-6 h-6 text-blue-600" />
+        return <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+    }
+  }
+
+  const getBg = (type, read) => {
+    if (read) return 'bg-white border-outline-variant'
+    switch (type) {
+      case 'success': return 'bg-green-50 border-green-200'
+      case 'warning': return 'bg-amber-50 border-amber-200'
+      case 'error':   return 'bg-red-50 border-red-200'
+      default:        return 'bg-blue-50 border-blue-200'
     }
   }
 
   const formatTime = (time) => {
     const date = new Date(time)
-    return date.toLocaleString()
+    const now = new Date()
+    const diffMs = now - date
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays < 7) return `${diffDays}d ago`
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
   }
 
   const unreadCount = getUnreadCount()
 
   return (
     <PageWrapper>
-      <div className="max-w-[1000px] mx-auto space-y-6">
+      <div className="max-w-[800px] mx-auto space-y-6">
+
+        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-headline-lg text-headline-lg text-primary">Notifications</h2>
-            <p className="text-body-md text-on-surface-variant">{unreadCount > 0 ? `You have ${unreadCount} unread notifications` : 'All caught up!'}
+            <h2 className="text-headline-lg text-primary flex items-center gap-2">
+              <Bell size={24} />
+              Notifications
+            </h2>
+            <p className="text-body-md text-on-surface-variant mt-1">
+              {unreadCount > 0
+                ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`
+                : 'You\'re all caught up!'}
             </p>
           </div>
-          {unreadCount > 0 && (
-            <button
-              onClick={markAllAsRead}
-              className="flex items-center gap-2 px-4 py-2 bg-surface-container text-secondary border border-outline-variant rounded-lg hover:bg-surface-container-high transition-all"
-            >
-              <MdMarkEmailRead size={18} />
-              Mark All as Read
-            </button>
+
+          {notifications.length > 0 && (
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-secondary border border-secondary/30 rounded-lg hover:bg-secondary/10 transition-all"
+                >
+                  <MailOpen size={16} />
+                  Mark all read
+                </button>
+              )}
+              <button
+                onClick={clearAll}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-error border border-error/30 rounded-lg hover:bg-error/10 transition-all"
+              >
+                <Trash2 size={16} />
+                Clear all
+              </button>
+            </div>
           )}
         </div>
 
-        <div className="space-y-4">
+        {/* List */}
+        <div className="space-y-3">
           {notifications.length === 0 ? (
-            <div className="bg-surface-container border border-outline-variant rounded-xl p-8 text-center">
-              <MdInfo className="w-12 h-12 text-on-surface-variant mx-auto mb-4" />
-              <p className="text-body-md text-on-surface">No notifications yet!</p>
+            <div className="bg-white border border-outline-variant rounded-xl p-16 text-center flex flex-col items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center">
+                <BellOff size={28} className="text-on-surface-variant opacity-40" />
+              </div>
+              <div>
+                <p className="font-semibold text-on-surface">No notifications yet</p>
+                <p className="text-sm text-on-surface-variant mt-1">
+                  Notifications will appear here when events are approved, tasks are assigned, or other activity occurs.
+                </p>
+              </div>
             </div>
           ) : (
             notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`bg-surface-container border border-outline-variant rounded-xl p-4 flex items-start gap-4 transition-all ${
-                  !notification.read ? 'bg-primary/5 border-primary/20' : ''
-                }`}
+                className={`border rounded-xl p-4 flex items-start gap-3 cursor-pointer transition-all hover:shadow-sm ${getBg(notification.type, notification.read)}`}
                 onClick={() => !notification.read && markAsRead(notification.id)}
               >
                 {getIcon(notification.type)}
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-body-lg font-semibold text-primary">{notification.title}</h3>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        deleteNotification(notification.id)
-                      }}
-                      className="p-1 hover:bg-surface-container-high rounded-full"
-                    >
-                      <MdDelete size={18} className="text-on-surface-variant" />
-                    </button>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className={`font-semibold text-sm leading-snug ${notification.read ? 'text-on-surface' : 'text-on-surface'}`}>
+                      {notification.title}
+                    </p>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs text-on-surface-variant whitespace-nowrap">
+                        {formatTime(notification.time)}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          deleteNotification(notification.id)
+                        }}
+                        className="p-1 hover:bg-black/10 rounded-full transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 size={14} className="text-on-surface-variant" />
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-body-md text-on-surface-variant">{notification.message}</p>
-                  <p className="text-body-sm text-on-surface-variant mt-1">{formatTime(notification.time)}</p>
+                  <p className="text-sm text-on-surface-variant mt-0.5 leading-relaxed">
+                    {notification.message}
+                  </p>
+                  {!notification.read && (
+                    <span className="inline-block mt-2 text-xs font-semibold text-primary">
+                      Tap to mark as read
+                    </span>
+                  )}
                 </div>
+
                 {!notification.read && (
-                  <div className="w-3 h-3 rounded-full bg-secondary flex-shrink-0" />
+                  <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />
                 )}
               </div>
             ))
           )}
         </div>
+
       </div>
     </PageWrapper>
   )

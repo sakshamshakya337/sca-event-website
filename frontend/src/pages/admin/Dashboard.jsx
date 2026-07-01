@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import PageWrapper from '../../components/layout/PageWrapper'
 import Calendar from '../../components/Calendar'
-import { MdAdd, MdNotifications, MdMoreHoriz, MdHelp, MdCheckCircle, MdCancel, MdStar, MdChevronRight, MdEvent, MdPeople, MdVerifiedUser, MdContactMail, MdChecklist, MdChevronLeft, MdVisibility, MdEdit } from 'react-icons/md'
+import { Plus, Bell, MoreHorizontal, HelpCircle, CheckCircle2, XCircle, Star, ChevronRight, CalendarCheck, Users, UserCheck, Mail, ClipboardList, ChevronLeft, Eye, Edit } from 'lucide-react'
 import useEventStore from '../../store/eventStore'
 import useAdminUserStore from '../../store/adminUserStore'
 import useAdminVerifyStore from '../../store/adminVerifyStore'
@@ -59,9 +59,9 @@ export default function Dashboard() {
             console.log('Dashboard Create Event clicked')
             navigate('/faculty/events/create')
           }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-secondary text-white text-body-md font-semibold rounded-lg hover:bg-opacity-90 transition-all active:scale-95"
+          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary text-body-md font-semibold rounded-btn shadow-md hover:opacity-90 transition-all active:scale-95"
         >
-          <MdAdd size={16} />
+          <Plus size={16} />
           Create New Event
         </button>
         </div>
@@ -103,7 +103,7 @@ export default function Dashboard() {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-headline-md font-headline-md text-primary flex items-center gap-2">
-              <MdEvent className="text-secondary" />
+              <CalendarCheck className="text-secondary" />
               Event Calendar
             </h3>
             <div className="flex items-center bg-surface-container rounded-lg p-1">
@@ -166,7 +166,7 @@ export default function Dashboard() {
           <div className="bg-[#F8FAFC] border border-outline-variant rounded-xl overflow-hidden shadow-sm">
             <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
               <h3 className="text-headline-sm font-headline-sm text-primary flex items-center gap-2">
-                <MdChecklist className="text-secondary" />
+                <ClipboardList size={18} className="text-secondary" />
                 Pending Approvals
               </h3>
               <Link 
@@ -200,7 +200,7 @@ export default function Dashboard() {
                         <td className="px-6 py-4 text-right">
                           {index === 0 ? (
                             <button onClick={() => setPendingEventId(event._id)} className="text-secondary-container">
-                              <MdMoreHoriz size={20} />
+                              <MoreHorizontal size={20} />
                             </button>
                           ) : (
                             <div className="flex items-center justify-end gap-2">
@@ -225,7 +225,7 @@ export default function Dashboard() {
                           <td className="px-6 py-3" colSpan="5">
                             <div className="flex items-center justify-between bg-primary-container text-white px-4 py-2 rounded-lg">
                               <p className="text-body-sm flex items-center gap-2">
-                                <MdHelp size={18} />
+                                <HelpCircle size={18} />
                                 Approve '{event.title}' by {getEventCreatorName(event.createdBy)}?
                               </p>
                               <div className="flex gap-2">
@@ -265,7 +265,7 @@ export default function Dashboard() {
                           className="text-on-surface-variant"
                           title="Edit Event"
                         >
-                          <MdEdit size={20} />
+                          <Edit size={20} />
                         </button>
                       </td>
                     </tr>
@@ -279,7 +279,7 @@ export default function Dashboard() {
           <div className="bg-[#F8FAFC] border border-outline-variant rounded-xl overflow-hidden shadow-sm">
             <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
               <h3 className="text-headline-sm font-headline-sm text-primary flex items-center gap-2">
-                <MdContactMail className="text-[#8B5CF6]" />
+                <Mail className="text-[#8B5CF6]" />
                 Recent Contact Queries
               </h3>
             </div>
@@ -332,7 +332,7 @@ export default function Dashboard() {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-headline-md font-headline-md text-primary">{selectedEvent.title}</h3>
                 <button onClick={() => setSelectedEvent(null)} className="text-on-surface-variant hover:text-primary">
-                  <MdCancel size={24} />
+                  <XCircle size={24} />
                 </button>
               </div>
               <div className="space-y-3">

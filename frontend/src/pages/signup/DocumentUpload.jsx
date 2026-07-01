@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MdArrowBack, MdCloudUpload, MdClose, MdDescription, MdImage, MdCheckCircle, MdArrowForward, MdLoop } from 'react-icons/md'
+import { ArrowLeft, CloudUpload, X, FileText, Image, CheckCircle2, ArrowRight, RotateCw } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import useSignupStore from '../../store/signupStore'
 import useAuthStore from '../../store/authStore'
@@ -121,8 +121,8 @@ export default function DocumentUpload() {
           <img src="/sca.png" alt="SCA Logo" className="h-10 w-auto" />
         </div>
         <div className="hidden md:flex gap-6 items-center">
-          <Link to="/portal" className="bg-[#022448] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#1e3a5f] transition-colors">
-            LogIn
+          <Link to="/portal" className="bg-primary text-on-primary px-5 py-2 rounded-btn text-sm font-semibold hover:opacity-90 active:scale-95 transition-all shadow-md">
+            Login
           </Link>
         </div>
       </nav>
@@ -137,14 +137,14 @@ export default function DocumentUpload() {
             {/* Step 1 */}
             <div className="flex flex-col items-center gap-2 bg-[#f6fafe] px-4">
               <div className="w-10 h-10 rounded-full bg-[#10b981] text-white flex items-center justify-center shadow-sm">
-                <MdCheckCircle className="text-[20px]" />
+                <CheckCircle2 size={20} />
               </div>
               <span className="text-sm text-[#43474e]">Account Info</span>
             </div>
             {/* Step 2 */}
             <div className="flex flex-col items-center gap-2 bg-[#f6fafe] px-4">
               <div className="w-10 h-10 rounded-full bg-[#10b981] text-white flex items-center justify-center shadow-sm">
-                <MdCheckCircle className="text-[20px]" />
+                <CheckCircle2 size={20} />
               </div>
               <span className="text-sm text-[#43474e]">Personal Details</span>
             </div>
@@ -174,7 +174,7 @@ export default function DocumentUpload() {
                         {universityId.file.type.includes('image') ? (
                           <img src={universityId.preview} alt="University ID preview" className="w-full h-full object-cover" />
                         ) : (
-                          <MdDescription className="text-emerald-600" size={24} />
+                          <FileText size={24} className="text-emerald-600" />
                         )}
                       </div>
                       <div className="flex flex-col">
@@ -183,9 +183,9 @@ export default function DocumentUpload() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <MdCheckCircle className="text-emerald-600" />
+                      <CheckCircle2 size={18} className="text-emerald-600" />
                       <button type="button" onClick={removeUniversityId} className="text-emerald-800 hover:bg-emerald-200/50 p-2 rounded-full transition-colors">
-                        <MdClose size={20} />
+                        <X size={20} />
                       </button>
                     </div>
                   </div>
@@ -199,7 +199,7 @@ export default function DocumentUpload() {
                       }`}
                     >
                       <input {...getIdInputProps()} />
-                      <MdCloudUpload className="mx-auto text-[#74777f] mb-4" size={40} />
+                      <CloudUpload size={40} className="mx-auto text-[#74777f] mb-4" />
                       <p className="text-[#43474e] mb-2">
                         {isIdDragActive ? 'Drop the file here...' : 'Click or drag file to upload'}
                       </p>
@@ -221,9 +221,9 @@ export default function DocumentUpload() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <MdCheckCircle className="text-emerald-600" />
+                      <CheckCircle2 size={18} className="text-emerald-600" />
                       <button type="button" onClick={removeProfilePhoto} className="text-emerald-800 hover:bg-emerald-200/50 p-2 rounded-full transition-colors">
-                        <MdClose size={20} />
+                        <X size={20} />
                       </button>
                     </div>
                   </div>
@@ -237,7 +237,7 @@ export default function DocumentUpload() {
                       }`}
                     >
                       <input {...getPhotoInputProps()} />
-                      <MdCloudUpload className="mx-auto text-[#74777f] mb-4" size={40} />
+                      <CloudUpload size={40} className="mx-auto text-[#74777f] mb-4" />
                       <p className="text-[#43474e] mb-2">
                         {isPhotoDragActive ? 'Drop the image here...' : 'Click or drag image to upload'}
                       </p>
@@ -258,17 +258,17 @@ export default function DocumentUpload() {
               <button
                 onClick={handleSubmit}
                 disabled={!universityId || !profilePhoto || isSubmitting}
-                className="w-full mt-8 bg-[#0051d5] text-white py-4 rounded-lg text-lg font-semibold flex items-center justify-center gap-2 hover:bg-[#316bf3] active:scale-[0.98] transition-all shadow-lg shadow-[#0051d5]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full mt-8 bg-primary text-on-primary py-4 rounded-btn text-lg font-semibold flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>
-                    <MdLoop className="animate-spin" />
+                    <RotateCw size={20} className="animate-spin" />
                     Processing...
                   </>
                 ) : (
                   <>
                     Complete Registration
-                    <MdArrowForward />
+                    <ArrowRight size={20} />
                   </>
                 )}
               </button>
@@ -282,7 +282,7 @@ export default function DocumentUpload() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-[#022448]">Profile Summary</h2>
                 <button type="button" onClick={() => navigate(-1)} className="text-[#43474e] cursor-pointer hover:text-[#0051d5] flex items-center gap-1">
-                  <MdArrowBack size={16} />
+                  <ArrowLeft size={16} />
                   Edit
                 </button>
               </div>

@@ -4,37 +4,54 @@ import { persist } from 'zustand/middleware'
 const useNotificationsStore = create(
   persist(
     (set, get) => ({
-      notifications: [
-        { id: 1, title: 'New Event Approved', message: 'Your event "Annual Tech Fest" has been approved.', type: 'success', read: false, time: new Date(Date.now() - 3600000).toISOString() },
-        { id: 2, title: 'Verification Update', message: 'Your verification is under review.', type: 'info', read: false, time: new Date(Date.now() - 7200000).toISOString() },
-        { id: 3, title: 'Contact Query Received', message: 'A new contact query from John Doe.', type: 'warning', read: true, time: new Date(Date.now() - 86400000).toISOString() },
-      ],
+      // Start with an empty list — notifications are added by real actions
+      notifications: [],
+
+      // Called by event/auth/verification actions across the app
       addNotification: (notification) => {
         set((state) => ({
-          notifications: [{ ...notification, id: Date.now(), time: new Date().toISOString(), read: false }, ...state.notifications],
+          notifications: [
+            {
+              ...notification,
+              id: Date.now(),
+              time: new Date().toISOString(),
+              read: false,
+            },
+            ...state.notifications,
+          ],
         }))
       },
+
       markAsRead: (id) => {
         set((state) => ({
-          notifications: state.notifications.map(n => n.id === id ? { ...n, read: true } : n),
+          notifications: state.notifications.map((n) =>
+            n.id === id ? { ...n, read: true } : n
+          ),
         }))
       },
+
       markAllAsRead: () => {
         set((state) => ({
-          notifications: state.notifications.map(n => ({ ...n, read: true })),
+          notifications: state.notifications.map((n) => ({ ...n, read: true })),
         }))
       },
+
       deleteNotification: (id) => {
         set((state) => ({
-          notifications: state.notifications.filter(n => n.id !== id),
+          notifications: state.notifications.filter((n) => n.id !== id),
         }))
       },
+
+      clearAll: () => set({ notifications: [] }),
+
       getUnreadCount: () => {
-        return get().notifications.filter(n => !n.read).length
+        return get().notifications.filter((n) => !n.read).length
       },
     }),
     {
       name: 'sca-ems-notifications',
+      // Only persist the notifications array, not actions
+      partialize: (state) => ({ notifications: state.notifications }),
     }
   )
 )

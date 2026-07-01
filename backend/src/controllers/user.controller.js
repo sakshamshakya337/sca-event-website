@@ -56,11 +56,50 @@ export const getAllUsers = async (req, res, next) => {
 // Get all students (faculty/admin only)
 export const getStudents = async (req, res, next) => {
   try {
-    const students = await User.find({ role: 'student', isVerified: true, isActive: true })
+    const { search } = req.query
+    const filter = { role: 'student', isVerified: true, isActive: true }
+
+    if (search) {
+      const regex = new RegExp(search, 'i')
+      filter.$or = [
+        { registrationNumber: regex },
+        { firstName: regex },
+        { lastName: regex },
+        { officialEmail: regex }
+      ]
+    }
+
+    const students = await User.find(filter)
       .select('firstName lastName registrationNumber officialEmail')
       .sort({ firstName: 1, lastName: 1 })
 
     res.status(200).json(new ApiResponse(200, students, 'Students fetched successfully'))
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Get all faculty (admin and faculty)
+export const getFaculty = async (req, res, next) => {
+  try {
+    const { search } = req.query
+    const filter = { role: 'faculty', isVerified: true, isActive: true }
+
+    if (search) {
+      const regex = new RegExp(search, 'i')
+      filter.$or = [
+        { employeeId: regex },
+        { firstName: regex },
+        { lastName: regex },
+        { officialEmail: regex }
+      ]
+    }
+
+    const faculty = await User.find(filter)
+      .select('firstName lastName employeeId officialEmail department designation')
+      .sort({ firstName: 1, lastName: 1 })
+
+    res.status(200).json(new ApiResponse(200, faculty, 'Faculty fetched successfully'))
   } catch (error) {
     next(error)
   }
@@ -163,7 +202,8 @@ export const updateProfile = async (req, res, next) => {
       lastName,
       personalEmail,
       phone,
-      department
+      department,
+      designation
     } = req.body
 
     if (Object.prototype.hasOwnProperty.call(req.body, 'firstName') && firstName?.trim()) {
@@ -180,6 +220,9 @@ export const updateProfile = async (req, res, next) => {
     }
     if (Object.prototype.hasOwnProperty.call(req.body, 'department')) {
       user.department = department?.trim() || ''
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'designation')) {
+      user.designation = designation?.trim() || ''
     }
 
     if (!user.lastName) {

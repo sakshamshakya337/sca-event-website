@@ -34,6 +34,14 @@ export default function Portal() {
       login(user, token)
       toast.success('Login successful!')
 
+      // Fire a live notification
+      const { addNotification } = (await import('../../store/notificationsStore')).default.getState()
+      addNotification({
+        title: 'Welcome back!',
+        message: `Signed in as ${user.firstName} ${user.lastName} (${user.role}).`,
+        type: 'success',
+      })
+
       if (user.mustChangePassword) {
         navigate('/change-password')
       } else {
@@ -82,9 +90,7 @@ export default function Portal() {
           <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>New here?</span>
           <Link
             to="/signup"
-            className={`text-sm font-semibold flex items-center gap-1 ${
-              isDark ? 'text-blue-400 hover:text-blue-300' : 'text-[#0051d5] hover:text-[#003ea8]'
-            }`}
+            className="bg-primary text-on-primary px-5 py-2 rounded-btn font-semibold flex items-center gap-1.5 shadow-md hover:opacity-90 active:scale-95 transition-all text-sm"
           >
             Create Account <ArrowRight size={14} />
           </Link>
@@ -189,11 +195,7 @@ export default function Portal() {
 
             <button
               disabled={loading}
-              className={`w-full py-3 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                isDark
-                  ? 'bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-slate-700'
-                  : 'bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-slate-300'
-              } text-white active:scale-[0.98] mt-2`}
+              className="w-full py-3 font-semibold rounded-btn transition-all flex items-center justify-center gap-2 bg-primary text-on-primary hover:opacity-90 active:scale-[0.98] shadow-md mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>
@@ -201,7 +203,10 @@ export default function Portal() {
                   Logging in...
                 </>
               ) : (
-                'Login'
+                <>
+                  Enter Portal
+                  <ArrowRight size={16} />
+                </>
               )}
             </button>
           </form>

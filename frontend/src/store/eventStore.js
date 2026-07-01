@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import api from '../config/axios'
+import useNotificationsStore from './notificationsStore'
 
 const useEventStore = create((set, get) => ({
   events: [],
@@ -23,8 +24,14 @@ const useEventStore = create((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const res = await api.get(`/events/${id}`)
-      set({ selectedEvent: res.data.data, isLoading: false })
-      return res.data.data
+      const updated = res.data.data
+      set((state) => ({
+        selectedEvent: updated,
+        // Also update in events array so chips stay in sync
+        events: state.events.map(e => e._id === id ? updated : e),
+        isLoading: false
+      }))
+      return updated
     } catch (err) {
       console.error('Failed to fetch event by id:', err)
       set({ error: err.response?.data?.message || 'Failed to fetch event', isLoading: false })
@@ -41,6 +48,11 @@ const useEventStore = create((set, get) => ({
         events: [res.data.data, ...state.events],
         isLoading: false
       }))
+      useNotificationsStore.getState().addNotification({
+        title: 'Event Created',
+        message: `"${res.data.data.title}" has been submitted for approval.`,
+        type: 'info',
+      })
       return res.data.data
     } catch (err) {
       console.error('Failed to add event:', err)
@@ -91,6 +103,11 @@ const useEventStore = create((set, get) => ({
         events: state.events.map(event => event._id === id ? res.data.data : event),
         isLoading: false
       }))
+      useNotificationsStore.getState().addNotification({
+        title: 'Event Approved',
+        message: `"${res.data.data.title}" has been approved successfully.`,
+        type: 'success',
+      })
       return res.data.data
     } catch (err) {
       console.error('Failed to approve event:', err)
@@ -107,6 +124,11 @@ const useEventStore = create((set, get) => ({
         events: state.events.map(event => event._id === id ? res.data.data : event),
         isLoading: false
       }))
+      useNotificationsStore.getState().addNotification({
+        title: 'Event Rejected',
+        message: `"${res.data.data.title}" has been rejected.`,
+        type: 'warning',
+      })
       return res.data.data
     } catch (err) {
       console.error('Failed to reject event:', err)

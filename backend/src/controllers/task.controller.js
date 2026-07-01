@@ -35,10 +35,11 @@ export const getEventTasks = async (req, res, next) => {
     }
     
     // Build filter based on user role
+    const userId = req.user.id.toString()
     const isAdmin = ['admin', 'superadmin'].includes(req.user.role)
-    const isCreator = event.createdBy.toString() === req.user.id.toString()
-    const isAssignedFaculty = event.assignedFaculty.some(f => f.toString() === req.user.id.toString())
-    const isAssignedStudent = event.assignedStudents.some(s => s.toString() === req.user.id.toString())
+    const isCreator = event.createdBy ? (event.createdBy._id ?? event.createdBy).toString() === userId : false
+    const isAssignedFaculty = (event.assignedFaculty || []).some(f => f && (f._id ?? f).toString() === userId)
+    const isAssignedStudent = (event.assignedStudents || []).some(s => s && (s._id ?? s).toString() === userId)
     
     // Admin/superadmin, creator, or assigned users see all tasks
     if (isAdmin || isCreator || isAssignedFaculty || isAssignedStudent) {

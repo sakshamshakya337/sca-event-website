@@ -1,7 +1,7 @@
 ﻿import { useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
-import { MdEvent, MdCheckBox, MdStar, MdSchool, MdTerminal, MdAdd } from 'react-icons/md'
+import { CalendarCheck, CheckSquare, Star, GraduationCap, Terminal, Plus } from 'lucide-react'
 import useEventStore from '../../store/eventStore'
 import useTaskStore from '../../store/taskStore'
 
@@ -28,7 +28,7 @@ export default function LayoutDashboard() {
               <h2 className="text-3xl mt-3 text-primary font-bold">{events.length}</h2>
             </div>
             <div className="text-secondary p-3 bg-secondary-fixed rounded-xl">
-              <MdEvent className="w-6 h-6" />
+              <CalendarCheck className="w-6 h-6" />
             </div>
           </div>
           <div className="mt-6 text-sm text-on-surface-variant">Events assigned to you by faculty or admin.</div>
@@ -41,7 +41,7 @@ export default function LayoutDashboard() {
               <h2 className="text-3xl mt-3 text-primary font-bold">{pendingTasks}</h2>
             </div>
             <div className="text-amber-700 p-3 bg-amber-100 rounded-xl">
-              <MdCheckBox className="w-6 h-6" />
+              <CheckSquare className="w-6 h-6" />
             </div>
           </div>
           <div className="mt-6 text-sm text-on-surface-variant">Tasks assigned directly to you.</div>
@@ -54,7 +54,7 @@ export default function LayoutDashboard() {
               <h2 className="text-3xl mt-3 text-primary font-bold">{completedTasks}</h2>
             </div>
             <div className="text-green-700 p-3 bg-green-100 rounded-xl">
-              <MdCheckBox className="w-6 h-6" />
+              <CheckSquare className="w-6 h-6" />
             </div>
           </div>
           <div className="mt-6 text-sm text-on-surface-variant">Tasks you have completed.</div>

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import PageWrapper from '../../components/layout/PageWrapper'
-import { MdSearch, MdCheck, MdEdit, MdDelete } from 'react-icons/md'
+import { Search, Check, Edit2, Trash2 } from 'lucide-react'
 import useTaskStore from '../../store/taskStore'
 
 export default function MyTasks() {
@@ -46,7 +46,7 @@ export default function MyTasks() {
         </div>
         <div className="flex items-center gap-4">
           <div className="relative hidden sm:block">
-            <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant" />
             <input
               type="text"
               placeholder="Search tasks..."
@@ -80,7 +80,7 @@ export default function MyTasks() {
                         : 'border-2 border-outline-variant hover:border-secondary'
                     }`}
                   >
-                    {task.isDone && <MdCheck className="w-4 h-4 font-bold" />}
+                    {task.isDone && <Check className="w-4 h-4 font-bold" />}
                   </div>
                 </td>
                 <td className="px-6 py-4">

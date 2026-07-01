@@ -26,6 +26,7 @@ import { lazy, Suspense } from 'react'
 // Student
 const StudentDashboard   = lazy(() => import('../pages/student/Dashboard'))
 const StudentMyEvents    = lazy(() => import('../pages/student/MyEvents'))
+const StudentEventDetail = lazy(() => import('../pages/student/EventDetail'))
 const StudentMyTasks     = lazy(() => import('../pages/student/MyTasks'))
 const StudentProfile     = lazy(() => import('../pages/student/Profile'))
 const StudentNotifications = lazy(() => import('../pages/Notifications'))
@@ -81,7 +82,7 @@ const router = createBrowserRouter([
   // Student routes
   { path: '/student',           element: <ProtectedRoute role="student"><Suspense><StudentDashboard /></Suspense></ProtectedRoute> },
   { path: '/student/events',    element: <ProtectedRoute role="student"><Suspense><StudentMyEvents /></Suspense></ProtectedRoute> },
-  { path: '/student/events/:id', element: <ProtectedRoute role="student"><Suspense><EventDetail /></Suspense></ProtectedRoute> },
+  { path: '/student/events/:id', element: <ProtectedRoute role="student"><Suspense><StudentEventDetail /></Suspense></ProtectedRoute> },
   { path: '/student/tasks',     element: <ProtectedRoute role="student"><Suspense><StudentMyTasks /></Suspense></ProtectedRoute> },
   { path: '/student/profile',   element: <ProtectedRoute role="student"><Suspense><StudentProfile /></Suspense></ProtectedRoute> },
   { path: '/student/notifications', element: <ProtectedRoute role="student"><Suspense><StudentNotifications /></Suspense></ProtectedRoute> },

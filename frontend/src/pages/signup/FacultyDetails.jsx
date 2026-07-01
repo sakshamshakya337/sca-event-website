@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MdPerson, MdSchool, MdLock, MdVerified, MdPhone, MdVisibility, MdVisibilityOff, MdCheckCircle, MdArrowBack, MdArrowForward } from 'react-icons/md'
+import { User, GraduationCap, Lock, BadgeCheck, Phone, Eye, EyeOff, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -10,7 +10,6 @@ const facultySchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   personalEmail: z.string().email('Invalid email'),
-  officialEmail: z.string().email('Invalid official email'),
   phone: z.string().optional(),
   employeeId: z.string().min(1, 'Employee ID is required'),
   department: z.string().min(1, 'Department is required'),
@@ -71,7 +70,7 @@ export default function FacultyDetails() {
             <img src="/sca.png" alt="SCA Logo" className="h-10 w-auto" />
           </div>
           <Link to="/portal" className="text-sm font-semibold text-[#0051d5] hover:underline flex items-center gap-1">
-            Already have an account? LogIn <MdArrowForward className="text-sm" />
+            Already have an account? LogIn <ArrowRight size={14} />
           </Link>
         </div>
       </header>
@@ -83,7 +82,7 @@ export default function FacultyDetails() {
           <div className="flex items-center justify-between px-4">
             <div className="flex flex-col items-center gap-2 group">
               <div className="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center border-2 border-green-200">
-                <MdCheckCircle className="text-lg font-bold" />
+                <CheckCircle2 size={18} />
               </div>
               <span className="text-xs font-['JetBrains_Mono'] text-green-700">Role</span>
             </div>
@@ -110,7 +109,7 @@ export default function FacultyDetails() {
                 {/* Section: Personal Information */}
                 <section>
                   <div className="flex items-center gap-2 mb-4">
-                    <MdPerson className="text-[#022448]" />
+                    <User size={16} className="text-[#022448]" />
                     <h2 className="text-sm font-semibold text-[#022448] uppercase tracking-wide">Personal Information</h2>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -166,7 +165,7 @@ export default function FacultyDetails() {
                 {/* Section: Professional Information */}
                 <section>
                   <div className="flex items-center gap-2 mb-4">
-                    <MdSchool className="text-[#022448]" />
+                    <GraduationCap size={16} className="text-[#022448]" />
                     <h2 className="text-sm font-semibold text-[#022448] uppercase tracking-wide">Professional Information</h2>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -179,16 +178,6 @@ export default function FacultyDetails() {
                         placeholder="Enter employee ID"
                       />
                       {errors.employeeId && <p className="text-red-500 text-xs">{errors.employeeId.message}</p>}
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-[#43474e]">Official Email</label>
-                      <input
-                        className="w-full px-3 py-2 bg-white border border-[#c4c6cf] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] transition-all"
-                        type="email"
-                        {...register('officialEmail')}
-                        placeholder="official@lpu.edu.in"
-                      />
-                      {errors.officialEmail && <p className="text-red-500 text-xs">{errors.officialEmail.message}</p>}
                     </div>
                   </div>
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -220,7 +209,7 @@ export default function FacultyDetails() {
                 {/* Section: Set Password */}
                 <section>
                   <div className="flex items-center gap-2 mb-4">
-                    <MdLock className="text-[#022448]" />
+                    <Lock size={16} className="text-[#022448]" />
                     <h2 className="text-sm font-semibold text-[#022448] uppercase tracking-wide">Security</h2>
                   </div>
                   <div className="space-y-4">
@@ -238,7 +227,7 @@ export default function FacultyDetails() {
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-[#74777f] hover:text-[#022448] transition-colors"
                         >
-                          {showPassword ? <MdVisibilityOff className="text-xl" /> : <MdVisibility className="text-xl" />}
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                       </div>
                       {/* Strength Bar */}
@@ -257,13 +246,13 @@ export default function FacultyDetails() {
                       {/* Requirements */}
                       <ul className="mt-3 space-y-1">
                         <li className={`flex items-center gap-2 text-xs ${password && password.length >= 8 ? 'text-emerald-600' : 'text-[#74777f]'}`}>
-                          {password && password.length >= 8 ? <MdCheckCircle className="text-xs" /> : <span>•</span>} At least 8 characters
+                          {password && password.length >= 8 ? <CheckCircle2 size={12} /> : <span>•</span>} At least 8 characters
                         </li>
                         <li className={`flex items-center gap-2 text-xs ${password && /[A-Z]/.test(password) ? 'text-emerald-600' : 'text-[#74777f]'}`}>
-                          {password && /[A-Z]/.test(password) ? <MdCheckCircle className="text-xs" /> : <span>•</span>} One uppercase letter
+                          {password && /[A-Z]/.test(password) ? <CheckCircle2 size={12} /> : <span>•</span>} One uppercase letter
                         </li>
                         <li className={`flex items-center gap-2 text-xs ${password && /[0-9]/.test(password) ? 'text-emerald-600' : 'text-[#74777f]'}`}>
-                          {password && /[0-9]/.test(password) ? <MdCheckCircle className="text-xs" /> : <span>•</span>} One number
+                          {password && /[0-9]/.test(password) ? <CheckCircle2 size={12} /> : <span>•</span>} One number
                         </li>
                       </ul>
                       {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
@@ -282,12 +271,12 @@ export default function FacultyDetails() {
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-[#74777f] hover:text-[#022448] transition-colors"
                         >
-                          {showConfirmPassword ? <MdVisibilityOff className="text-xl" /> : <MdVisibility className="text-xl" />}
+                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                       </div>
                       {password && watch('confirmPassword') && password === watch('confirmPassword') && (
                         <p className="text-emerald-600 text-xs font-semibold flex items-center gap-1 mt-1">
-                          <MdCheckCircle className="text-xs" /> Passwords match
+                          <CheckCircle2 size={12} /> Passwords match
                         </p>
                       )}
                       {errors.confirmPassword && <p className="text-red-500 text-xs">{errors.confirmPassword.message}</p>}
@@ -301,17 +290,17 @@ export default function FacultyDetails() {
                 <button
                   type="button"
                   onClick={() => navigate('/signup')}
-                  className="px-5 py-2.5 flex items-center gap-2 text-[#43474e] text-sm font-semibold hover:bg-white rounded-lg transition-colors"
+                  className="px-5 py-2.5 flex items-center gap-2 text-primary text-sm font-semibold border-2 border-primary rounded-btn hover:bg-primary hover:text-on-primary transition-all active:scale-[0.98]"
                 >
-                  <MdArrowBack />
+                  <ArrowLeft size={16} />
                   Back
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-[#0051d5] text-white text-sm font-semibold rounded-lg hover:bg-[#316bf3] transition-all flex items-center gap-2 active:scale-[0.98]"
+                  className="px-6 py-2.5 bg-primary text-on-primary text-sm font-semibold rounded-btn hover:opacity-90 transition-all flex items-center gap-2 active:scale-[0.98] shadow-md"
                 >
                   Continue
-                  <MdArrowForward />
+                  <ArrowRight size={16} />
                 </button>
               </div>
             </form>

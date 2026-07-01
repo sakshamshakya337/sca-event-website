@@ -1,22 +1,167 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, ChevronDown, ShieldCheck, Calendar, CheckSquare, LogIn, Globe, HelpCircle, Menu } from 'lucide-react'
+import { ArrowRight, ChevronDown, ShieldCheck, Calendar, CheckSquare, LogIn, ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '../../config/axios'
 import { formatDate } from '../../lib/utils'
+import PublicLayout from '../../components/layout/PublicLayout'
+
+// ── Carousel images — replace these paths with your 6 actual images in /public ──
+const CAROUSEL_SLIDES = [
+  {
+    src: '/landing.png',
+    label: 'Event Dashboard',
+    sub: 'Real-time planning & progress tracking',
+  },
+  {
+    src: '/sca event website/academic elite/screen.png',
+    label: 'Academic Events',
+    sub: 'Workshops, seminars & cultural programs',
+  },
+  {
+    src: '/sca event website/academic elite/landing.jpeg',
+    label: 'Campus Activities',
+    sub: 'Connecting students across departments',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80',
+    label: 'Event Management',
+    sub: 'Faculty-led event coordination',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=800&q=80',
+    label: 'Student Collaboration',
+    sub: 'Task assignment & team management',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800&q=80',
+    label: 'Live Approvals',
+    sub: 'Seamless admin approval workflow',
+  },
+]
+
+// ── Auto-play carousel component ─────────────────────────────────────────────
+function HeroCarousel() {
+  const [current, setCurrent] = useState(0)
+  const [isHovered, setIsHovered] = useState(false)
+  const total = CAROUSEL_SLIDES.length
+
+  const next = useCallback(() => setCurrent(c => (c + 1) % total), [total])
+  const prev = useCallback(() => setCurrent(c => (c - 1 + total) % total), [total])
+
+  // Auto-advance every 4 seconds, pause on hover
+  useEffect(() => {
+    if (isHovered) return
+    const id = setInterval(next, 4000)
+    return () => clearInterval(id)
+  }, [next, isHovered])
+
+  return (
+    <div
+      className="relative rounded-2xl overflow-hidden shadow-card border border-outline-variant group"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Slides */}
+      <div className="relative h-[360px] md:h-[400px] bg-surface-container-high">
+        {CAROUSEL_SLIDES.map((slide, idx) => (
+          <div
+            key={idx}
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              idx === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
+          >
+            <img
+              src={slide.src}
+              alt={slide.label}
+              className="w-full h-full object-cover"
+              onError={e => { e.target.src = '/landing.png' }}
+            />
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+            {/* Slide caption */}
+            <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
+              <p className="text-white font-bold text-base leading-tight">{slide.label}</p>
+              <p className="text-white/70 text-xs mt-0.5">{slide.sub}</p>
+            </div>
+          </div>
+        ))}
+
+        {/* Prev / Next buttons */}
+        <button
+          onClick={prev}
+          aria-label="Previous slide"
+          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 backdrop-blur-sm"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <button
+          onClick={next}
+          aria-label="Next slide"
+          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 backdrop-blur-sm"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+
+      {/* Dot indicators */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5">
+        {CAROUSEL_SLIDES.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrent(idx)}
+            aria-label={`Go to slide ${idx + 1}`}
+            className={`rounded-full transition-all duration-300 ${
+              idx === current
+                ? 'w-5 h-2 bg-primary shadow-sm'
+                : 'w-2 h-2 bg-white/50 hover:bg-white/80'
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Progress bar */}
+      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/10 z-30">
+        <div
+          key={current}
+          className="h-full bg-primary origin-left"
+          style={{
+            animation: isHovered ? 'none' : 'progressBar 4s linear forwards',
+          }}
+        />
+      </div>
+
+      {/* Bottom info bar */}
+      <div className="bg-surface-container-low border-t border-outline-variant px-5 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+            <CheckSquare size={16} />
+          </div>
+          <div>
+            <p className="font-semibold text-on-surface text-sm">Live Planning</p>
+            <p className="text-xs text-on-surface-variant">Real-time engagement metrics</p>
+          </div>
+        </div>
+        <div className="flex -space-x-2">
+          <div className="w-7 h-7 rounded-full border-2 border-surface-container-low bg-secondary text-[9px] flex items-center justify-center text-on-secondary font-bold">S</div>
+          <div className="w-7 h-7 rounded-full border-2 border-surface-container-low bg-primary text-[9px] flex items-center justify-center text-on-primary font-bold">F</div>
+          <div className="w-7 h-7 rounded-full border-2 border-surface-container-low bg-tertiary text-[9px] flex items-center justify-center text-on-tertiary font-bold">A</div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes progressBar {
+          from { width: 0% }
+          to   { width: 100% }
+        }
+      `}</style>
+    </div>
+  )
+}
 
 export default function Landing() {
-  const [scrolled, setScrolled] = useState(false)
   const [approvedEvents, setApprovedEvents] = useState([])
   const [isEventsLoading, setIsEventsLoading] = useState(false)
   const [eventsError, setEventsError] = useState(null)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   useEffect(() => {
     const fetchApprovedEvents = async () => {
@@ -31,32 +176,11 @@ export default function Landing() {
         setIsEventsLoading(false)
       }
     }
-
     fetchApprovedEvents()
   }, [])
 
   return (
-    <div className="bg-background text-on-background font-sans">
-      {/* Public TopAppBar */}
-      <nav className={`fixed top-0 w-full h-[60px] z-50 backdrop-blur-md flex justify-between items-center px-6 transition-all duration-300 ${scrolled ? 'bg-background shadow-md' : 'bg-background/90'}`}>
-        <Link to="/" className="flex items-center gap-3">
-          <img src="/sca.png" alt="SCA Logo" className="h-10 w-auto" />
-        </Link>
-        <div className="hidden md:flex items-center gap-6">
-          <Link className="text-on-surface-variant font-medium hover:text-primary transition-colors" to="/about">About</Link>
-          <Link className="text-on-surface-variant font-medium hover:text-primary transition-colors" to="/events">Events</Link>
-          <Link className="text-on-surface-variant font-medium hover:text-primary transition-colors" to="/contact">Contact</Link>
-          <Link to="/portal" className="bg-primary text-on-primary px-6 py-2 rounded-btn font-semibold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-md">
-            Enter Portal
-            <ArrowRight size={16} />
-          </Link>
-        </div>
-        <button className="md:hidden text-on-surface">
-          <Menu size={24} />
-        </button>
-      </nav>
-
-      <main>
+    <PublicLayout>
         {/* Hero Section */}
         <section className="relative min-h-[520px] md:min-h-[640px] pt-[60px] bg-secondary-container flex items-center overflow-hidden">
           <div className="absolute inset-0 opacity-[0.06]" style={{
@@ -70,7 +194,7 @@ export default function Landing() {
               </span>
               <h1 className="text-[40px] md:text-[56px] leading-tight text-on-primary-container font-extrabold max-w-xl">
                 Manage Events. <br />
-                <span className="text-primary-fixed">Empower Students.</span>
+                <span className="text-on-secondary-container">Empower Students.</span>
               </h1>
               <p className="text-on-surface-variant text-lg max-w-lg leading-relaxed">
                 A unified platform for the School of Computer Application at LPU — manage events, assign tasks, track progress across all roles.
@@ -80,38 +204,15 @@ export default function Landing() {
                   Enter Portal
                   <ArrowRight size={24} />
                 </Link>
-                <Link to="/about" className="border border-outline-variant text-on-surface px-8 py-4 rounded-btn font-bold hover:bg-surface-container transition-all flex items-center gap-2">
+                <Link to="/about" className="border-2 border-primary text-primary px-8 py-4 rounded-btn font-bold hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2 active:scale-95">
                   Learn More
                   <ChevronDown size={16} />
                 </Link>
               </div>
             </div>
             <div className="hidden lg:block relative">
-              <div className="absolute -inset-10 bg-primary/10 blur-[100px] rounded-full"></div>
-              <div className="relative p-4 rounded-2xl border border-outline-variant" style={{
-                background: 'rgba(255, 248, 243, 0.03)',
-                backdropFilter: 'blur(8px)'
-              }}>
-                <div className="bg-surface-card rounded-card overflow-hidden shadow-card">
-                  <img className="w-full h-[380px] object-cover" alt="A clean, professional software dashboard interface" src="/landing.png" />
-                  <div className="p-6 flex items-center justify-between border-t border-outline-variant bg-surface-container-low">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center text-primary">
-                        <CheckSquare size={24} />
-                      </div>
-                      <div>
-                        <p className="font-bold text-on-surface">Live Planning</p>
-                        <p className="text-xs text-on-surface-variant">Real-time engagement metrics</p>
-                      </div>
-                    </div>
-                    <div className="flex -space-x-2">
-                      <div className="w-8 h-8 rounded-full border-2 border-surface-card bg-secondary text-[10px] flex items-center justify-center text-on-secondary">S</div>
-                      <div className="w-8 h-8 rounded-full border-2 border-surface-card bg-primary text-[10px] flex items-center justify-center text-on-primary">F</div>
-                      <div className="w-8 h-8 rounded-full border-2 border-surface-card bg-tertiary text-[10px] flex items-center justify-center text-on-tertiary">A</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <div className="absolute -inset-10 bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
+              <HeroCarousel />
             </div>
           </div>
         </section>
@@ -298,7 +399,7 @@ export default function Landing() {
               <h2 className="text-[36px] text-on-surface font-bold">Ready to elevate your department's events?</h2>
               <p className="text-on-surface-variant text-lg">Join the School of Computer Application' official management portal today and streamline your institutional workflow.</p>
               <div className="flex justify-center">
-                <Link to="/portal" className="bg-secondary text-on-secondary px-10 py-5 rounded-btn font-bold text-lg shadow-md hover:opacity-90 transition-all active:scale-95 flex items-center gap-3">
+                <Link to="/portal" className="bg-primary text-on-primary px-10 py-5 rounded-btn font-bold text-lg shadow-md hover:opacity-90 transition-all active:scale-95 flex items-center gap-3">
                   Access Student Portal
                   <LogIn size={24} />
                 </Link>
@@ -306,45 +407,6 @@ export default function Landing() {
             </div>
           </div>
         </section>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-secondary text-on-secondary py-16 border-t border-outline-variant">
-        <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div className="col-span-2 space-y-6">
-              <div className="flex items-center gap-3">
-                <img src="/sca-white.png" alt="SCA Logo" className="h-10 w-auto" />
-              </div>
-              <p className="text-on-secondary/70 max-w-sm">
-                Dedicated to enhancing the event management experience for the School of Computer Application at Lovely Professional University.
-              </p>
-            </div>
-            <div>
-              <h5 className="font-bold mb-6 text-on-secondary">Quick Links</h5>
-              <ul className="space-y-4 text-on-secondary/70">
-                <li><Link className="hover:text-on-secondary transition-colors" to="/about">About</Link></li>
-                <li><Link className="hover:text-on-secondary transition-colors" to="/contact">Contact</Link></li>
-                <li><Link className="hover:text-on-secondary transition-colors" to="/portal">Faculty Portal</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-bold mb-6 text-on-secondary">Legal</h5>
-              <ul className="space-y-4 text-on-secondary/70">
-                <li><Link className="hover:text-on-secondary transition-colors" to="#">Terms of Use</Link></li>
-                <li><Link className="hover:text-on-secondary transition-colors" to="#">Privacy Policy</Link></li>
-                <li><Link className="hover:text-on-secondary transition-colors" to="#">LPU Guidelines</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="pt-8 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-4 text-on-secondary/70 text-xs">
-            <div className="flex flex-col items-center md:items-start gap-1">
-              <p>© 2026 SCA — School of Computer Application, LPU. All Rights Reserved.</p>
-              <p>Developed and maintained by - <a href="https://www.sakshamshakya.tech/" target="_blank" rel="noreferrer" className="hover:text-on-secondary transition-colors">Saksham shakya</a> </p>
-            </div>        
-          </div>
-        </div>
-      </footer>
-    </div>
+    </PublicLayout>
   )
 }

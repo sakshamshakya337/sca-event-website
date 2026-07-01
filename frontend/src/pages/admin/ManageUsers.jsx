@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import PageWrapper from '../../components/layout/PageWrapper'
-import { MdSearch, MdFilterList, MdEdit, MdDelete, MdDownload, MdPerson, MdPersonAdd, MdClose, MdExpandMore, MdContentCopy } from 'react-icons/md'
+import { Search, Filter, Edit, Trash2, Download, User, UserPlus, X, ChevronDown, Copy } from 'lucide-react'
 import useAdminUserStore from '../../store/adminUserStore'
 
 function generatePassword() {
@@ -83,11 +83,11 @@ export default function ManageUsers() {
           </div>
           <div className="flex items-center gap-3">
             <button className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface text-body-md font-semibold rounded-lg hover:bg-surface-container transition-all">
-              <MdDownload size={20} />
+              <Download size={20} />
               Export Data
             </button>
-            <button onClick={() => setDrawerOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-secondary text-white text-body-md font-semibold rounded-lg hover:bg-opacity-90 transition-all active:scale-95">
-              <MdPersonAdd size={20} />
+            <button onClick={() => setDrawerOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-btn hover:opacity-90 transition-all font-body-md active:scale-95 shadow-md">
+              <UserPlus size={20} />
               Add New User
             </button>
           </div>
@@ -97,21 +97,21 @@ export default function ManageUsers() {
           <div className="bg-surface-container border border-outline-variant p-6 rounded-xl">
             <div className="flex justify-between items-start mb-2">
               <span className="text-on-surface-variant text-body-sm font-semibold uppercase tracking-wider">Total Users</span>
-              <MdPerson className="text-secondary" size={20} />
+              <User className="text-secondary" size={20} />
             </div>
             <div className="text-[32px] font-bold text-on-surface">{users.length}</div>
           </div>
           <div className="bg-surface-container border border-outline-variant p-6 rounded-xl">
             <div className="flex justify-between items-start mb-2">
               <span className="text-on-surface-variant text-body-sm font-semibold uppercase tracking-wider">Faculty</span>
-              <MdPerson className="text-secondary" size={20} />
+              <User className="text-secondary" size={20} />
             </div>
             <div className="text-[32px] font-bold text-on-surface">{users.filter(u => u.role === 'faculty').length}</div>
           </div>
           <div className="bg-surface-container border border-outline-variant p-6 rounded-xl">
             <div className="flex justify-between items-start mb-2">
               <span className="text-on-surface-variant text-body-sm font-semibold uppercase tracking-wider">Students</span>
-              <MdPerson className="text-secondary" size={20} />
+              <User className="text-secondary" size={20} />
             </div>
             <div className="text-[32px] font-bold text-on-surface">{users.filter(u => u.role === 'student').length}</div>
           </div>
@@ -177,13 +177,13 @@ export default function ManageUsers() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button className="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container">
-                          <MdEdit size={18} />
+                          <Edit size={18} />
                         </button>
                         <button 
                           onClick={() => deleteUser(user._id)}
                           className="p-2 text-on-surface-variant hover:text-error transition-colors rounded-lg hover:bg-error/10"
                         >
-                          <MdDelete size={18} />
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </td>
@@ -204,7 +204,7 @@ export default function ManageUsers() {
             <div className="flex items-center justify-between px-6 py-5 border-b border-outline-variant">
               <h2 className="text-headline-md text-primary">Create New User</h2>
               <button onClick={() => setDrawerOpen(false)} className="p-1 hover:bg-surface-container rounded-full">
-                <MdClose className="text-on-surface-variant" size={24} />
+                <X className="text-on-surface-variant" size={24} />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-8 space-y-8">
