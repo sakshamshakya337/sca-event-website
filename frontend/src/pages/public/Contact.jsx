@@ -12,7 +12,7 @@ export default function Contact() {
   const [captchaError, setCaptchaError] = useState(false)
   const recaptchaRef = useRef(null)
   const [formData, setFormData] = useState({
-    name: '', email: '', universityId: '', role: 'Student',
+    name: '', email: '', universityId: '', role: 'student',
     category: 'Event Query', subject: '', message: ''
   })
 
@@ -28,7 +28,7 @@ export default function Contact() {
       await api.post('/contact', formData)
       setIsSubmitting(false)
       setIsSubmitted(true)
-      setFormData({ name: '', email: '', universityId: '', role: 'Student', category: 'Event Query', subject: '', message: '' })
+      setFormData({ name: '', email: '', universityId: '', role: 'student', category: 'Event Query', subject: '', message: '' })
     } catch (err) {
       console.error(err)
       alert(err.response?.data?.message || 'Failed to send query')
@@ -116,10 +116,8 @@ export default function Contact() {
                   onFocus={() => setFocusedField('role')}
                   onBlur={() => setFocusedField(null)}
                 >
-                  <option value="Student">Student</option>
-                  <option value="Faculty">Faculty</option>
-                  <option value="Administrator">Administrator</option>
-                  <option value="Guest">Guest</option>
+                  <option value="student">Student</option>
+                  <option value="Faculty">Faculty</option>    
                 </select>
               </div>
             </div>
