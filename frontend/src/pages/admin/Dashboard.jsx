@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import PageWrapper from '../../components/layout/PageWrapper'
 import Calendar from '../../components/Calendar'
 import {
@@ -275,7 +275,7 @@ export default function Dashboard() {
                     </td>
                     <td className="px-3 sm:px-5 py-3 text-right">
                       <button
-                        onClick={() => navigate(`/admin/events/${event._id || event.id}/edit`)}
+                        onClick={() => navigate(`/admin/events/${event._id}/edit`)}
                         className="p-1.5 rounded-lg hover:bg-surface-container-high transition-colors text-on-surface-variant hover:text-primary"
                         title="Edit"
                       >

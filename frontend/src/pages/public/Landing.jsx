@@ -436,7 +436,7 @@ export default function Landing() {
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 sm:mb-10">
             <div>
               <h2 className="text-2xl sm:text-[32px] text-on-surface font-bold">
-                Upcoming Approved Events
+                SCA Approved Events
               </h2>
               <p className="text-on-surface-variant max-w-2xl text-sm sm:text-base mt-1">
                 Only SCA approved events appear here with registration details and event imagery.
@@ -470,11 +470,14 @@ export default function Landing() {
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {approvedEvents.map((event) => (
-                <article
+                <Link
                   key={event._id}
-                  className="overflow-hidden rounded-card border border-outline-variant
-                             shadow-sm hover:shadow-card transition-shadow bg-surface-card"
+                  to={`/events/${event.slug || event._id}`}
                 >
+                  <article
+                    className="overflow-hidden rounded-card border border-outline-variant
+                               shadow-sm hover:shadow-card transition-shadow bg-surface-card cursor-pointer"
+                  >
                   <div className="overflow-hidden bg-surface-container-low">
                     {event.imageUrl ? (
                       <img src={event.imageUrl} alt={event.title} className="w-full h-auto" />
@@ -523,7 +526,8 @@ export default function Landing() {
                       )}
                     </div>
                   </div>
-                </article>
+                  </article>
+                </Link>
               ))}
             </div>
           )}

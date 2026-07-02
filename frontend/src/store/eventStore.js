@@ -137,6 +137,29 @@ const useEventStore = create((set, get) => ({
     }
   },
 
+  // Mark event as completed
+  completeEvent: async (id) => {
+    set({ isLoading: true, error: null })
+    try {
+      const res = await api.put(`/events/${id}/complete`)
+      set((state) => ({
+        events: state.events.map(event => event._id === id ? res.data.data : event),
+        selectedEvent: state.selectedEvent?._id === id ? res.data.data : state.selectedEvent,
+        isLoading: false
+      }))
+      useNotificationsStore.getState().addNotification({
+        title: 'Event Completed',
+        message: `"${res.data.data.title}" has been marked as completed.`,
+        type: 'success',
+      })
+      return res.data.data
+    } catch (err) {
+      console.error('Failed to complete event:', err)
+      set({ error: err.response?.data?.message || 'Failed to complete event', isLoading: false })
+      throw err
+    }
+  },
+
   setSelectedEvent: (event) => set({ selectedEvent: event }),
 }))
 

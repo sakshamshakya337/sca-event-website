@@ -3,27 +3,44 @@ import { Link } from 'react-router-dom'
 import api from '../../config/axios'
 import { formatDate } from '../../lib/utils'
 import PublicLayout from '../../components/layout/PublicLayout'
-import { MapPin, Calendar, ArrowRight, Image } from 'lucide-react'
+import { MapPin, Calendar, ArrowRight, Image, CheckCircle2 } from 'lucide-react'
+
+// Status badge styles
+const getStatusBadgeClass = (status) => {
+  const normalized = status?.toLowerCase()
+  if (normalized === 'completed') {
+    return 'bg-purple-100 text-purple-700'
+  }
+  return 'bg-green-100 text-green-700'
+}
+
+const getStatusLabel = (status) => {
+  const normalized = status?.toLowerCase()
+  if (normalized === 'completed') {
+    return 'Completed'
+  }
+  return 'Upcoming'
+}
 
 export default function Events() {
-  const [approvedEvents, setApprovedEvents] = useState([])
+  const [allEvents, setAllEvents] = useState([])
   const [isEventsLoading, setIsEventsLoading] = useState(false)
   const [eventsError, setEventsError] = useState(null)
 
   useEffect(() => {
-    const fetchApprovedEvents = async () => {
+    const fetchAllPublicEvents = async () => {
       setIsEventsLoading(true)
       setEventsError(null)
       try {
-        const res = await api.get('/events/approved-events')
-        setApprovedEvents(res.data.data)
+        const res = await api.get('/events/all-public')
+        setAllEvents(res.data.data)
       } catch (err) {
-        setEventsError(err.response?.data?.message || 'Unable to load upcoming events')
+        setEventsError(err.response?.data?.message || 'Unable to load events')
       } finally {
         setIsEventsLoading(false)
       }
     }
-    fetchApprovedEvents()
+    fetchAllPublicEvents()
   }, [])
 
   return (
@@ -36,10 +53,10 @@ export default function Events() {
               SCA EVENTS
             </span>
             <h1 className="text-3xl sm:text-[40px] md:text-[48px] text-on-surface font-extrabold leading-tight">
-              Upcoming Events
+              All SCA Events
             </h1>
             <p className="text-on-surface-variant text-base sm:text-lg mt-3 max-w-xl">
-              Browse all approved upcoming events organized by the School of Computer Application.
+              Browse all SCA events, including upcoming and past completed events.
             </p>
           </div>
         </div>
@@ -50,13 +67,13 @@ export default function Events() {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
             <div>
-              <h2 className="text-2xl sm:text-[28px] text-on-surface font-bold">All Approved Events</h2>
+              <h2 className="text-2xl sm:text-[28px] text-on-surface font-bold">All Events</h2>
               <p className="text-on-surface-variant text-sm sm:text-base mt-1">
-                Only SCA-approved events appear here.
+                Browse all SCA-approved events, past and present.
               </p>
             </div>
             <span className="text-sm text-on-surface-variant shrink-0">
-              {approvedEvents.length} event{approvedEvents.length !== 1 ? 's' : ''}
+              {allEvents.length} event{allEvents.length !== 1 ? 's' : ''}
             </span>
           </div>
 
@@ -68,16 +85,16 @@ export default function Events() {
             <div className="rounded-card border border-error-container bg-error-container p-12 text-center text-on-error-container">
               {eventsError}
             </div>
-          ) : approvedEvents.length === 0 ? (
+          ) : allEvents.length === 0 ? (
             <div className="rounded-card border border-dashed border-outline-variant p-12 text-center text-on-surface-variant">
-              No upcoming events are approved yet.
+              No SCA events yet.
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {approvedEvents.map(event => (
+              {allEvents.map(event => (
                 <article
                   key={event._id}
-                  className="group flex flex-col overflow-hidden rounded-card border border-outline-variant shadow-sm hover:shadow-card transition-all duration-200 bg-surface-card"
+                  className={`group flex flex-col overflow-hidden rounded-card border border-outline-variant shadow-sm hover:shadow-card transition-all duration-200 bg-surface-card ${event.status?.toLowerCase() === 'completed' ? 'opacity-90' : ''}`}
                 >
                   {/* Image */}
                   <div className="relative overflow-hidden bg-surface-container-low aspect-video">
@@ -97,9 +114,14 @@ export default function Events() {
                     <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-primary text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
                       {event.type}
                     </span>
+                    {/* Status badge */}
+                    <span className={`absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold uppercase shadow-sm backdrop-blur-sm ${getStatusBadgeClass(event.status)}`}>
+                      {event.status?.toLowerCase() === 'completed' && <CheckCircle2 size={10} />}
+                      {getStatusLabel(event.status)}
+                    </span>
                     {/* Gallery count badge */}
                     {event.gallery?.length > 0 && (
-                      <span className="absolute top-3 right-3 bg-black/50 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                      <span className="absolute bottom-3 right-3 bg-black/50 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
                         +{event.gallery.length} photos
                       </span>
                     )}
@@ -128,7 +150,7 @@ export default function Events() {
 
                     {/* CTA */}
                     <Link
-                      to={`/events/${event._id}`}
+                      to={`/events/${event.slug || event._id}`}
                       className="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white hover:opacity-90 active:scale-[0.98] transition-all shadow-md"
                     >
                       View Details

@@ -1,5 +1,6 @@
 import axios from 'axios'
 import useAuthStore from '../store/authStore'
+import useRateLimitStore from '../store/rateLimitStore'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -29,11 +30,29 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// Response interceptor: only logout on 401 errors
+// Response interceptor: only logout on 401 errors and handle 429 rate limits
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status
+    // Handle 429 Rate Limit Exceeded
+    if (status === 429) {
+      // Get retry-after from header (in seconds) or default to 60
+      const retryAfterHeader = error.response.headers['retry-after']
+      const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 60
+      const message = error.response?.data?.message || 'Too many requests. Please try again later.'
+      
+      // Update rate limit store
+      useRateLimitStore.getState().setRateLimited(true, message, retryAfter)
+      
+      // Redirect to 429 page or handle it
+      if (window.location.pathname !== '/429') {
+        window.location.href = '/429'
+      }
+      
+      return Promise.reject(error)
+    }
+
     // Only log user out on explicit 401 Unauthorized errors
     if (status === 401) {
       // Avoid logging out multiple times if already logged out

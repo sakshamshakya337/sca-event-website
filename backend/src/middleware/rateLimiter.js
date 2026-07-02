@@ -3,6 +3,12 @@ import rateLimit from 'express-rate-limit'
 const baseOptions = {
   standardHeaders: true,  // Return rate limit info in RateLimit-* headers
   legacyHeaders: false,   // Disable X-RateLimit-* headers
+  // Custom handler to set Retry-After header
+  handler: (req, res, next, options) => {
+    const retryAfter = Math.ceil(options.windowMs / 1000)
+    res.setHeader('Retry-After', retryAfter)
+    res.status(429).json(options.message)
+  }
 }
 
 // General API — 100 requests per 15 minutes per IP

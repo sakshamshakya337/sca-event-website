@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
 import { Star, MapPin, CalendarDays, Plus, ImageOff, Eye } from 'lucide-react'
@@ -103,7 +103,7 @@ export default function MyEvents() {
                 <div
                   key={event._id}
                   className="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group cursor-pointer"
-                  onClick={() => navigate(`/faculty/events/${event._id}`)}
+                  onClick={() => navigate(`/faculty/events/${event.slug || event._id}`)}
                 >
                   {/* Banner */}
                   <div className="relative h-44 bg-surface-container-high overflow-hidden">
@@ -172,7 +172,7 @@ export default function MyEvents() {
                       onClick={e => e.stopPropagation()}
                     >
                       <button
-                        onClick={() => navigate(`/faculty/events/${event._id}`)}
+                        onClick={() => navigate(`/faculty/events/${event.slug || event._id}`)}
                         className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold text-secondary hover:bg-secondary/10 transition-colors border border-secondary/30"
                       >
                         <Eye size={13} /> View Details

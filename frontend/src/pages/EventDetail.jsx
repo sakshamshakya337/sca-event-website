@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import PageWrapper from '../components/layout/PageWrapper'
 import {
@@ -17,7 +17,7 @@ export default function EventDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const { events, selectedEvent, fetchEventById } = useEventStore()
+  const { events, selectedEvent, fetchEventById, completeEvent } = useEventStore()
   const { todos, getEventTodos, createTodo, completeTodo, deleteTodo } = useTodoStore()
   const { tasks, getEventTasks, createTask, completeTask, deleteTask } = useTaskStore()
 
@@ -251,6 +251,16 @@ export default function EventDetail() {
     } catch (err) { toast.error(err.response?.data?.message || 'Failed to add todo') }
   }
 
+  // ── Complete event handler ────────────────────────────────────────────────
+  const handleCompleteEvent = async () => {
+    try {
+      await completeEvent(id)
+      toast.success('Event marked as completed!')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to complete event')
+    }
+  }
+
   // ── Task handlers ──────────────────────────────────────────────────────────
   const handleAddTask = async (e) => {
     e.preventDefault()
@@ -364,6 +374,20 @@ export default function EventDetail() {
                 <CheckCircle2 size={14} />
                 {tasks.filter(t => t.isDone).length}/{tasks.length} Tasks done
               </div>
+            </div>
+          )}
+
+          {/* Complete event checkbox (for admin/faculty) */}
+          {canManage && event.status !== 'completed' && (
+            <div className="mt-5 pt-5 border-t border-outline-variant">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  onChange={handleCompleteEvent}
+                  className="w-5 h-5 accent-primary"
+                />
+                <span className="text-sm font-medium text-on-surface">Mark event as completed</span>
+              </label>
             </div>
           )}
         </div>

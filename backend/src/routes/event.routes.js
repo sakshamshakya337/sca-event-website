@@ -23,6 +23,13 @@ const safeUpload = (req, res, next) => {
 
 const router = express.Router()
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PUBLIC ROUTES — no authentication required (static routes first!)
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/approved',        eventController.getApprovedEvents)
+router.get('/approved-events', eventController.getApprovedEvents)
+router.get('/all-public',      eventController.getAllPublicEvents)
+
 // Temporary route to update all events (remove after use)
 router.get('/temp-update-all', async (req, res) => {
   try {
@@ -46,12 +53,6 @@ router.get('/temp-update-all', async (req, res) => {
     res.status(500).json({ success: false, message: error.message })
   }
 })
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PUBLIC ROUTES — no authentication required
-// ─────────────────────────────────────────────────────────────────────────────
-router.get('/approved',        eventController.getApprovedEvents)
-router.get('/approved-events', eventController.getApprovedEvents)
 router.get('/detail/:id',                      eventController.getPublicEventById)
 router.get('/detail/:id/registrations/count',  regController.getRegistrationCount)
 router.post('/detail/:id/register',            regController.registerForEvent)

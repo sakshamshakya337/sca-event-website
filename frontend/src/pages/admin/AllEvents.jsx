@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
 import { Search, CheckCircle2, XCircle, Trash2, MapPin, CalendarDays, Tag, Eye, ImageOff } from 'lucide-react'
@@ -103,7 +103,7 @@ export default function AllEvents() {
                 <div
                   key={event._id}
                   className="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group cursor-pointer"
-                  onClick={() => navigate(`/admin/events/${event._id}`)}
+                  onClick={() => navigate(`/admin/events/${event.slug || event._id}`)}
                 >
                   {/* Banner Image */}
                   <div className="relative h-44 bg-surface-container-high overflow-hidden">
@@ -159,7 +159,7 @@ export default function AllEvents() {
                       onClick={e => e.stopPropagation()}
                     >
                       <button
-                        onClick={() => navigate(`/admin/events/${event._id}`)}
+                        onClick={() => navigate(`/admin/events/${event.slug || event._id}`)}
                         className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold text-on-surface-variant hover:bg-surface-container transition-colors border border-outline-variant"
                       >
                         <Eye size={13} /> View

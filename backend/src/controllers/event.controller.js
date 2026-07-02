@@ -3,6 +3,17 @@ import ApiResponse from '../utils/ApiResponse.js'
 import ApiError from '../utils/ApiError.js'
 import cloudinary from '../config/cloudinary.js'
 import { handleEventUpload } from '../config/multer.js'
+import mongoose from 'mongoose'
+
+// Helper to find event by either ID or slug
+const findEventByIdOrSlug = async (identifier) => {
+  // Check if it's a valid ObjectId
+  if (mongoose.Types.ObjectId.isValid(identifier)) {
+    return await Event.findById(identifier)
+  }
+  // Otherwise, try by slug
+  return await Event.findOne({ slug: identifier })
+}
 
 // Re-export so routes can import directly from this file if needed
 export { handleEventUpload as uploadFields }
@@ -59,12 +70,19 @@ export const getAllEvents = async (req, res, next) => {
   }
 }
 
-// Get approved events for public landing page — latest first
+// Get approved events for public landing page — latest first, exclude completed and past events
 export const getApprovedEvents = async (req, res, next) => {
   try {
-    const events = await Event.find({ status: 'approved' })
-      .sort({ date: -1, createdAt: -1 }) // Sort by latest date first, then latest created
-      .select('title type date time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery externalImageUrls')
+    const today = new Date()
+    // Set time to 00:00:00 to include today's events
+    today.setHours(0, 0, 0, 0)
+
+    const events = await Event.find({ 
+      status: 'approved',
+      date: { $gte: today } // Only events on or after today
+    })
+      .sort({ date: 1, createdAt: -1 }) // Sort by upcoming date first, then latest created
+      .select('title type date time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery externalImageUrls isImportant slug')
       .populate('assignedFaculty', 'firstName lastName')
 
     res.status(200).json(new ApiResponse(200, events, 'Approved events fetched successfully'))
@@ -73,15 +91,60 @@ export const getApprovedEvents = async (req, res, next) => {
   }
 }
 
-// Get single approved event for public detail page (no auth)
+// Get all public events (including past and completed) — for public events page
+export const getAllPublicEvents = async (req, res, next) => {
+  try {
+    const events = await Event.find({ 
+      status: { $in: ['approved', 'completed'] }
+    })
+      .sort({ date: -1, createdAt: -1 }) // Sort by latest date first
+      .select('title type date time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery externalImageUrls isImportant status slug')
+      .populate('assignedFaculty', 'firstName lastName')
+
+    res.status(200).json(new ApiResponse(200, events, 'All public events fetched successfully'))
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Get single approved or completed event for public detail page (no auth) — accepts ID or slug
 export const getPublicEventById = async (req, res, next) => {
   try {
-    const event = await Event.findOne({ _id: req.params.id, status: 'approved' })
-      .select('title type date time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery externalImageUrls isImportant')
-      .populate('assignedFaculty', 'firstName lastName')
-    console.log('getPublicEventById event:', event)
-    if (!event) throw new ApiError(404, 'Event not found or not yet approved')
-    res.status(200).json(new ApiResponse(200, event, 'Event fetched'))
+    const identifier = req.params.id
+    const event = await findEventByIdOrSlug(identifier)
+
+    if (!event || !['approved', 'completed'].includes(event.status)) {
+      throw new ApiError(404, 'Event not found')
+    }
+
+    // Select the fields we need
+    const eventResponse = {
+      _id: event._id,
+      slug: event.slug,
+      title: event.title,
+      type: event.type,
+      date: event.date,
+      time: event.time,
+      venue: event.venue,
+      description: event.description,
+      imageUrl: event.imageUrl,
+      registerLink: event.registerLink,
+      registrationNotRequired: event.registrationNotRequired,
+      registrationOpen: event.registrationOpen,
+      gallery: event.gallery,
+      externalImageUrls: event.externalImageUrls,
+      isImportant: event.isImportant,
+      status: event.status,
+      assignedFaculty: event.assignedFaculty
+    }
+
+    // Populate assigned faculty
+    if (event.assignedFaculty.length > 0) {
+      await event.populate('assignedFaculty', 'firstName lastName')
+      eventResponse.assignedFaculty = event.assignedFaculty
+    }
+
+    res.status(200).json(new ApiResponse(200, eventResponse, 'Event fetched'))
   } catch (error) {
     next(error)
   }
@@ -111,18 +174,21 @@ export const getMyEvents = async (req, res, next) => {
   }
 }
 
-// Get single event (role-based check)
+// Get single event (role-based check) — accepts ID or slug
 export const getEventById = async (req, res, next) => {
   try {
-    const event = await Event.findById(req.params.id)
-      .populate('createdBy', 'firstName lastName')
-      .populate('approvedBy', 'firstName lastName')
-      .populate('assignedFaculty', 'firstName lastName')
-      .populate('assignedStudents', 'firstName lastName')
+    const identifier = req.params.id
+    let event = await findEventByIdOrSlug(identifier)
 
     if (!event) {
       throw new ApiError(404, 'Event not found')
     }
+
+    // Populate all required fields
+    await event.populate('createdBy', 'firstName lastName')
+    await event.populate('approvedBy', 'firstName lastName')
+    await event.populate('assignedFaculty', 'firstName lastName')
+    await event.populate('assignedStudents', 'firstName lastName')
 
     // Check if user is authorized to view this event
     const userId = req.user.id.toString()
@@ -243,10 +309,11 @@ export const createEvent = async (req, res, next) => {
   }
 }
 
-// Update event
+// Update event — accepts ID or slug
 export const updateEvent = async (req, res, next) => {
   try {
-    const event = await Event.findById(req.params.id)
+    const identifier = req.params.id
+    const event = await findEventByIdOrSlug(identifier)
     if (!event) throw new ApiError(404, 'Event not found')
 
     if (event.createdBy.toString() !== req.user.id.toString() && !['admin', 'superadmin'].includes(req.user.role)) {
@@ -352,10 +419,11 @@ export const updateEvent = async (req, res, next) => {
   }
 }
 
-// Approve event (admin only)
+// Approve event (admin only) — accepts ID or slug
 export const approveEvent = async (req, res, next) => {
   try {
-    const event = await Event.findById(req.params.id)
+    const identifier = req.params.id
+    const event = await findEventByIdOrSlug(identifier)
     if (!event) {
       throw new ApiError(404, 'Event not found')
     }
@@ -375,10 +443,11 @@ export const approveEvent = async (req, res, next) => {
   }
 }
 
-// Reject event (admin only)
+// Reject event (admin only) — accepts ID or slug
 export const rejectEvent = async (req, res, next) => {
   try {
-    const event = await Event.findById(req.params.id)
+    const identifier = req.params.id
+    const event = await findEventByIdOrSlug(identifier)
     if (!event) {
       throw new ApiError(404, 'Event not found')
     }
@@ -397,10 +466,11 @@ export const rejectEvent = async (req, res, next) => {
   }
 }
 
-// Delete event
+// Delete event — accepts ID or slug
 export const deleteEvent = async (req, res, next) => {
   try {
-    const event = await Event.findById(req.params.id)
+    const identifier = req.params.id
+    const event = await findEventByIdOrSlug(identifier)
     if (!event) {
       throw new ApiError(404, 'Event not found')
     }
@@ -410,7 +480,7 @@ export const deleteEvent = async (req, res, next) => {
       throw new ApiError(403, 'Not authorized to delete this event')
     }
 
-    await Event.findByIdAndDelete(req.params.id)
+    await Event.findByIdAndDelete(event._id)
 
     res.status(200).json(new ApiResponse(200, null, 'Event deleted successfully'))
   } catch (error) {
@@ -444,10 +514,11 @@ export const getEventStats = async (req, res, next) => {
   }
 }
 
-// Mark event as completed
+// Mark event as completed — accepts ID or slug
 export const completeEvent = async (req, res, next) => {
   try {
-    const event = await Event.findById(req.params.id)
+    const identifier = req.params.id
+    const event = await findEventByIdOrSlug(identifier)
     if (!event) {
       throw new ApiError(404, 'Event not found')
     }
@@ -467,14 +538,15 @@ export const completeEvent = async (req, res, next) => {
   }
 }
 
-// Assign faculty to event
+// Assign faculty to event — accepts ID or slug
 export const assignFaculty = async (req, res, next) => {
   try {
     if (!['admin', 'superadmin'].includes(req.user.role)) {
       throw new ApiError(403, 'Not authorized to assign faculty')
     }
 
-    const event = await Event.findById(req.params.id)
+    const identifier = req.params.id
+    const event = await findEventByIdOrSlug(identifier)
     if (!event) {
       throw new ApiError(404, 'Event not found')
     }
@@ -507,14 +579,15 @@ export const assignFaculty = async (req, res, next) => {
   }
 }
 
-// Assign students to event
+// Assign students to event — accepts ID or slug
 export const assignStudents = async (req, res, next) => {
   try {
     if (!['admin', 'superadmin', 'faculty'].includes(req.user.role)) {
       throw new ApiError(403, 'Not authorized to assign students')
     }
 
-    const event = await Event.findById(req.params.id)
+    const identifier = req.params.id
+    const event = await findEventByIdOrSlug(identifier)
     if (!event) {
       throw new ApiError(404, 'Event not found')
     }

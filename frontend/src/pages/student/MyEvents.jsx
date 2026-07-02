@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
 import { Star, MapPin } from 'lucide-react'
@@ -82,7 +82,7 @@ export default function MyEvents() {
               <div
                 key={event._id}
                 className="bg-surface-container-lowest rounded-xl border border-outline-variant p-4 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all active:scale-[0.99]"
-                onClick={() => navigate(`/student/events/${event._id}`)}
+                onClick={() => navigate(`/student/events/${event.slug || event._id}`)}
               >
                 {/* Top row */}
                 <div className="flex items-start justify-between gap-2 mb-2">

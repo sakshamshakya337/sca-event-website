@@ -9,6 +9,7 @@ import Team          from '../pages/public/Team'
 import Events       from '../pages/public/Events'
 import Contact       from '../pages/public/Contact'
 import PublicEventDetail from '../pages/public/EventDetail'
+import Error429     from '../components/Error429'
 
 // Auth pages
 import Portal        from '../pages/auth/Portal'
@@ -71,6 +72,7 @@ const router = createBrowserRouter([
   { path: '/events',        element: <Events /> },
   { path: '/events/:id',    element: <PublicEventDetail /> },
   { path: '/contact',       element: <Contact /> },
+  { path: '/429',           element: <Error429 /> },
 
   // Auth (redirect if already logged in)
   { path: '/portal',          element: <PublicOnlyRoute><Portal /></PublicOnlyRoute> },
