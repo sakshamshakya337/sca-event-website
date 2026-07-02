@@ -200,7 +200,7 @@ function RegistrationModal({ event, onClose }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={lbl}>Course / Program *</label>
-                <input className={inp} placeholder="e.g. B.Tech CSE" value={form.course}
+                <input className={inp} placeholder="e.g. MCA" value={form.course}
                   onChange={e => update('course', e.target.value)} required />
               </div>
               <div>

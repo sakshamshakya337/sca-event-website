@@ -198,7 +198,7 @@ export default function StudentProfile() {
                   <select className={inputCls} value={formData.degree}
                     onChange={e => setFormData({ ...formData, degree: e.target.value })}>
                     <option value="">Select</option>
-                    {['B.Tech','M.Tech','BCA','MCA'].map(d => <option key={d}>{d}</option>)}
+                    {['M.Tech','BCA','MCA'].map(d => <option key={d}>{d}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1.5">

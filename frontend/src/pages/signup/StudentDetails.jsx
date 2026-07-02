@@ -197,7 +197,7 @@ export default function StudentDetails() {
                       className="w-full px-3 py-2 bg-white border border-[#c4c6cf] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] transition-all"
                       type="text"
                       {...register('degree')}
-                      placeholder="e.g., B.Tech"
+                      placeholder="e.g., MCA"
                     />
                     {errors.degree && <p className="text-red-500 text-xs">{errors.degree.message}</p>}
                   </div>
