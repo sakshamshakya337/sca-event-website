@@ -129,7 +129,7 @@ export default function Events() {
                     {/* CTA */}
                     <Link
                       to={`/events/${event._id}`}
-                      className="mt-1 inline-flex items-center justify-center gap-2 rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary hover:opacity-90 active:scale-[0.98] transition-all shadow-md"
+                      className="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white hover:opacity-90 active:scale-[0.98] transition-all shadow-md"
                     >
                       View Details
                       <ArrowRight size={15} />
