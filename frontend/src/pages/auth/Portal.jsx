@@ -182,7 +182,7 @@ export default function Portal() {
               </Link>
             </div>
 
-            {/* reCAPTCHA */}
+            {/* hCaptcha */}
             <RecaptchaWidget
               ref={recaptchaRef}
               onChange={setCaptchaToken}
