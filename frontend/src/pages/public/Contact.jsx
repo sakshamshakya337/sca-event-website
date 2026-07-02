@@ -116,10 +116,10 @@ export default function Contact() {
                   onFocus={() => setFocusedField('role')}
                   onBlur={() => setFocusedField(null)}
                 >
-                  <option>Student</option>
-                  <option>Faculty</option>
-                  <option>Administrator</option>
-                  <option>Guest</option>
+                  <option value="Student">Student</option>
+                  <option value="Faculty">Faculty</option>
+                  <option value="Administrator">Administrator</option>
+                  <option value="Guest">Guest</option>
                 </select>
               </div>
             </div>
@@ -135,10 +135,10 @@ export default function Contact() {
                 onFocus={() => setFocusedField('cat')}
                 onBlur={() => setFocusedField(null)}
               >
-                <option>Event Query</option>
-                <option>Technical Issue</option>
-                <option>Registration Dispute</option>
-                <option>Feedback</option>
+                <option value="Event Query">Event Query</option>
+                <option value="Technical Issue">Technical Issue</option>
+                <option value="Registration Dispute">Registration Dispute</option>
+                <option value="Feedback">Feedback</option>
               </select>
             </div>
 
