@@ -12,6 +12,7 @@ import Contact       from '../pages/public/Contact'
 // Auth pages
 import Portal        from '../pages/auth/Portal'
 import ForcePassword from '../pages/auth/ForcePassword'
+import ForgotPassword from '../pages/auth/ForgotPassword'
 import Pending       from '../pages/auth/Pending'
 
 // Signup wizard
@@ -67,8 +68,9 @@ const router = createBrowserRouter([
   { path: '/contact',   element: <Contact /> },
 
   // Auth (redirect if already logged in)
-  { path: '/portal',    element: <PublicOnlyRoute><Portal /></PublicOnlyRoute> },
-  { path: '/pending',   element: <Pending /> },
+  { path: '/portal',          element: <PublicOnlyRoute><Portal /></PublicOnlyRoute> },
+  { path: '/pending',         element: <Pending /> },
+  { path: '/forgot-password', element: <PublicOnlyRoute><ForgotPassword /></PublicOnlyRoute> },
 
   // Signup wizard
   { path: '/signup',              element: <PublicOnlyRoute><RoleSelect /></PublicOnlyRoute> },

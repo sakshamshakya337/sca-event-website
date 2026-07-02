@@ -45,22 +45,23 @@ export default function Navbar({ breadcrumb = [] }) {
   }
 
   return (
-    <header className="h-[60px] flex justify-between items-center px-6 border-b border-outline-variant sticky top-0 bg-surface z-30">
-      <div className="flex items-center gap-4">
+    <header className="h-[60px] flex justify-between items-center px-3 sm:px-6 border-b border-outline-variant sticky top-0 bg-surface z-30">
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
         <button 
           onClick={toggleSidebar}
-          className="p-2 hover:bg-surface-container rounded-lg cursor-pointer text-on-surface-variant hover:text-primary transition-colors"
+          className="p-2 hover:bg-surface-container rounded-lg cursor-pointer text-on-surface-variant hover:text-primary transition-colors shrink-0"
         >
           <Menu size={24} />
         </button>
-        <nav className="flex items-center text-on-surface-variant font-body-md">
+        <nav className="hidden sm:flex items-center text-on-surface-variant font-body-md">
           <span>Home</span>
           <ChevronRight className="w-4 h-4 mx-2" />
           <span className="text-primary font-bold">{getPageTitle()}</span>
         </nav>
+        <span className="sm:hidden text-primary font-bold text-sm truncate">{getPageTitle()}</span>
       </div>
       
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-1 sm:gap-4 shrink-0">
         <div className="relative">
           <button 
             onClick={() => navigate(`/${user?.role}/notifications`)}
@@ -86,29 +87,30 @@ export default function Navbar({ breadcrumb = [] }) {
           )}
         </button>
         
-        {/* Add Create Event Button for Admin/Faculty */}
-        {user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'faculty' ? (
+        {/* Create Event — hidden on mobile for students, shown for admin/faculty */}
+        {(user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'faculty') && (
           <button 
             onClick={handleCreateEvent}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-btn hover:opacity-90 transition-all font-body-md active:scale-95 shadow-md"
+            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-btn hover:opacity-90 transition-all font-body-md active:scale-95 shadow-md text-sm"
           >
             <Plus size={16} />
-            Create New Event
+            <span className="hidden md:inline">Create New Event</span>
+            <span className="md:hidden">New Event</span>
           </button>
-        ) : null}
+        )}
         
         {user?.profilePhotoUrl ? (
           <img
             src={getCloudinaryUrl(user.profilePhotoUrl, { width: 40, height: 40 })}
             alt={`${user.firstName || 'User'} ${user.lastName || ''}`}
-            className="w-10 h-10 rounded-full object-cover cursor-pointer"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover cursor-pointer shrink-0"
             onError={(e) => {
               e.currentTarget.style.display = 'none'
               e.currentTarget.nextElementSibling.style.display = 'flex'
             }}
           />
         ) : null}
-        <div className={`w-10 h-10 rounded-full bg-primary-container items-center justify-center text-on-primary-container text-sm font-bold cursor-pointer ${user?.profilePhotoUrl ? 'hidden' : 'flex'}`}>
+        <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary-container items-center justify-center text-on-primary-container text-xs sm:text-sm font-bold cursor-pointer shrink-0 ${user?.profilePhotoUrl ? 'hidden' : 'flex'}`}>
           {getInitials()}
         </div>
       </div>

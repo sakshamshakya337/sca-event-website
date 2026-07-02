@@ -64,8 +64,8 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Overlay for mobile */}
-      {!sidebarOpen && (
+      {/* Overlay for mobile — only shown when sidebar IS open on mobile */}
+      {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"
           onClick={toggleSidebar}
@@ -76,7 +76,7 @@ export default function Sidebar() {
       <aside className={`fixed left-0 top-0 h-screen z-40 bg-surface-sidebar border-r border-outline-variant flex flex-col py-6 gap-6 transition-all duration-300 ${sidebarOpen ? 'w-[240px] translate-x-0' : 'w-[240px] -translate-x-full lg:w-[64px] lg:translate-x-0'}`}>
         <div className="px-6 mb-6 flex items-center justify-between">
           <div className={`flex items-center gap-3 ${!sidebarOpen && 'lg:hidden'}`}>
-            <img src="/sca.png" alt="SCA Logo" className="h-10 w-auto" />
+            <img src="/sca.png" alt="SCA Logo" className="h-12 w-auto" />
           </div>
           <button 
             onClick={toggleSidebar}
@@ -92,6 +92,12 @@ export default function Sidebar() {
               key={item.path}
               to={item.path}
               end={item.path === '/student' || item.path === '/faculty' || item.path === '/admin' || item.path === '/superadmin'}
+              onClick={() => {
+                // Close sidebar on mobile after navigation
+                if (window.innerWidth < 1024 && sidebarOpen) {
+                  toggleSidebar()
+                }
+              }}
               className={({ isActive }) =>
                 `flex items-center px-6 py-3 transition-all ${
                   isActive
@@ -110,6 +116,7 @@ export default function Sidebar() {
           <div className={`flex flex-col gap-1 ${!sidebarOpen && 'lg:hidden'}`}>
             <NavLink
               to={`/${user?.role}/profile`}
+              onClick={() => { if (window.innerWidth < 1024 && sidebarOpen) toggleSidebar() }}
               className="flex items-center py-2 text-on-surface-variant hover:text-primary transition-colors"
             >
               <Settings className="w-5 h-5 mr-3 text-[20px]" />

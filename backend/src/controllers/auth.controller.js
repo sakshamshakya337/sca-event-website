@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
 import Joi from 'joi'
 import User from '../models/User.js'
 import ApiResponse from '../utils/ApiResponse.js'
@@ -255,4 +256,196 @@ export const getCurrentUser = async (req, res, next) => {
 
 export const logout = (req, res) => {
   res.status(200).json(new ApiResponse(200, null, 'Logged out successfully'))
+}
+
+// ── Helper: hash a security answer or OTP ────────────────────────────────────
+const hashValue = (value) =>
+  crypto.createHash('sha256').update(value.toLowerCase().trim()).digest('hex')
+
+// ── Validation schemas for password reset ────────────────────────────────────
+const forgotSchema = Joi.object({
+  identifier: Joi.string().trim().min(2).max(50).required(), // reg number or employee ID
+  role: Joi.string().valid('student', 'faculty').required(),
+  securityAnswer: Joi.string().trim().min(1).max(200).required(),
+})
+
+const resetSchema = Joi.object({
+  token: Joi.string().length(64).hex().required(), // 32-byte hex token
+  newPassword: Joi.string().min(8).max(128).required(),
+})
+
+const verifyTokenSchema = Joi.object({
+  token: Joi.string().length(64).hex().required(),
+})
+
+// ── Step 1: Verify identity + security answer → return token for frontend ────
+// The frontend will use the token to call EmailJS and send the reset link.
+// The token itself is stored as a hash server-side (never returned in plain form
+// for email — the frontend receives the plain token to embed in the reset URL).
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { error, value } = forgotSchema.validate(req.body, { stripUnknown: true })
+    if (error) throw new ApiError(400, error.details[0].message)
+
+    const { identifier, role, securityAnswer } = value
+    // Try both the raw value and uppercased — handle any stored format
+    const normalizedId = identifier.trim().toUpperCase()
+    const rawId = identifier.trim()
+
+    // Step 1: Find the user document ID using registration/employee number
+    let userId = null
+    if (role === 'student') {
+      const found = await User.findOne({
+        role: 'student',
+        registrationNumber: { $regex: new RegExp(`^${rawId}$`, 'i') }
+      }).select('_id isActive')
+      if (!found && normalizedId !== rawId) {
+        const found2 = await User.findOne({ role: 'student', registrationNumber: normalizedId }).select('_id isActive')
+        if (found2) { userId = found2._id; }
+        else userId = null
+      } else if (found) {
+        userId = found._id
+        if (found.isActive === false) throw new ApiError(403, 'Account deactivated.')
+      }
+    } else {
+      const found = await User.findOne({
+        role: 'faculty',
+        employeeId: { $regex: new RegExp(`^${rawId}$`, 'i') }
+      }).select('_id isActive')
+      if (!found && normalizedId !== rawId) {
+        const found2 = await User.findOne({ role: 'faculty', employeeId: normalizedId }).select('_id isActive')
+        if (found2) userId = found2._id
+        else userId = null
+      } else if (found) {
+        userId = found._id
+        if (found.isActive === false) throw new ApiError(403, 'Account deactivated.')
+      }
+    }
+
+    if (!userId) {
+      throw new ApiError(404, 'No account found with that ID. Please check your registration number.')
+    }
+
+    // Step 2: Use raw collection access to bypass Mongoose select:false restrictions
+    // This guarantees securityQuestion and securityAnswer are returned regardless of schema defaults
+    const userDoc = await User.collection.findOne({ _id: userId })
+
+    if (!userDoc) {
+      throw new ApiError(404, 'No account found with that ID.')
+    }
+    if (userDoc.isActive === false) {
+      throw new ApiError(403, 'This account has been deactivated. Contact your administrator.')
+    }
+
+    if (!userDoc.securityQuestion || !userDoc.securityAnswer) {
+      throw new ApiError(400, 'No security question set for this account. Please set one in your profile settings first.')
+    }
+
+    // Verify security answer (case-insensitive hash comparison)
+    const answerHash = hashValue(securityAnswer)
+    if (answerHash !== userDoc.securityAnswer) {
+      throw new ApiError(401, 'Incorrect security answer.')
+    }
+
+    // Generate a cryptographically secure 32-byte token
+    const plainToken = crypto.randomBytes(32).toString('hex')
+    const hashedToken = hashValue(plainToken)
+
+    // Store hashed token with 15-minute expiry — use Mongoose model for this
+    await User.updateOne({ _id: userId }, {
+      passwordResetToken: hashedToken,
+      passwordResetExpires: new Date(Date.now() + 15 * 60 * 1000)
+    })
+
+    // Return plain token + masked email to frontend
+    const maskedEmail = userDoc.personalEmail.replace(/(.{2}).+(@.+)/, '$1***$2')
+
+    res.status(200).json(new ApiResponse(200, {
+      resetToken: plainToken,
+      maskedEmail,
+      firstName: userDoc.firstName,
+      personalEmail: userDoc.personalEmail,
+    }, 'Identity verified. Use the token to reset your password.'))
+  } catch (error) {
+    next(error)
+  }
+}
+
+// ── Step 2 (optional UI): Verify token is still valid ────────────────────────
+export const verifyResetToken = async (req, res, next) => {
+  try {
+    const { error, value } = verifyTokenSchema.validate(req.body, { stripUnknown: true })
+    if (error) throw new ApiError(400, 'Invalid token format.')
+
+    const hashedToken = hashValue(value.token)
+    // Raw collection access — passwordResetToken is select:false
+    const userDoc = await User.collection.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: new Date() },
+    })
+
+    if (!userDoc) throw new ApiError(400, 'Reset link is invalid or has expired.')
+
+    res.status(200).json(new ApiResponse(200, { valid: true, name: `${userDoc.firstName} ${userDoc.lastName}` }, 'Token is valid.'))
+  } catch (error) {
+    next(error)
+  }
+}
+
+// ── Step 3: Reset password using the token ───────────────────────────────────
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { error, value } = resetSchema.validate(req.body, { stripUnknown: true })
+    if (error) throw new ApiError(400, error.details[0].message)
+
+    const { token, newPassword } = value
+    const hashedToken = hashValue(token)
+
+    // Use raw collection access to find by select:false field passwordResetToken
+    const userDoc = await User.collection.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: new Date() },
+    })
+
+    if (!userDoc) throw new ApiError(400, 'Reset link is invalid or has expired. Please request a new one.')
+
+    // Use Mongoose to update password (triggers bcrypt pre-save hook)
+    const user = await User.findById(userDoc._id).select('+password')
+    if (!user) throw new ApiError(400, 'Reset link is invalid or has expired.')
+
+    user.password = newPassword
+    user.passwordResetToken = undefined
+    user.passwordResetExpires = undefined
+    user.mustChangePassword = false
+    user.loginAttempts = 0
+    user.lockUntil = undefined
+    await user.save()
+
+    res.status(200).json(new ApiResponse(200, null, 'Password reset successfully. You can now log in.'))
+  } catch (error) {
+    next(error)
+  }
+}
+
+// ── Set/Update security question (authenticated) ─────────────────────────────
+export const setSecurityQuestion = async (req, res, next) => {
+  try {
+    const schema = Joi.object({
+      question: Joi.string().trim().min(5).max(200).required(),
+      answer: Joi.string().trim().min(1).max(200).required(),
+    })
+    const { error, value } = schema.validate(req.body, { stripUnknown: true })
+    if (error) throw new ApiError(400, error.details[0].message)
+
+    const user = await User.findById(req.user.id)
+    if (!user) throw new ApiError(404, 'User not found')
+
+    user.securityQuestion = value.question.trim()
+    user.securityAnswer = hashValue(value.answer) // stored as SHA-256 hash
+    await user.save()
+
+    res.status(200).json(new ApiResponse(200, { securityQuestion: user.securityQuestion }, 'Security question saved.'))
+  } catch (error) {
+    next(error)
+  }
 }

@@ -590,7 +590,7 @@ export default function Landing() {
               <div className="space-y-8">
                 {[
                   {
-                    num: '1', color: 'bg-secondary text-on-secondary',
+                    num: '1', color: 'bg-primary text-on-primary',
                     title: 'Admin Creates Accounts',
                     desc: 'Centralized system administrators provision secure faculty and student organizer accounts via JWT authentication.',
                   },
@@ -600,7 +600,7 @@ export default function Landing() {
                     desc: 'Faculty members initiate event registries, define scope, and assign dynamic todo lists to student leadership teams.',
                   },
                   {
-                    num: '3', color: 'bg-tertiary text-on-tertiary',
+                    num: '3', color: 'bg-primary text-on-primary',
                     title: 'Students Execute & Track',
                     desc: 'Assigned students track their progress, check off completed tasks, and provide real-time updates through their dashboard.',
                   },

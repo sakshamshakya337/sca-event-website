@@ -210,23 +210,41 @@ export const updateProfile = async (req, res, next) => {
       throw new ApiError(404, 'User not found')
     }
 
-    // Whitelist only allowed fields — never trust raw req.body keys
-    const allowedFields = ['firstName', 'lastName', 'personalEmail', 'phone', 'department', 'designation']
+    // Whitelist only allowed fields per role — never trust raw req.body keys
+    const commonFields = ['firstName', 'lastName', 'personalEmail', 'phone']
+    const studentFields = ['program', 'degree', 'semester', 'section']
+    const facultyFields = ['department', 'designation']
+
+    const allowedFields = [
+      ...commonFields,
+      ...(user.role === 'student' ? studentFields : []),
+      ...(user.role === 'faculty' || user.role === 'admin' || user.role === 'superadmin' ? facultyFields : []),
+    ]
+
     const sanitized = {}
     for (const field of allowedFields) {
-      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
-        sanitized[field] = typeof req.body[field] === 'string' ? req.body[field].trim() : req.body[field]
+      // With multipart/form-data (multer), all appended fields appear in req.body
+      // Use hasOwnProperty but also accept empty string (user clearing a field)
+      const val = req.body[field]
+      if (val !== undefined) {
+        sanitized[field] = typeof val === 'string' ? val.trim() : val
       }
     }
 
     // Validate
     const profileSchema = Joi.object({
-      firstName: Joi.string().trim().min(1).max(50).optional(),
-      lastName: Joi.string().trim().min(1).max(50).optional(),
+      firstName:     Joi.string().trim().min(1).max(50).optional(),
+      lastName:      Joi.string().trim().min(1).max(50).optional(),
       personalEmail: Joi.string().email().max(254).optional(),
-      phone: Joi.string().trim().max(20).optional().allow(''),
-      department: Joi.string().trim().max(100).optional().allow(''),
-      designation: Joi.string().trim().max(100).optional().allow(''),
+      phone:         Joi.string().trim().max(20).optional().allow(''),
+      // Student fields
+      program:       Joi.string().trim().max(100).optional().allow(''),
+      degree:        Joi.string().trim().max(50).optional().allow(''),
+      semester:      Joi.string().trim().max(20).optional().allow(''),
+      section:       Joi.string().trim().max(20).optional().allow(''),
+      // Faculty fields
+      department:    Joi.string().trim().max(100).optional().allow(''),
+      designation:   Joi.string().trim().max(100).optional().allow(''),
     })
     const { error, value } = profileSchema.validate(sanitized, { abortEarly: false, stripUnknown: true })
     if (error) {
@@ -234,12 +252,25 @@ export const updateProfile = async (req, res, next) => {
       throw new ApiError(400, messages)
     }
 
-    if (value.firstName) user.firstName = value.firstName
-    if (value.lastName !== undefined) user.lastName = value.lastName || 'User'
-    if (value.personalEmail) user.personalEmail = value.personalEmail.toLowerCase()
-    if (value.phone !== undefined) user.phone = value.phone
-    if (value.department !== undefined) user.department = value.department
-    if (value.designation !== undefined) user.designation = value.designation
+    // Apply common fields
+    if (value.firstName)                  user.firstName     = value.firstName
+    if (value.lastName !== undefined)     user.lastName      = value.lastName || 'User'
+    if (value.personalEmail)              user.personalEmail = value.personalEmail.toLowerCase()
+    if (value.phone !== undefined)        user.phone         = value.phone
+
+    // Apply student-specific fields
+    if (user.role === 'student') {
+      if (value.program !== undefined)   user.program  = value.program
+      if (value.degree !== undefined)    user.degree   = value.degree
+      if (value.semester !== undefined)  user.semester = value.semester
+      if (value.section !== undefined)   user.section  = value.section
+    }
+
+    // Apply faculty/admin fields
+    if (['faculty', 'admin', 'superadmin'].includes(user.role)) {
+      if (value.department !== undefined)  user.department  = value.department
+      if (value.designation !== undefined) user.designation = value.designation
+    }
 
     if (!user.lastName) user.lastName = 'User'
 

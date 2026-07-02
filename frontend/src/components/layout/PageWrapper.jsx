@@ -4,21 +4,30 @@ import useUiStore from '../../store/uiStore'
 
 export default function PageWrapper({ children }) {
   const { sidebarOpen } = useUiStore()
-  
+
   return (
     <>
       <Sidebar />
-      <div className={`flex flex-col min-h-screen transition-all duration-300 ${sidebarOpen ? 'ml-[240px]' : 'ml-0 lg:ml-[64px]'}`}>
+      {/*
+        Mobile (< lg): sidebar slides over content → no left margin ever
+        Desktop (≥ lg): sidebar is always visible → shift content right
+      */}
+      <div className={`flex flex-col min-h-screen transition-all duration-300 ${
+        sidebarOpen ? 'lg:ml-[240px]' : 'lg:ml-[64px]'
+      }`}>
         <Navbar />
-        <main className="p-6 flex flex-col gap-6">
+        <main className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-6">
           {children}
         </main>
-        <footer className="mt-auto px-6 py-6 border-t border-outline-variant text-center flex flex-col items-center gap-1">
-          <p className="font-body-sm text-body-sm text-on-surface-variant opacity-60">
+        <footer className="mt-auto px-4 sm:px-6 py-5 border-t border-outline-variant text-center">
+          <p className="text-xs text-on-surface-variant opacity-60">
             © 2026 SCA - School of Computer Application
           </p>
-          <p className="font-body-sm text-body-sm text-on-surface-variant opacity-60">
-            Developed and maintained by - <a href="https://www.sakshamshakya.tech/" target="_blank" rel="noreferrer" className="hover:underline">Saksham shakya</a>
+          <p className="text-xs text-on-surface-variant opacity-60 mt-0.5">
+            Developed and maintained by -{' '}
+            <a href="https://www.sakshamshakya.tech/" target="_blank" rel="noreferrer" className="hover:underline">
+              Saksham shakya
+            </a>
           </p>
         </footer>
       </div>

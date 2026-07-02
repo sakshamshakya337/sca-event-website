@@ -46,6 +46,14 @@ const userSchema = new mongoose.Schema({
   lastLogin: Date,
   passwordChangedAt: Date,
 
+  // Security question for password reset
+  securityQuestion: { type: String, trim: true },
+  securityAnswer: { type: String, select: false }, // stored as lowercase hash
+
+  // Password reset token (short-lived OTP stored as hash)
+  passwordResetToken: { type: String, select: false },
+  passwordResetExpires: { type: Date },
+
 }, { timestamps: true })
 
 // Hash password before save
