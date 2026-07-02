@@ -67,7 +67,7 @@ export default function FacultyDetails() {
       <header className="w-full bg-white border-b border-[#c4c6cf] h-[60px] flex items-center px-6 shrink-0">
         <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
           <div className="flex items-center gap-2">
-            <img src="/sca.png" alt="SCA Logo" className="h-10 w-auto" />
+            <img src="/sca.png" alt="SCA Logo" className="h-14 w-auto" />
           </div>
           <Link to="/portal" className="text-sm font-semibold text-[#0051d5] hover:underline flex items-center gap-1">
             Already have an account? LogIn <ArrowRight size={14} />

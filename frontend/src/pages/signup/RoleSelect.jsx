@@ -23,7 +23,7 @@ export default function RoleSelect() {
       {/* Top Bar */}
       <header className="w-full h-[60px] bg-white border-b border-[#ddc1b2] px-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <img src="/sca.png" alt="SCA Logo" className="h-10 w-auto" />
+          <img src="/sca.png" alt="SCA Logo" className="h-14 w-auto" />
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-[#564337]">Already have an account?</span>

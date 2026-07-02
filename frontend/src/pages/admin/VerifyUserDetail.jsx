@@ -4,6 +4,8 @@ import PageWrapper from '../../components/layout/PageWrapper'
 import { ArrowLeft, Info, CheckCircle2, XCircle, UserSquare, ExternalLink, MailCheck } from 'lucide-react'
 import useAdminVerifyStore from '../../store/adminVerifyStore'
 import api from '../../config/axios'
+import { sendVerificationDecisionEmail } from '../../config/emailjs'
+import toast from 'react-hot-toast'
 
 export default function VerifyUserDetail() {
   const { id } = useParams()
@@ -45,8 +47,19 @@ export default function VerifyUserDetail() {
     try {
       await approveVerification(id, notes, checklist)
       setVerification(v => ({ ...v, status: 'approved' }))
+      // Send approval email — fire-and-forget, don't block the UI
+      sendVerificationDecisionEmail({
+        toName:     `${user.firstName} ${user.lastName}`.trim(),
+        toEmail:    user.personalEmail,
+        decision:   'approved',
+        role:       user.role,
+        adminNotes: notes,
+      }).then(res => {
+        if (res.success) toast.success('Approval email sent to user.')
+        else toast.error('Decision saved, but email failed to send.')
+      })
     } catch (err) {
-      alert(err.message)
+      toast.error(err.message || 'Failed to approve.')
     }
   }
 
@@ -54,8 +67,19 @@ export default function VerifyUserDetail() {
     try {
       await rejectVerification(id, notes, checklist)
       setVerification(v => ({ ...v, status: 'rejected' }))
+      // Send rejection email — fire-and-forget
+      sendVerificationDecisionEmail({
+        toName:     `${user.firstName} ${user.lastName}`.trim(),
+        toEmail:    user.personalEmail,
+        decision:   'rejected',
+        role:       user.role,
+        adminNotes: notes,
+      }).then(res => {
+        if (res.success) toast.success('Rejection email sent to user.')
+        else toast.error('Decision saved, but email failed to send.')
+      })
     } catch (err) {
-      alert(err.message)
+      toast.error(err.message || 'Failed to reject.')
     }
   }
 

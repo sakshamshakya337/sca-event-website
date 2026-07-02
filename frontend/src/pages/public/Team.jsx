@@ -28,7 +28,7 @@ export default function Team() {
       <nav className={`fixed top-0 w-full h-[60px] z-50 bg-background border-b border-outline-variant flex justify-between items-center px-6 transition-all ${scrolled ? 'shadow-md' : ''}`}>
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/sca.png" alt="SCA Logo" className="h-10 w-auto" />
+            <img src="/sca.png" alt="SCA Logo" className="h-14 w-auto" />
           </Link>
           <div className="hidden md:flex gap-6 items-center">
             <Link className="text-on-surface-variant text-sm hover:text-primary transition-colors" to="/about">
@@ -113,7 +113,7 @@ export default function Team() {
         <footer className="mt-32 pt-12 border-t border-outline-variant grid grid-cols-1 md:grid-cols-4 gap-12 text-on-surface-variant text-sm">
           <div className="md:col-span-2">
             <div className="flex items-center gap-3 mb-4">
-              <img src="/sca.png" alt="SCA Logo" className="h-10 w-auto" />
+              <img src="/sca.png" alt="SCA Logo" className="h-13 w-auto" />
             </div>
             <p className="max-w-sm mb-6">
               Streamlining event registration, scheduling, and management for the next generation of technologists at the School of Computer Application.

@@ -13,7 +13,7 @@ export default function Pending() {
           </div>
 
           {/* Logo */}
-          <img src="/sca.png" alt="SCA" className="h-10 w-auto mx-auto mb-4 opacity-70" />
+          <img src="/sca.png" alt="SCA" className="h-14 w-auto mx-auto mb-4 opacity-70" />
 
           <h1 className="text-xl sm:text-2xl font-bold text-[#022448] mb-3">
             Account Pending Approval

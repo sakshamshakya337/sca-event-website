@@ -6,7 +6,7 @@ import {
   CheckCircle2, X, Edit2, Upload, ShieldAlert,
   Mail, Phone, Save, ShieldCheck, Eye, EyeOff, ShieldQuestion,
 } from 'lucide-react'
-import { SECURITY_QUESTIONS } from '../auth/ForgotPassword'
+import { SECURITY_QUESTIONS } from '../../config/constants'
 
 const inputCls = 'w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-2.5 text-body-md focus:ring-2 focus:ring-secondary/20 focus:outline-none'
 

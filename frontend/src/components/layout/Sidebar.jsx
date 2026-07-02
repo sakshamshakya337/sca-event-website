@@ -72,92 +72,119 @@ export default function Sidebar() {
         />
       )}
       
-      {/* Sidebar - Academic Elite Theme */}
-      <aside className={`fixed left-0 top-0 h-screen z-40 bg-surface-sidebar border-r border-outline-variant flex flex-col py-6 gap-6 transition-all duration-300 ${sidebarOpen ? 'w-[240px] translate-x-0' : 'w-[240px] -translate-x-full lg:w-[64px] lg:translate-x-0'}`}>
-        <div className="px-6 mb-6 flex items-center justify-between">
-          <div className={`flex items-center gap-3 ${!sidebarOpen && 'lg:hidden'}`}>
+      {/* Sidebar */}
+      <aside className={`fixed left-0 top-0 h-screen z-40 bg-surface-sidebar border-r border-outline-variant flex flex-col transition-all duration-300 ${sidebarOpen ? 'w-[240px] translate-x-0' : 'w-[240px] -translate-x-full lg:w-[64px] lg:translate-x-0'}`}>
+
+        {/* Logo + toggle */}
+        <div className="px-4 py-4 flex items-center justify-between shrink-0 border-b border-outline-variant/50">
+          <div className={`flex items-center gap-2 ${!sidebarOpen && 'lg:hidden'}`}>
             <img src="/sca.png" alt="SCA Logo" className="h-12 w-auto" />
           </div>
-          <button 
+          <button
             onClick={toggleSidebar}
-            className="p-2 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-primary"
+            className="p-2 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-primary shrink-0"
           >
-            <Menu size={24} />
+            <Menu size={22} />
           </button>
         </div>
-        
-        <nav className="flex-1 flex flex-col gap-1">
+
+        {/* Nav — scrollable if needed */}
+        <nav className="flex-1 flex flex-col gap-0.5 py-3 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               end={item.path === '/student' || item.path === '/faculty' || item.path === '/admin' || item.path === '/superadmin'}
               onClick={() => {
-                // Close sidebar on mobile after navigation
-                if (window.innerWidth < 1024 && sidebarOpen) {
-                  toggleSidebar()
-                }
+                if (window.innerWidth < 1024 && sidebarOpen) toggleSidebar()
               }}
               className={({ isActive }) =>
-                `flex items-center px-6 py-3 transition-all ${
+                `flex items-center px-5 py-3 transition-all ${
                   isActive
                     ? 'bg-primary-container text-on-primary-container border-l-4 border-primary'
                     : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
                 } ${!sidebarOpen && 'lg:justify-center lg:px-0'}`
               }
             >
-              <item.icon className={`w-5 h-5 ${sidebarOpen ? 'mr-3' : ''}`} />
+              <item.icon className={`w-5 h-5 shrink-0 ${sidebarOpen ? 'mr-3' : ''}`} />
               {sidebarOpen && <span className="font-body-md">{item.label}</span>}
             </NavLink>
           ))}
         </nav>
-        
-        <div className="mt-auto px-6 pt-6 flex flex-col gap-4">
-          <div className={`flex flex-col gap-1 ${!sidebarOpen && 'lg:hidden'}`}>
+
+        {/* Bottom — user info + settings + logout, always visible */}
+        <div className="shrink-0 border-t border-outline-variant">
+
+          {/* Settings link */}
+          <div className={`${!sidebarOpen && 'lg:hidden'}`}>
             <NavLink
               to={`/${user?.role}/profile`}
               onClick={() => { if (window.innerWidth < 1024 && sidebarOpen) toggleSidebar() }}
-              className="flex items-center py-2 text-on-surface-variant hover:text-primary transition-colors"
+              className="flex items-center px-5 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors"
             >
-              <Settings className="w-5 h-5 mr-3 text-[20px]" />
+              <Settings className="w-5 h-5 mr-3 shrink-0" />
               <span className="font-body-md">Settings</span>
             </NavLink>
           </div>
-          
-          <div className={`pt-6 border-t border-outline-variant ${!sidebarOpen && 'lg:hidden'}`}>
-            <div className="flex items-center gap-3">
+
+          {/* Settings icon-only when collapsed */}
+          <div className={`hidden ${!sidebarOpen && 'lg:flex'} justify-center py-2`}>
+            <NavLink
+              to={`/${user?.role}/profile`}
+              className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors"
+              title="Settings"
+            >
+              <Settings className="w-5 h-5" />
+            </NavLink>
+          </div>
+
+          {/* User info + logout */}
+          <div className={`px-4 py-3 flex flex-col gap-2 ${!sidebarOpen && 'lg:hidden'}`}>
+            <div className="flex items-center gap-2 min-w-0">
               {user?.profilePhotoUrl ? (
                 <img
-                  src={getCloudinaryUrl(user.profilePhotoUrl, { width: 40, height: 40 })}
-                  alt={`${user.firstName || 'User'} ${user.lastName || ''}`}
-                  className="w-10 h-10 rounded-full object-cover"
+                  src={getCloudinaryUrl(user.profilePhotoUrl, { width: 36, height: 36 })}
+                  alt={`${user.firstName || ''}`}
+                  className="w-9 h-9 rounded-full object-cover shrink-0"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
                     e.currentTarget.nextElementSibling.style.display = 'flex'
                   }}
                 />
               ) : null}
-              <div className={`w-10 h-10 rounded-full bg-primary-container items-center justify-center text-on-primary-container font-bold ${user?.profilePhotoUrl ? 'hidden' : 'flex'}`}>
+              <div className={`w-9 h-9 rounded-full bg-primary-container items-center justify-center text-on-primary-container font-bold text-sm shrink-0 ${user?.profilePhotoUrl ? 'hidden' : 'flex'}`}>
                 {getInitials()}
               </div>
-              <div className="flex flex-col">
-                <span className="font-headline-sm text-primary">
+              <div className="flex flex-col min-w-0">
+                <span className="font-headline-sm text-primary text-sm truncate">
                   {user?.firstName} {user?.lastName}
                 </span>
-                <span className="font-code-sm text-on-surface-variant">
+                <span className="font-code-sm text-on-surface-variant text-xs truncate">
                   {getIdentifier()}
                 </span>
               </div>
             </div>
-            
+
             <button
               onClick={handleLogout}
-              className="mt-3 flex items-center text-error hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-error hover:bg-error/10 transition-colors w-full"
             >
-              <LogOut className="w-5 h-5 mr-2 text-[18px]" />
-              <span className="font-body-sm font-semibold">LogOut</span>
+              <LogOut className="w-4 h-4 shrink-0" />
+              <span className="font-body-sm font-semibold text-sm">Log Out</span>
             </button>
           </div>
+
+          {/* Logout icon-only when collapsed */}
+          <div className={`hidden ${!sidebarOpen && 'lg:flex'} justify-center py-3`}>
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-lg text-error hover:bg-error/10 transition-colors"
+              title="Log Out"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          </div>
+
         </div>
       </aside>
     </>

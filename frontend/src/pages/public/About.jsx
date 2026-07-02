@@ -91,7 +91,7 @@ export default function About() {
                 </div>
                 <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-outline-variant">
                   <div className="flex items-center gap-3">
-                    <img src="/sca.png" alt="SCA Logo" className="h-8 sm:h-9 w-auto opacity-50 grayscale" />
+                    <img src="/sca.png" alt="SCA Logo" className="h-11 sm:h-12 w-auto opacity-50 grayscale" />
                     <div className="text-xs leading-tight font-medium text-on-surface-variant">
                       School of Computer<br />Applications
                     </div>

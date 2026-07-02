@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft, ShieldQuestion, Eye, EyeOff,
@@ -7,18 +7,7 @@ import {
 import api from '../../config/axios'
 import { sendPasswordResetEmail } from '../../config/emailjs'
 import toast from 'react-hot-toast'
-
-// ── Security question options (must match what's shown in Profile) ───────────
-export const SECURITY_QUESTIONS = [
-  'What is the name of your first pet?',
-  'What was the name of your primary school?',
-  "What is your mother's maiden name?",
-  'What city were you born in?',
-  'What was the make of your first car?',
-  "What is your oldest sibling's middle name?",
-  'What street did you grow up on?',
-  'What was the name of your childhood best friend?',
-]
+import RecaptchaWidget from '../../components/ui/RecaptchaWidget'
 
 // ── Progress step indicator ──────────────────────────────────────────────────
 function StepDot({ num, label, active, done }) {
@@ -88,7 +77,11 @@ export default function ForgotPassword() {
   const [error, setError] = useState(null)
   const [step, setStep] = useState(1)
 
-  // On mount: if the URL contains ?token=...&step=3 (from the email link),
+  /* recaptcha — only used in step 2 */
+  const recaptchaRef = useRef(null)
+  const [captchaToken, setCaptchaToken] = useState(null)
+
+  // On mount: if URL contains ?token=...&step=3 (from the email link),
   // jump straight to step 3 so the user can set their new password.
   useEffect(() => {
     const urlToken = searchParams.get('token')
@@ -112,7 +105,7 @@ export default function ForgotPassword() {
     finally { setFetchingQ(false) }
   }
 
-  // Step 1 — verify identity + security answer
+  // Step 1 — verify identity + security answer (no captcha here)
   const handleVerify = async (e) => {
     e.preventDefault()
     setError(null)
@@ -134,10 +127,11 @@ export default function ForgotPassword() {
     } finally { setStep1Loading(false) }
   }
 
-  // Step 2 — send reset email via EmailJS
+  // Step 2 — send reset email via EmailJS (captcha required here)
   const handleSendEmail = async () => {
-    setSendingEmail(true)
     setError(null)
+    if (!captchaToken) return setError('Please complete the security verification.')
+    setSendingEmail(true)
     try {
       const resetLink = `${window.location.origin}/forgot-password?token=${resetToken}&step=3`
       const result = await sendPasswordResetEmail({
@@ -149,10 +143,9 @@ export default function ForgotPassword() {
       if (!result.success) throw new Error('EmailJS send failed')
       setEmailSent(true)
       toast.success('Reset email sent! Check your inbox.')
-      // Do NOT advance to step 3 here — the user must click the link in the
-      // email, which will open /forgot-password?token=...&step=3 and land
-      // them on the password reset form automatically.
     } catch {
+      recaptchaRef.current?.reset()
+      setCaptchaToken(null)
       setError('Failed to send email. Please try again or contact sca@lpu.edu.in.')
     } finally { setSendingEmail(false) }
   }
@@ -212,7 +205,7 @@ export default function ForgotPassword() {
         </div>
 
         {/* ─────────────────────────────────────────────
-            STEP 1 — Verify identity
+            STEP 1 — Verify identity (no captcha)
         ───────────────────────────────────────────── */}
         {step === 1 && (
           <form className="px-5 sm:px-8 py-5 sm:py-6 flex flex-col gap-4" onSubmit={handleVerify}>
@@ -263,7 +256,6 @@ export default function ForgotPassword() {
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-[#171c1f]">Security Question</label>
 
-              {/* Question display */}
               {securityQuestion ? (
                 <div className="flex items-start gap-2 bg-primary/5 border border-primary/20 rounded-xl px-3 py-2.5">
                   <ShieldQuestion size={15} className="text-primary shrink-0 mt-0.5" />
@@ -277,7 +269,6 @@ export default function ForgotPassword() {
                 </p>
               )}
 
-              {/* Answer input */}
               <div className="relative">
                 <input
                   className={inp}
@@ -315,7 +306,7 @@ export default function ForgotPassword() {
         )}
 
         {/* ─────────────────────────────────────────────
-            STEP 2 — Send reset email
+            STEP 2 — Send reset email (captcha here)
         ───────────────────────────────────────────── */}
         {step === 2 && (
           <div className="px-5 sm:px-8 py-5 sm:py-6 flex flex-col gap-4">
@@ -351,9 +342,12 @@ export default function ForgotPassword() {
 
             <ErrorBox msg={error} />
 
+            {/* reCAPTCHA — mounts fresh here because step 1 never had it */}
+            <RecaptchaWidget ref={recaptchaRef} onChange={setCaptchaToken} />
+
             <button
               onClick={handleSendEmail}
-              disabled={sendingEmail || emailSent}
+              disabled={sendingEmail || emailSent || !captchaToken}
               className="w-full py-3 bg-primary text-on-primary text-sm font-semibold rounded-xl hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60 shadow-md transition-all"
             >
               {sendingEmail
@@ -374,7 +368,7 @@ export default function ForgotPassword() {
 
             <p className="text-center text-xs text-[#74777f]">
               Didn't receive it? Check your spam folder or{' '}
-              <button onClick={handleSendEmail} disabled={sendingEmail}
+              <button onClick={handleSendEmail} disabled={sendingEmail || !captchaToken}
                 className="text-primary font-semibold hover:underline disabled:opacity-50">
                 resend
               </button>.
@@ -389,7 +383,7 @@ export default function ForgotPassword() {
           <form className="px-5 sm:px-8 py-5 sm:py-6 flex flex-col gap-4" onSubmit={handleReset}>
 
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 leading-relaxed">
-              <strong>� You're almost there!</strong> Enter your new password below. This reset link expires in 15 minutes.
+              <strong>🔑 You're almost there!</strong> Enter your new password below. This reset link expires in 15 minutes.
             </div>
 
             {/* New password */}
@@ -405,7 +399,6 @@ export default function ForgotPassword() {
                   {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {/* Strength indicator */}
               {newPassword && (
                 <div className="flex gap-1 h-1 mt-0.5">
                   {[1, 2, 3, 4].map(n => (

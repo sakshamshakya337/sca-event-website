@@ -68,7 +68,7 @@ export default function StudentDetails() {
       {/* Top Bar */}
       <header className="w-full h-[60px] flex items-center justify-between px-6 bg-white border-b border-[#c4c6cf]">
         <div className="flex items-center gap-2">
-          <img src="/sca.png" alt="SCA Logo" className="h-10 w-auto" />
+          <img src="/sca.png" alt="SCA Logo" className="h-14 w-auto" />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[#43474e] text-sm">Already have an account?</span>

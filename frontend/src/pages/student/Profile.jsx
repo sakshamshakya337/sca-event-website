@@ -3,7 +3,7 @@ import { Upload, Edit2, Save, Eye, EyeOff, CheckCircle2, X, Mail, Phone, ShieldC
 import PageWrapper from '../../components/layout/PageWrapper'
 import useAuthStore from '../../store/authStore'
 import api from '../../config/axios'
-import { SECURITY_QUESTIONS } from '../auth/ForgotPassword'
+import { SECURITY_QUESTIONS } from '../../config/constants'
 
 const inputCls = 'w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-secondary/20 focus:outline-none'
 

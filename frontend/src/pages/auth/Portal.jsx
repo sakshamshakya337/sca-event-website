@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BadgeCheck, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
 import useAuthStore from '../../store/authStore'
 import api from '../../config/axios'
 import toast from 'react-hot-toast'
 import useUiStore from '../../store/uiStore'
+import RecaptchaWidget from '../../components/ui/RecaptchaWidget'
 
 export default function Portal() {
   const [email, setEmail] = useState('')
@@ -14,6 +15,8 @@ export default function Portal() {
   const [error, setError] = useState(null)
   const [attempts, setAttempts] = useState(0)
   const [lockedUntil, setLockedUntil] = useState(null)
+  const [captchaToken, setCaptchaToken] = useState(null)
+  const recaptchaRef = useRef(null)
 
   const { theme } = useUiStore()
   const isDark = theme === 'dark'
@@ -34,6 +37,7 @@ export default function Portal() {
     if (!trimmedEmail) { setError('Please enter your email or ID.'); return }
     if (!password || password.length < 6) { setError('Password must be at least 6 characters.'); return }
     if (password.length > 128) { setError('Password is too long.'); return }
+    if (!captchaToken) { setError('Please complete the security verification.'); return }
 
     setLoading(true)
     try {
@@ -44,9 +48,6 @@ export default function Portal() {
       login(user, token)
       toast.success('Login successful!')
 
-      const { addNotification } = (await import('../../store/notificationsStore')).default.getState()
-      addNotification({ title: 'Welcome back!', message: `Signed in as ${user.firstName} ${user.lastName} (${user.role}).`, type: 'success' })
-
       if (user.mustChangePassword) {
         navigate('/change-password')
       } else {
@@ -56,6 +57,8 @@ export default function Portal() {
     } catch (err) {
       const newAttempts = attempts + 1
       setAttempts(newAttempts)
+      recaptchaRef.current?.reset()
+      setCaptchaToken(null)
       if (newAttempts >= 5) {
         setLockedUntil(Date.now() + 15 * 60 * 1000)
         setError('Too many failed attempts. Please wait 15 minutes.')
@@ -88,8 +91,8 @@ export default function Portal() {
       {/* Top strip — responsive */}
       <div className={`w-full max-w-[1400px] flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 mb-4 sm:mb-6 rounded-xl border ${strip}`}>
         <div className="flex items-center gap-2 sm:gap-3">
-          <img src="/sca.png" alt="SCA Logo" className="w-9 h-12 sm:w-10 sm:h-10 object-contain" />
-          <span className={`font-semibold text-sm sm:text-lg ${text}`}>SCA LPU</span>
+          <img src="/sca.png" alt="SCA Logo" className="h-14 sm:h-16 w-auto" />
+          
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
           <span className={`text-xs sm:text-sm hidden sm:block ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
@@ -109,7 +112,7 @@ export default function Portal() {
         <section className={`rounded-2xl shadow-lg ${card} p-6 sm:p-10`}>
           {/* Logo + heading */}
           <div className="flex flex-col items-center text-center gap-2 mb-6 sm:mb-8">
-            <img src="/sca.png" alt="SCA Logo" className="w-12 h-12 sm:w-16 sm:h-16 object-contain mb-2 sm:mb-4" />
+            <img src="/sca.png" alt="SCA Logo" className="h-20 sm:h-24 w-auto mb-2 sm:mb-4" />
             <h1 className={`text-xl sm:text-2xl font-bold ${text}`}>Welcome Back</h1>
             <p className={`text-xs sm:text-sm ${sub} mt-0.5`}>School of Computer Applications, LPU</p>
           </div>
@@ -179,9 +182,16 @@ export default function Portal() {
               </Link>
             </div>
 
+            {/* reCAPTCHA */}
+            <RecaptchaWidget
+              ref={recaptchaRef}
+              onChange={setCaptchaToken}
+              theme={isDark ? 'dark' : 'light'}
+            />
+
             {/* Submit */}
             <button
-              disabled={loading || Boolean(lockedUntil && Date.now() < lockedUntil)}
+              disabled={loading || !captchaToken || Boolean(lockedUntil && Date.now() < lockedUntil)}
               className="w-full py-3 font-semibold rounded-btn flex items-center justify-center gap-2 bg-primary text-on-primary hover:opacity-90 active:scale-[0.98] shadow-md mt-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm sm:text-base"
             >
               {loading

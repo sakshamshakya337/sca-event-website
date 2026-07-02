@@ -254,11 +254,29 @@ export const getCurrentUser = async (req, res, next) => {
   }
 }
 
+export const deleteOwnAccount = async (req, res, next) => {
+  try {
+    // Only allow deletion of accounts that have NOT yet been verified
+    // (i.e. freshly created during signup flow that failed mid-way)
+    const user = await User.findById(req.user.id)
+    if (!user) throw new ApiError(404, 'User not found')
+
+    if (user.isVerified) {
+      throw new ApiError(403, 'Cannot delete a verified account via this endpoint.')
+    }
+
+    await User.findByIdAndDelete(req.user.id)
+    res.status(200).json(new ApiResponse(200, null, 'Account deleted.'))
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const logout = (req, res) => {
   res.status(200).json(new ApiResponse(200, null, 'Logged out successfully'))
 }
 
-// ── Helper: hash a security answer or OTP ────────────────────────────────────
+
 const hashValue = (value) =>
   crypto.createHash('sha256').update(value.toLowerCase().trim()).digest('hex')
 

@@ -1,12 +1,16 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Send, ShieldCheck, CheckCircle2, RefreshCw, Mail } from 'lucide-react'
 import api from '../../config/axios'
 import PublicLayout from '../../components/layout/PublicLayout'
+import RecaptchaWidget from '../../components/ui/RecaptchaWidget'
 
 export default function Contact() {
   const [focusedField, setFocusedField] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState(null)
+  const [captchaError, setCaptchaError] = useState(false)
+  const recaptchaRef = useRef(null)
   const [formData, setFormData] = useState({
     name: '', email: '', universityId: '', role: 'Student',
     category: 'Event Query', subject: '', message: ''
@@ -14,6 +18,11 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!captchaToken) {
+      setCaptchaError(true)
+      return
+    }
+    setCaptchaError(false)
     setIsSubmitting(true)
     try {
       await api.post('/contact', formData)
@@ -23,6 +32,8 @@ export default function Contact() {
     } catch (err) {
       console.error(err)
       alert(err.response?.data?.message || 'Failed to send query')
+      recaptchaRef.current?.reset()
+      setCaptchaToken(null)
       setIsSubmitting(false)
     }
   }
@@ -161,6 +172,17 @@ export default function Contact() {
                 required
               />
             </div>
+
+            {/* reCAPTCHA */}
+            <RecaptchaWidget
+              ref={recaptchaRef}
+              onChange={token => { setCaptchaToken(token); setCaptchaError(false) }}
+            />
+            {captchaError && (
+              <p className="text-red-600 text-xs font-medium -mt-1">
+                Please complete the security verification before submitting.
+              </p>
+            )}
 
             <button
               className="mt-1 w-full bg-primary text-on-primary font-semibold py-3 rounded-btn transition-all active:scale-[0.98] flex justify-center items-center gap-2 hover:opacity-90 shadow-md disabled:opacity-60 disabled:cursor-not-allowed text-sm sm:text-base"

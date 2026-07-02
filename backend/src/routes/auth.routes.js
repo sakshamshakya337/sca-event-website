@@ -1,5 +1,5 @@
 import express from 'express'
-import { login, getCurrentUser, logout, changePassword, signup, forgotPassword, resetPassword, verifyResetToken, setSecurityQuestion } from '../controllers/auth.controller.js'
+import { login, getCurrentUser, logout, deleteOwnAccount, changePassword, signup, forgotPassword, resetPassword, verifyResetToken, setSecurityQuestion } from '../controllers/auth.controller.js'
 import { protect } from '../middleware/auth.middleware.js'
 import { authLimiter, signupLimiter } from '../middleware/rateLimiter.js'
 
@@ -8,6 +8,7 @@ const router = express.Router()
 router.post('/signup', signupLimiter, signup)
 router.post('/login', authLimiter, login)
 router.get('/me', protect, getCurrentUser)
+router.delete('/me', protect, deleteOwnAccount)
 router.post('/change-password', protect, changePassword)
 router.post('/logout', logout)
 

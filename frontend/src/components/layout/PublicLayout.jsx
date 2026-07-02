@@ -19,7 +19,7 @@ function PublicNavbar({ scrolled }) {
       >
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3 shrink-0">
-          <img src="/sca.png" alt="SCA Logo" className="h-12 w-auto" />
+          <img src="/sca.png" alt="SCA Logo" className="h-16 w-auto" />
         </Link>
 
         {/* Desktop nav */}
@@ -76,7 +76,7 @@ function PublicNavbar({ scrolled }) {
           {/* Panel */}
           <div className="w-[260px] bg-background border-l border-outline-variant flex flex-col p-6 gap-6 shadow-xl">
             <div className="flex items-center justify-between">
-              <img src="/sca.png" alt="SCA" className="h-10 w-auto" />
+              <img src="/sca.png" alt="SCA" className="h-14 w-auto" />
               <button onClick={() => setMobileOpen(false)} className="p-1 text-on-surface-variant hover:text-on-surface">
                 <X size={20} />
               </button>
@@ -115,7 +115,7 @@ function PublicFooter() {
         <div className="grid md:grid-cols-4 gap-10 mb-10">
           {/* Brand */}
           <div className="col-span-2 space-y-4">
-            <img src="/sca-white.png" alt="SCA Logo" className="h-9 w-auto opacity-90" />
+            <img src="/sca-white.png" alt="SCA Logo" className="h-12 w-auto opacity-90" />
             <p className="text-[#FFB68B]/75 text-sm leading-relaxed max-w-sm">
               Dedicated to enhancing the event management experience for the School of Computer Application at Lovely Professional University.
             </p>
