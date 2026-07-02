@@ -27,19 +27,21 @@ export default function CreateEvent() {
   const inp = 'w-full h-12 px-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all'
 
   const [formData, setFormData] = useState({
-    title:                   '',
-    type:                    'Workshop',
-    expectedAudience:        '',
-    date:                    '',
-    time:                    '',
-    venue:                   '',
-    description:             '',
-    registerLink:            '',
+    title: '',
+    type: 'Workshop',
+    expectedAudience: '',
+    date: '',
+    time: '',
+    venue: '',
+    description: '',
+    registerLink: '',
     registrationNotRequired: false,
-    registrationOpen:        false,
-    isImportant:             false,
-    assignedFaculty:         [],
+    registrationOpen: false,
+    isImportant: false,
+    assignedFaculty: [],
   })
+
+  const [externalImageUrls, setExternalImageUrls] = useState(['', '', '', '', '', '', '', '', '', '']) // 10 empty inputs
 
   const [facultyList,    setFacultyList]    = useState([])
   const [loadingFaculty, setLoadingFaculty] = useState(false)
@@ -87,13 +89,16 @@ export default function CreateEvent() {
       if (formData.expectedAudience) payload.append('expectedAudience', formData.expectedAudience)
       if (formData.description)     payload.append('description',     formData.description)
       if (formData.registerLink)    payload.append('registerLink',    formData.registerLink)
-      payload.append('isImportant',             formData.isImportant             ? 'true' : 'false')
+      payload.append('isImportant',           formData.isImportant           ? 'true' : 'false')
       payload.append('registrationNotRequired', formData.registrationNotRequired ? 'true' : 'false')
-      payload.append('registrationOpen',        formData.registrationOpen        ? 'true' : 'false')
+      payload.append('registrationOpen',      formData.registrationOpen      ? 'true' : 'false')
       if (formData.assignedFaculty.length > 0)
         payload.append('assignedFaculty', JSON.stringify(formData.assignedFaculty))
       if (imageFile) payload.append('image', imageFile)
       galleryFiles.forEach(f => payload.append('gallery', f))
+      // Add external image URLs
+      const validUrls = externalImageUrls.filter(url => url.trim().length > 0)
+      payload.append('externalImageUrls', JSON.stringify(validUrls))
 
       await api.post('/events', payload)
       toast.success('Event created! Pending admin approval.')
@@ -277,6 +282,40 @@ export default function CreateEvent() {
                   </button>
                 </>
               )}
+            </div>
+
+            {/* External Image URLs */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-semibold text-on-surface block">Image URLs (optional)</label>
+                  <p className="text-xs text-on-surface-variant mt-0.5">
+                    Up to 10 image URLs (Cloudinary, ImageBB, etc.) shown in carousel.
+                  </p>
+                </div>
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full shrink-0 ${
+                  externalImageUrls.filter(url => url.trim().length > 0).length >= 10 ? 'bg-red-100 text-red-700' : 'bg-surface-container text-on-surface-variant'
+                }`}>
+                  {externalImageUrls.filter(url => url.trim().length > 0).length}/10
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {externalImageUrls.map((url, i) => (
+                  <input
+                    key={i}
+                    type="url"
+                    placeholder={`Image URL ${i + 1}`}
+                    className={inp}
+                    value={url}
+                    onChange={(e) => {
+                      const newUrls = [...externalImageUrls]
+                      newUrls[i] = e.target.value
+                      setExternalImageUrls(newUrls)
+                    }}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* ── Toggles ──────────────────────────────────────────────────── */}

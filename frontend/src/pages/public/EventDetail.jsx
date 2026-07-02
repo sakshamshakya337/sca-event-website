@@ -285,6 +285,7 @@ export default function PublicEventDetail() {
   const allImages = event ? [
     ...(event.imageUrl ? [{ url: event.imageUrl, publicId: 'banner' }] : []),
     ...(event.gallery  ?? []),
+    ...(event.externalImageUrls?.map((url, i) => ({ url, publicId: `ext-${i}` })) ?? []),
   ] : []
 
   const showRegButton = event &&

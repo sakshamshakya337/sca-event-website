@@ -59,12 +59,12 @@ export const getAllEvents = async (req, res, next) => {
   }
 }
 
-// Get approved events for public landing page
+// Get approved events for public landing page — latest first
 export const getApprovedEvents = async (req, res, next) => {
   try {
     const events = await Event.find({ status: 'approved' })
-      .sort({ date: 1 })
-      .select('title type date time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery')
+      .sort({ date: -1, createdAt: -1 }) // Sort by latest date first, then latest created
+      .select('title type date time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery externalImageUrls')
       .populate('assignedFaculty', 'firstName lastName')
 
     res.status(200).json(new ApiResponse(200, events, 'Approved events fetched successfully'))
@@ -77,7 +77,7 @@ export const getApprovedEvents = async (req, res, next) => {
 export const getPublicEventById = async (req, res, next) => {
   try {
     const event = await Event.findOne({ _id: req.params.id, status: 'approved' })
-      .select('title type date time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery isImportant')
+      .select('title type date time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery externalImageUrls isImportant')
       .populate('assignedFaculty', 'firstName lastName')
     if (!event) throw new ApiError(404, 'Event not found or not yet approved')
     res.status(200).json(new ApiResponse(200, event, 'Event fetched'))
@@ -154,7 +154,7 @@ export const createEvent = async (req, res, next) => {
   try {
     const {
       title, type, date, time, venue, expectedAudience,
-      description, registerLink, assignedStudents = []
+      description, registerLink, assignedStudents = [], externalImageUrls = []
     } = req.body
 
     // Validate required fields first
@@ -176,6 +176,20 @@ export const createEvent = async (req, res, next) => {
       } catch { assignedFaculty = [] }
     }
 
+    // Parse and validate external image URLs
+    let parsedExternalUrls = []
+    if (externalImageUrls) {
+      try {
+        parsedExternalUrls = typeof externalImageUrls === 'string'
+          ? JSON.parse(externalImageUrls)
+          : externalImageUrls
+        // Filter out any empty/whitespace-only URLs and limit to 10
+        parsedExternalUrls = parsedExternalUrls
+          .filter(url => typeof url === 'string' && url.trim().length > 0)
+          .slice(0, 10)
+      } catch { parsedExternalUrls = [] }
+    }
+
     const eventData = {
       title, type, date, time, venue,
       expectedAudience: parsedAudience,
@@ -184,7 +198,8 @@ export const createEvent = async (req, res, next) => {
       status: 'pending',
       createdBy: req.user.id,
       assignedFaculty, assignedStudents,
-      gallery: []  // Initialize empty to prevent undefined issues
+      gallery: [], // Initialize empty to prevent undefined issues
+      externalImageUrls: parsedExternalUrls
     }
 
     // Banner image
@@ -235,7 +250,7 @@ export const updateEvent = async (req, res, next) => {
       throw new ApiError(403, 'Not authorized to update this event')
     }
 
-    const { title, type, date, time, venue, expectedAudience, description, registerLink, assignedFaculty, assignedStudents } = req.body
+    const { title, type, date, time, venue, expectedAudience, description, registerLink, assignedFaculty, assignedStudents, externalImageUrls } = req.body
     const isImportant           = req.body.isImportant           === 'true' || req.body.isImportant           === true
     const registrationNotRequired = req.body.registrationNotRequired === 'true' || req.body.registrationNotRequired === true
     const registrationOpen      = req.body.registrationOpen      === 'true' || req.body.registrationOpen      === true
@@ -254,6 +269,21 @@ export const updateEvent = async (req, res, next) => {
     event.registrationOpen        = registrationOpen
     if (assignedFaculty)  event.assignedFaculty  = assignedFaculty
     if (assignedStudents) event.assignedStudents = assignedStudents
+
+    // Handle external image URLs
+    if (externalImageUrls !== undefined) {
+      let parsedExternalUrls = []
+      try {
+        parsedExternalUrls = typeof externalImageUrls === 'string'
+          ? JSON.parse(externalImageUrls)
+          : externalImageUrls
+        // Filter out any empty/whitespace-only URLs and limit to 10
+        parsedExternalUrls = parsedExternalUrls
+          .filter(url => typeof url === 'string' && url.trim().length > 0)
+          .slice(0, 10)
+      } catch { parsedExternalUrls = [] }
+      event.externalImageUrls = parsedExternalUrls
+    }
 
     // Non-admin editing an approved event → revert to pending for re-approval
     if (!['admin', 'superadmin'].includes(req.user.role) && event.status === 'approved') {

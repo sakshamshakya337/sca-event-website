@@ -33,6 +33,7 @@ export default function EditEvent() {
   const [galleryFiles, setGalleryFiles] = useState([])     // new files to upload
   const [removeIds, setRemoveIds]       = useState([])      // publicIds to delete
   const [regToggling, setRegToggling]   = useState(false)
+  const [externalImageUrls, setExternalImageUrls] = useState(['', '', '', '', '', '', '', '', '', '']) // 10 empty inputs
 
   const inp = 'w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all'
 
@@ -61,8 +62,16 @@ export default function EditEvent() {
           registrationNotRequired:  Boolean(event.registrationNotRequired),
           registrationOpen:         Boolean(event.registrationOpen),
           gallery:                  event.gallery || [],
+          externalImageUrls:        event.externalImageUrls || [],
           status:                   event.status,
         })
+
+        // Initialize external image URLs: fill with saved URLs and pad to 10 with empty strings
+        const savedUrls = event.externalImageUrls || []
+        const urls = [...savedUrls]
+        while (urls.length < 10) urls.push('')
+        setExternalImageUrls(urls)
+
         if (event.imageUrl) setImagePreview(event.imageUrl)
       } catch (err) {
         toast.error(err.response?.data?.message || 'Unable to load event')
@@ -128,6 +137,9 @@ export default function EditEvent() {
       galleryFiles.forEach(f => payload.append('gallery', f))
       if (removeIds.length > 0)
         payload.append('removeGalleryIds', JSON.stringify(removeIds))
+      // Add external image URLs
+      const validUrls = externalImageUrls.filter(url => url.trim().length > 0)
+      payload.append('externalImageUrls', JSON.stringify(validUrls))
 
       await api.put(`/events/${id}`, payload)
       toast.success('Event updated successfully')
@@ -391,6 +403,38 @@ export default function EditEvent() {
                   </button>
                 </>
               )}
+            </div>
+
+            {/* External Image URLs */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="block text-sm font-semibold text-on-surface">Image URLs</label>
+                  <p className="text-xs text-on-surface-variant mt-0.5">Up to 10 image URLs (Cloudinary, ImageBB, etc.) shown in carousel.</p>
+                </div>
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full shrink-0 ${
+                  externalImageUrls.filter(url => url.trim().length > 0).length >= 10 ? 'bg-red-100 text-red-700' : 'bg-surface-container text-on-surface-variant'
+                }`}>
+                  {externalImageUrls.filter(url => url.trim().length > 0).length}/10
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {externalImageUrls.map((url, i) => (
+                  <input
+                    key={i}
+                    type="url"
+                    placeholder={`Image URL ${i + 1}`}
+                    className={inp}
+                    value={url}
+                    onChange={(e) => {
+                      const newUrls = [...externalImageUrls]
+                      newUrls[i] = e.target.value
+                      setExternalImageUrls(newUrls)
+                    }}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Toggles */}
