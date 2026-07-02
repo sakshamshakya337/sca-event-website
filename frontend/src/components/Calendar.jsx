@@ -1,177 +1,165 @@
 import React, { useState } from 'react'
-import { Calendar as CalendarIcon,ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { normalizeEventStatus } from '../utils/eventUtils'
 
-export default function Calendar({ events, onEventClick }) {
-  const [currentDate, setCurrentDate] = useState(new Date())
+const MONTH_NAMES = [
+  'January','February','March','April','May','June',
+  'July','August','September','October','November','December',
+]
 
-  const year = currentDate.getFullYear()
-  const month = currentDate.getMonth()
+// Full day names for ≥ sm, single letter for mobile
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ]
+function getEventColor(event) {
+  const s = normalizeEventStatus(event.status)
+  if (s === 'approved')  return 'bg-green-500  text-white'
+  if (s === 'pending')   return 'bg-amber-500  text-white'
+  if (s === 'rejected')  return 'bg-red-500    text-white'
+  return 'bg-violet-500 text-white'
+}
 
-  // Get first and last day of the month
-  const firstDayOfMonth = new Date(year, month, 1)
-  const lastDayOfMonth = new Date(year, month + 1, 0)
+function normalizeDate(val) {
+  if (!val) return ''
+  try {
+    const d = new Date(val)
+    return isNaN(d.getTime()) ? val : d.toISOString().split('T')[0]
+  } catch { return val }
+}
 
-  const daysInMonth = lastDayOfMonth.getDate()
-  const startDayOfWeek = firstDayOfMonth.getDay()
+export default function Calendar({ events = [], onEventClick }) {
+  const [current, setCurrent] = useState(new Date())
 
-  // Previous month days
-  const prevMonthLastDay = new Date(year, month, 0).getDate()
-  const prevMonthDays = []
-  for (let i = startDayOfWeek - 1; i >= 0; i--) {
-    prevMonthDays.push(prevMonthLastDay - i)
+  const year  = current.getFullYear()
+  const month = current.getMonth()
+
+  const firstWeekday  = new Date(year, month, 1).getDay()
+  const daysInMonth   = new Date(year, month + 1, 0).getDate()
+  const prevLastDay   = new Date(year, month, 0).getDate()
+  const totalCells    = 42
+
+  // Build flat cell array: { day, type: 'prev'|'cur'|'next' }
+  const cells = []
+  for (let i = firstWeekday - 1; i >= 0; i--)
+    cells.push({ day: prevLastDay - i, type: 'prev' })
+  for (let d = 1; d <= daysInMonth; d++)
+    cells.push({ day: d, type: 'cur' })
+  while (cells.length < totalCells)
+    cells.push({ day: cells.length - firstWeekday - daysInMonth + 1, type: 'next' })
+
+  const getEventsForDay = (day) => {
+    const target = `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+    return events.filter(e => normalizeDate(e.date) === target)
   }
 
-  // Current month days
-  const currentMonthDays = Array.from({ length: daysInMonth }, (_, i) => i + 1)
-
-  // Next month days
-  const totalCells = prevMonthDays.length + currentMonthDays.length
-  const nextMonthDays = Array.from({ length: 42 - totalCells }, (_, i) => i + 1)
-
-  // Helper to normalize event date to YYYY-MM-DD format
-  const normalizeDate = (dateValue) => {
-    if (!dateValue) return ''
-    try {
-      const dateObj = new Date(dateValue)
-      if (isNaN(dateObj.getTime())) {
-        // Try parsing as-is if it's already a string
-        return dateValue
-      }
-      return dateObj.toISOString().split('T')[0]
-    } catch (e) {
-      return dateValue
-    }
-  }
-
-  // Helper to check if a date has events
-  const getEventsForDate = (day, isCurrentMonth = true) => {
-    if (!isCurrentMonth) return []
-    const targetDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    return events.filter(event => normalizeDate(event.date) === targetDate)
-  }
-
-  // Helper to get event color
-  const getEventColor = (event) => {
-    const status = normalizeEventStatus(event.status)
-    if (status === 'approved') return 'bg-green-500 text-white'
-    if (status === 'pending') return 'bg-secondary text-white'
-    return 'bg-[#8B5CF6] text-white'
-  }
-
-  // Navigation functions
-  const goToPrevMonth = () => {
-    setCurrentDate(new Date(year, month - 1, 1))
-  }
-
-  const goToNextMonth = () => {
-    setCurrentDate(new Date(year, month + 1, 1))
-  }
-
-  const goToToday = () => {
-    setCurrentDate(new Date())
-  }
+  const today = new Date().toDateString()
 
   return (
     <div className="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-sm">
-      {/* Month Navigation */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant bg-surface-container-low">
-        <div className="flex items-center gap-2">
+
+      {/* ── Month navigation ─────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-outline-variant bg-surface-container-low">
+        <div className="flex items-center gap-1 sm:gap-2">
           <button
-            onClick={goToPrevMonth}
-            className="p-2 hover:bg-surface-container-high rounded-lg transition-colors"
+            onClick={() => setCurrent(new Date(year, month - 1, 1))}
+            className="p-1.5 sm:p-2 hover:bg-surface-container-high rounded-lg transition-colors"
+            aria-label="Previous month"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={18} />
           </button>
           <button
-            onClick={goToNextMonth}
-            className="p-2 hover:bg-surface-container-high rounded-lg transition-colors"
+            onClick={() => setCurrent(new Date(year, month + 1, 1))}
+            className="p-1.5 sm:p-2 hover:bg-surface-container-high rounded-lg transition-colors"
+            aria-label="Next month"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={18} />
           </button>
-          <h3 className="text-lg font-semibold text-on-surface ml-2">
-            {monthNames[month]} {year}
+          <h3 className="text-sm sm:text-base font-semibold text-on-surface ml-1">
+            {MONTH_NAMES[month]} {year}
           </h3>
         </div>
         <button
-          onClick={goToToday}
-          className="px-4 py-1.5 text-sm font-medium text-secondary hover:bg-secondary/10 rounded-lg transition-colors"
+          onClick={() => setCurrent(new Date())}
+          className="px-2.5 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-secondary hover:bg-secondary/10 rounded-lg transition-colors"
         >
           Today
         </button>
       </div>
 
-      {/* Days of week */}
+      {/* ── Day-of-week header ───────────────────────────────────────────── */}
       <div className="grid grid-cols-7 border-b border-outline-variant bg-surface-container-low">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-          <div
-            key={day}
-            className="py-2 text-center text-[11px] font-bold text-on-surface-variant uppercase tracking-wider"
-          >
-            {day}
+        {DAY_NAMES.map(d => (
+          <div key={d} className="py-1.5 sm:py-2 text-center">
+            {/* Single initial on mobile, abbreviation on sm+ */}
+            <span className="sm:hidden text-[10px] font-bold text-on-surface-variant uppercase">{d[0]}</span>
+            <span className="hidden sm:block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">{d}</span>
           </div>
         ))}
       </div>
 
-      {/* Calendar grid */}
-      <div className="grid grid-cols-7 grid-rows-5 min-h-[600px] divide-x divide-y divide-outline-variant">
-        {/* Previous month days */}
-        {prevMonthDays.map(day => (
-          <div
-            key={`prev-${day}`}
-            className="bg-[#F8FAFC] p-1 text-right text-xs text-on-surface-variant/50"
-          >
-            {day}
-          </div>
-        ))}
+      {/* ── Calendar grid ────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-7 divide-x divide-y divide-outline-variant">
+        {cells.map((cell, idx) => {
+          if (cell.type !== 'cur') {
+            return (
+              <div
+                key={idx}
+                className="bg-[#F8FAFC] p-1 text-right"
+                style={{ minHeight: 'clamp(40px, 10vw, 100px)' }}
+              >
+                <span className="text-[10px] sm:text-xs text-on-surface-variant/40">{cell.day}</span>
+              </div>
+            )
+          }
 
-        {/* Current month days */}
-        {currentMonthDays.map(day => {
-          const dayEvents = getEventsForDate(day)
-          const isToday =
-            new Date().toDateString() ===
-            new Date(year, month, day).toDateString()
-          
+          const dayEvents = getEventsForDay(cell.day)
+          const isToday   = new Date(year, month, cell.day).toDateString() === today
+
           return (
             <div
-              key={`current-${day}`}
-              className={`bg-white p-1 space-y-1 min-h-[100px] overflow-y-auto ${isToday ? 'bg-blue-50' : ''}`}
+              key={idx}
+              className={`p-1 overflow-hidden ${isToday ? 'bg-blue-50' : 'bg-white'}`}
+              style={{ minHeight: 'clamp(48px, 12vw, 110px)' }}
             >
-              <div className={`text-right text-sm font-medium ${isToday ? 'text-blue-600' : 'text-on-surface-variant'}`}>
-                {day}
+              {/* Day number */}
+              <div className={`text-right text-[10px] sm:text-xs font-medium mb-0.5 ${
+                isToday ? 'text-blue-600 font-bold' : 'text-on-surface-variant'
+              }`}>
+                {isToday ? (
+                  <span className="inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-blue-600 text-white text-[9px] sm:text-[10px] font-bold">
+                    {cell.day}
+                  </span>
+                ) : cell.day}
               </div>
-              {dayEvents.length > 0 ? (
-                dayEvents.map(event => (
+
+              {/* Events */}
+              <div className="space-y-0.5">
+                {dayEvents.slice(0, 3).map(event => (
                   <div
                     key={event._id}
-                    onClick={() => onEventClick && onEventClick(event)}
-                    className={`text-[11px] px-2 py-1.5 rounded-md truncate font-semibold cursor-pointer hover:opacity-80 shadow-sm ${getEventColor(event)}`}
+                    onClick={() => onEventClick?.(event)}
                     title={event.title}
+                    className={`
+                      text-[9px] sm:text-[11px] leading-tight font-semibold
+                      rounded px-1 py-0.5 sm:px-1.5 sm:py-1
+                      truncate cursor-pointer hover:opacity-80 transition-opacity
+                      ${getEventColor(event)}
+                    `}
                   >
-                    {event.title}
+                    {/* On mobile show only first word to save space */}
+                    <span className="sm:hidden">{event.title.split(' ')[0]}</span>
+                    <span className="hidden sm:inline">{event.title}</span>
                   </div>
-                ))
-              ) : (
-                <div className="text-[10px] text-on-surface-variant/30 px-1">-</div>
-              )}
+                ))}
+                {/* Overflow indicator */}
+                {dayEvents.length > 3 && (
+                  <p className="text-[9px] sm:text-[10px] text-on-surface-variant/60 px-1 font-medium">
+                    +{dayEvents.length - 3} more
+                  </p>
+                )}
+              </div>
             </div>
           )
         })}
-
-        {/* Next month days */}
-        {nextMonthDays.map(day => (
-          <div
-            key={`next-${day}`}
-            className="bg-[#F8FAFC] p-1 text-right text-xs text-on-surface-variant/50"
-          >
-            {day}
-          </div>
-        ))}
       </div>
     </div>
   )

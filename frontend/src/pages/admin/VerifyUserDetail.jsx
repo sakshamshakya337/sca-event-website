@@ -1,14 +1,16 @@
 ﻿import React, { useState, useEffect } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
-import { ArrowLeft, Info, CheckCircle2, XCircle, UserSquare, ExternalLink, MailCheck } from 'lucide-react'
+import { ArrowLeft, Info, CheckCircle2, XCircle, UserSquare, ExternalLink, MailCheck, Trash2, AlertTriangle } from 'lucide-react'
 import useAdminVerifyStore from '../../store/adminVerifyStore'
+import useAdminUserStore from '../../store/adminUserStore'
 import api from '../../config/axios'
 import { sendVerificationDecisionEmail } from '../../config/emailjs'
 import toast from 'react-hot-toast'
 
 export default function VerifyUserDetail() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [notes, setNotes] = useState('')
   const [checklist, setChecklist] = useState([
     { id: 1, label: 'Registration number matches the provided University ID card', checked: false },
@@ -16,7 +18,11 @@ export default function VerifyUserDetail() {
     { id: 3, label: 'Photograph provided is clear and recognizable', checked: false },
     { id: 4, label: 'Current semester and section are within valid ranges', checked: false },
   ])
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const { approveVerification, rejectVerification } = useAdminVerifyStore()
+  const { deleteUser } = useAdminUserStore()
   const [verification, setVerification] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -67,7 +73,6 @@ export default function VerifyUserDetail() {
     try {
       await rejectVerification(id, notes, checklist)
       setVerification(v => ({ ...v, status: 'rejected' }))
-      // Send rejection email — fire-and-forget
       sendVerificationDecisionEmail({
         toName:     `${user.firstName} ${user.lastName}`.trim(),
         toEmail:    user.personalEmail,
@@ -80,6 +85,19 @@ export default function VerifyUserDetail() {
       })
     } catch (err) {
       toast.error(err.message || 'Failed to reject.')
+    }
+  }
+
+  const handleDeleteUser = async () => {
+    if (!user._id) { toast.error('User ID not found.'); return }
+    setIsDeleting(true)
+    try {
+      await deleteUser(user._id)
+      toast.success(`${user.firstName} ${user.lastName}'s account has been deleted.`)
+      navigate('/admin/verify')
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete user.')
+      setIsDeleting(false)
     }
   }
 
@@ -243,6 +261,48 @@ export default function VerifyUserDetail() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* ── Delete user account ─────────────────────────── */}
+              <div className="px-6 py-4 border-t border-outline-variant">
+                {!showDeleteConfirm ? (
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-error/40 text-error text-sm font-semibold rounded-xl hover:bg-error/5 transition-colors"
+                  >
+                    <Trash2 size={16} />
+                    Delete User Account
+                  </button>
+                ) : (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+                    <div className="flex items-start gap-2.5">
+                      <AlertTriangle size={16} className="text-error shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-bold text-error">Permanently delete this account?</p>
+                        <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                          This will delete <strong>{user.firstName} {user.lastName}</strong>'s account and all associated data. This cannot be undone.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleDeleteUser}
+                        disabled={isDeleting}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-error text-white text-xs font-bold rounded-lg hover:bg-error/90 transition-colors disabled:opacity-60"
+                      >
+                        <Trash2 size={13} />
+                        {isDeleting ? 'Deleting…' : 'Confirm Delete'}
+                      </button>
+                      <button
+                        onClick={() => setShowDeleteConfirm(false)}
+                        disabled={isDeleting}
+                        className="flex-1 py-2 border border-outline-variant text-on-surface-variant text-xs font-bold rounded-lg hover:bg-surface-container transition-colors disabled:opacity-60"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

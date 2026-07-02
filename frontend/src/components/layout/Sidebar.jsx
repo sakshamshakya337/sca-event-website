@@ -73,7 +73,7 @@ export default function Sidebar() {
       )}
       
       {/* Sidebar */}
-      <aside className={`fixed left-0 top-0 h-screen z-40 bg-surface-sidebar border-r border-outline-variant flex flex-col transition-all duration-300 ${sidebarOpen ? 'w-[240px] translate-x-0' : 'w-[240px] -translate-x-full lg:w-[64px] lg:translate-x-0'}`}>
+      <aside className={`fixed left-0 top-0 h-screen z-40 bg-surface-sidebar border-r border-outline-variant flex flex-col overflow-hidden transition-all duration-300 ${sidebarOpen ? 'w-[240px] translate-x-0' : 'w-[240px] -translate-x-full lg:w-[64px] lg:translate-x-0'}`}>
 
         {/* Logo + toggle */}
         <div className="px-4 py-4 flex items-center justify-between shrink-0 border-b border-outline-variant/50">
@@ -88,8 +88,8 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {/* Nav — scrollable if needed */}
-        <nav className="flex-1 flex flex-col gap-0.5 py-3 overflow-y-auto">
+        {/* Nav — scrollable, takes all remaining space but never pushes bottom off screen */}
+        <nav className="flex-1 min-h-0 flex flex-col gap-0.5 py-3 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
@@ -128,15 +128,17 @@ export default function Sidebar() {
           </div>
 
           {/* Settings icon-only when collapsed */}
-          <div className={`hidden ${!sidebarOpen && 'lg:flex'} justify-center py-2`}>
-            <NavLink
-              to={`/${user?.role}/profile`}
-              className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors"
-              title="Settings"
-            >
-              <Settings className="w-5 h-5" />
-            </NavLink>
-          </div>
+          {!sidebarOpen && (
+            <div className="hidden lg:flex justify-center py-2">
+              <NavLink
+                to={`/${user?.role}/profile`}
+                className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors"
+                title="Settings"
+              >
+                <Settings className="w-5 h-5" />
+              </NavLink>
+            </div>
+          )}
 
           {/* User info + logout */}
           <div className={`px-4 py-3 flex flex-col gap-2 ${!sidebarOpen && 'lg:hidden'}`}>
@@ -175,15 +177,17 @@ export default function Sidebar() {
           </div>
 
           {/* Logout icon-only when collapsed */}
-          <div className={`hidden ${!sidebarOpen && 'lg:flex'} justify-center py-3`}>
-            <button
-              onClick={handleLogout}
-              className="p-2 rounded-lg text-error hover:bg-error/10 transition-colors"
-              title="Log Out"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
+          {!sidebarOpen && (
+            <div className="hidden lg:flex justify-center py-3">
+              <button
+                onClick={handleLogout}
+                className="p-2 rounded-lg text-error hover:bg-error/10 transition-colors"
+                title="Log Out"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
+          )}
 
         </div>
       </aside>

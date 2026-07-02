@@ -1,361 +1,434 @@
 ﻿import React, { useState, useEffect } from 'react'
 import PageWrapper from '../../components/layout/PageWrapper'
 import Calendar from '../../components/Calendar'
-import { Plus, Bell, MoreHorizontal, HelpCircle, CheckCircle2, XCircle, Star, ChevronRight, CalendarCheck, Users, UserCheck, Mail, ClipboardList, ChevronLeft, Eye, Edit } from 'lucide-react'
+import {
+  Plus, HelpCircle, XCircle, ClipboardList, Mail,
+  CalendarCheck, Edit, CheckCircle2, X,
+} from 'lucide-react'
 import useEventStore from '../../store/eventStore'
 import useAdminUserStore from '../../store/adminUserStore'
-import useAdminVerifyStore from '../../store/adminVerifyStore'
 import useAdminQueriesStore from '../../store/adminQueriesStore'
 import { Link, useNavigate } from 'react-router-dom'
 import { getEventCreatorName, getEventStatusLabel, normalizeEventStatus } from '../../utils/eventUtils'
 
+// ── Status badge ───────────────────────────────────────────────────────────
+function StatusBadge({ status }) {
+  const s   = normalizeEventStatus(status)
+  const cls = {
+    approved : 'bg-green-100  text-green-700',
+    pending  : 'bg-yellow-100 text-yellow-700',
+    rejected : 'bg-red-100    text-red-700',
+    completed: 'bg-purple-100 text-purple-700',
+  }[s] ?? 'bg-gray-100 text-gray-600'
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-wide whitespace-nowrap ${cls}`}>
+      {getEventStatusLabel(status)}
+    </span>
+  )
+}
+
+// ── Stat card ──────────────────────────────────────────────────────────────
+function StatCard({ label, value, accent }) {
+  return (
+    <div className="bg-surface border border-outline-variant rounded-xl p-3 sm:p-5 relative overflow-hidden shadow-sm">
+      <p className="text-[10px] sm:text-xs font-semibold text-on-surface-variant uppercase tracking-wider leading-tight">
+        {label}
+      </p>
+      <p className="text-2xl sm:text-3xl font-bold text-primary mt-1 sm:mt-2 leading-none">{value}</p>
+      <div className={`absolute bottom-0 left-0 w-full h-1 ${accent}`} />
+    </div>
+  )
+}
+
+// ── Section header ─────────────────────────────────────────────────────────
+function SectionHeader({ icon: Icon, iconColor, title, action }) {
+  return (
+    <div className="flex items-center justify-between px-3 sm:px-5 py-3 sm:py-4 border-b border-outline-variant">
+      <h3 className="flex items-center gap-2 text-sm sm:text-base font-bold text-primary">
+        <Icon size={16} className={iconColor} />
+        {title}
+      </h3>
+      {action}
+    </div>
+  )
+}
+
+// ── Main component ─────────────────────────────────────────────────────────
 export default function Dashboard() {
   const navigate = useNavigate()
   const { events, fetchEvents, approveEvent, rejectEvent, setSelectedEvent, selectedEvent } = useEventStore()
-
-  useEffect(() => {
-    fetchEvents()
-  }, [fetchEvents])
-  const { users } = useAdminUserStore()
-  const { verifications } = useAdminVerifyStore()
+  const { users }   = useAdminUserStore()
   const { queries, fetchQueries } = useAdminQueriesStore()
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [pendingEventId, setPendingEventId] = useState(null)
-  const [viewMode, setViewMode] = useState('calendar') // 'calendar' or 'list'
 
-  const year = currentDate.getFullYear()
-  const month = currentDate.getMonth()
+  const [pendingConfirmId, setPendingConfirmId] = useState(null)
+  const [viewMode, setViewMode]                 = useState('calendar')
 
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ]
+  useEffect(() => { fetchEvents() }, [fetchEvents])
+  useEffect(() => { if (!queries.length) fetchQueries() }, [fetchQueries, queries.length])
 
-  // Calculate stats
-  const pendingEvents = events.filter(event => normalizeEventStatus(event.status) === 'pending').length
-  const approvedEvents = events.filter(event => normalizeEventStatus(event.status) === 'approved').length
-  const totalEvents = events.length
-  const totalUsers = users.length
-
-  // Recent items
-  useEffect(() => {
-    if (!queries.length) fetchQueries()
-  }, [fetchQueries, queries.length])
-
-  const recentQueries = queries.slice(0, 3)
-  const pendingEventsList = events.filter(event => normalizeEventStatus(event.status) === 'pending')
+  const pendingEvents  = events.filter(e => normalizeEventStatus(e.status) === 'pending')
+  const approvedEvents = events.filter(e => normalizeEventStatus(e.status) === 'approved')
+  const recentQueries  = queries.slice(0, 4)
 
   return (
     <PageWrapper>
-      <div className="max-w-[1440px] mx-auto space-y-6">
-        {/* Welcome Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="space-y-4 sm:space-y-6">
+
+        {/* ── Page header ─────────────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-headline-lg text-headline-lg text-primary">Dashboard Overview</h2>
-            <p className="text-body-md text-on-surface-variant">Real-time management and administrative oversight.</p>
+            <h2 className="text-lg sm:text-2xl font-bold text-primary leading-tight">Dashboard Overview</h2>
+            <p className="text-xs sm:text-sm text-on-surface-variant mt-0.5">
+              Real-time management and administrative oversight.
+            </p>
           </div>
-          <button 
-          onClick={() => {
-            console.log('Dashboard Create Event clicked')
-            navigate('/faculty/events/create')
-          }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary text-body-md font-semibold rounded-btn shadow-md hover:opacity-90 transition-all active:scale-95"
-        >
-          <Plus size={16} />
-          Create New Event
-        </button>
+          <button
+            onClick={() => navigate('/faculty/events/create')}
+            className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 sm:py-2.5 bg-primary text-on-primary text-sm font-semibold rounded-btn shadow-md hover:opacity-90 transition-all active:scale-95 shrink-0"
+          >
+            <Plus size={15} />
+            Create New Event
+          </button>
         </div>
 
-        {/* 1. Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="bg-[#F8FAFC] border border-outline-variant rounded-xl p-5 relative overflow-hidden stat-card-shadow">
-            <p className="text-body-sm font-medium text-on-surface-variant uppercase tracking-wider">Total Events</p>
-            <h3 className="text-headline-lg text-[28px] mt-2 text-primary">{totalEvents}</h3>
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>
-          </div>
-
-          <div className="bg-[#F8FAFC] border border-outline-variant rounded-xl p-5 relative overflow-hidden stat-card-shadow">
-            <p className="text-body-sm font-medium text-on-surface-variant uppercase tracking-wider">Pending</p>
-            <h3 className="text-headline-lg text-[28px] mt-2 text-primary">{pendingEvents}</h3>
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-secondary-container"></div>
-          </div>
-
-          <div className="bg-[#F8FAFC] border border-outline-variant rounded-xl p-5 relative overflow-hidden stat-card-shadow">
-            <p className="text-body-sm font-medium text-on-surface-variant uppercase tracking-wider">Approved</p>
-            <h3 className="text-headline-lg text-[28px] mt-2 text-primary">{approvedEvents}</h3>
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-green-500"></div>
-          </div>
-
-          <div className="bg-[#F8FAFC] border border-outline-variant rounded-xl p-5 relative overflow-hidden stat-card-shadow">
-            <p className="text-body-sm font-medium text-on-surface-variant uppercase tracking-wider">Faculty</p>
-            <h3 className="text-headline-lg text-[28px] mt-2 text-primary">{users.filter(u => u.role === 'faculty').length}</h3>
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-[#8B5CF6]"></div>
-          </div>
-
-          <div className="bg-[#F8FAFC] border border-outline-variant rounded-xl p-5 relative overflow-hidden stat-card-shadow">
-            <p className="text-body-sm font-medium text-on-surface-variant uppercase tracking-wider">Students</p>
-            <h3 className="text-headline-lg text-[28px] mt-2 text-primary">{users.filter(u => u.role === 'student').length}</h3>
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-tertiary-container"></div>
-          </div>
+        {/* ── Stats — 2×3 on mobile, 5 cols on lg ────────────────────── */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
+          <StatCard label="Total Events" value={events.length}                                accent="bg-primary" />
+          <StatCard label="Pending"      value={pendingEvents.length}                         accent="bg-yellow-400" />
+          <StatCard label="Approved"     value={approvedEvents.length}                        accent="bg-green-500" />
+          <StatCard label="Faculty"      value={users.filter(u => u.role === 'faculty').length} accent="bg-violet-500" />
+          <StatCard label="Students"     value={users.filter(u => u.role === 'student').length} accent="bg-sky-400" />
         </div>
 
-        {/* Calendar Section */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-headline-md font-headline-md text-primary flex items-center gap-2">
-              <CalendarCheck className="text-secondary" />
+        {/* ── Calendar ────────────────────────────────────────────────── */}
+        <section className="space-y-3">
+          <div className="flex flex-row items-center justify-between gap-2 flex-wrap">
+            <h3 className="flex items-center gap-2 text-sm sm:text-base font-semibold text-primary">
+              <CalendarCheck size={16} className="text-secondary shrink-0" />
               Event Calendar
             </h3>
-            <div className="flex items-center bg-surface-container rounded-lg p-1">
-              <button 
-                onClick={() => setViewMode('calendar')}
-                className={`px-4 py-1.5 rounded-md text-body-sm font-semibold transition-all ${viewMode === 'calendar' ? 'bg-white shadow-sm text-primary' : 'text-on-surface-variant hover:text-primary'}`}
-              >
-                Calendar
-              </button>
-              <button 
-                onClick={() => setViewMode('list')}
-                className={`px-4 py-1.5 rounded-md text-body-sm font-semibold transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-primary' : 'text-on-surface-variant hover:text-primary'}`}
-              >
-                List
-              </button>
+            <div className="flex items-center bg-surface-container rounded-lg p-0.5 sm:p-1">
+              {['calendar', 'list'].map(mode => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className={`px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-all capitalize ${
+                    viewMode === mode
+                      ? 'bg-white shadow-sm text-primary'
+                      : 'text-on-surface-variant hover:text-primary'
+                  }`}
+                >
+                  {mode === 'calendar' ? 'Calendar' : 'List'}
+                </button>
+              ))}
             </div>
           </div>
-          {viewMode === 'calendar' ? (
-            <Calendar 
-              events={events} 
-              onEventClick={(event) => setSelectedEvent(event)} 
-            />
-          ) : (
+
+          {viewMode === 'calendar' && (
+            <Calendar events={events} onEventClick={e => setSelectedEvent(e)} />
+          )}
+
+          {viewMode === 'list' && (
             <div className="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-sm">
-              <table className="w-full text-left">
-                <thead className="bg-surface-container-low border-b border-outline-variant">
-                  <tr>
-                    <th className="px-4 py-3 text-body-sm font-semibold text-on-surface-variant">Event</th>
-                    <th className="px-4 py-3 text-body-sm font-semibold text-on-surface-variant">Date</th>
-                    <th className="px-4 py-3 text-body-sm font-semibold text-on-surface-variant">Venue</th>
-                    <th className="px-4 py-3 text-body-sm font-semibold text-on-surface-variant">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant">
-                  {events.map(event => (
-                    <tr key={event._id} className="hover:bg-surface-container transition-colors">
-                      <td className="px-4 py-3 font-medium text-primary">{event.title}</td>
-                      <td className="px-4 py-3 text-on-surface-variant">{event.date}</td>
-                      <td className="px-4 py-3 text-on-surface-variant">{event.venue}</td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold uppercase ${
-                          normalizeEventStatus(event.status) === 'approved' ? 'bg-green-100 text-green-700' :
-                          normalizeEventStatus(event.status) === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {normalizeEventStatus(event.status)}
-                        </span>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[400px] text-left">
+                  <thead className="bg-surface-container-low border-b border-outline-variant">
+                    <tr>
+                      {['Event','Date','Venue','Status'].map(h => (
+                        <th key={h} className="px-3 sm:px-4 py-2.5 text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                          {h}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant">
+                    {events.length === 0 ? (
+                      <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-on-surface-variant">No events.</td></tr>
+                    ) : events.map(event => (
+                      <tr key={event._id} className="hover:bg-surface-container transition-colors">
+                        <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium text-primary max-w-[140px] truncate">{event.title}</td>
+                        <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap">{event.date}</td>
+                        <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface-variant max-w-[120px] truncate">{event.venue}</td>
+                        <td className="px-3 sm:px-4 py-2.5"><StatusBadge status={event.status} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </section>
 
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-          {/* Pending Approvals */}
-          <div className="bg-[#F8FAFC] border border-outline-variant rounded-xl overflow-hidden shadow-sm">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
-              <h3 className="text-headline-sm font-headline-sm text-primary flex items-center gap-2">
-                <ClipboardList size={18} className="text-secondary" />
-                Pending Approvals
-              </h3>
-              <Link 
-                to="/admin/events"
-                className="text-secondary font-medium text-body-sm hover:underline"
-              >
-                View All Requests
+        {/* ── Pending approvals table ──────────────────────────────────── */}
+        <section className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+          <SectionHeader
+            icon={ClipboardList}
+            iconColor="text-secondary"
+            title="Pending Approvals"
+            action={
+              <Link to="/admin/events" className="text-xs sm:text-sm text-secondary font-semibold hover:underline">
+                View All
               </Link>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-[#F1F5F9] border-b border-outline-variant">
-                  <tr>
-                    <th className="px-6 py-3 font-semibold text-on-surface text-body-sm uppercase tracking-wider">Event Name</th>
-                    <th className="px-6 py-3 font-semibold text-on-surface text-body-sm uppercase tracking-wider">Organizer</th>
-                    <th className="px-6 py-3 font-semibold text-on-surface text-body-sm uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 font-semibold text-on-surface text-body-sm uppercase tracking-wider text-center">Status</th>
-                    <th className="px-6 py-3 font-semibold text-on-surface text-body-sm uppercase tracking-wider text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant">
-                  {pendingEventsList.map((event, index) => (
-                    <React.Fragment key={event._id}>
-                      <tr className={index === 0 ? 'bg-surface-container-low transition-colors' : 'hover:bg-surface-container transition-colors'}>
-                        <td className="px-6 py-4 font-medium text-primary">{event.title}</td>
-                        <td className="px-6 py-4 text-on-surface-variant">{getEventCreatorName(event.createdBy)}</td>
-                        <td className="px-6 py-4 text-on-surface-variant">{event.date}</td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="px-2.5 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant text-[11px] font-bold uppercase">{getEventStatusLabel(event.status)}</span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          {index === 0 ? (
-                            <button onClick={() => setPendingEventId(event._id)} className="text-secondary-container">
-                              <MoreHorizontal size={20} />
-                            </button>
-                          ) : (
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => approveEvent(event._id)}
-                                className="bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1.5 rounded-md text-xs font-bold transition-colors"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => rejectEvent(event._id)}
-                                className="bg-error-container text-on-error-container hover:bg-red-200 px-3 py-1.5 rounded-md text-xs font-bold transition-colors"
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                      {index === 0 && pendingEventId === event._id && (
-                        <tr className="bg-primary/5">
-                          <td className="px-6 py-3" colSpan="5">
-                            <div className="flex items-center justify-between bg-primary-container text-white px-4 py-2 rounded-lg">
-                              <p className="text-body-sm flex items-center gap-2">
-                                <HelpCircle size={18} />
-                                Approve '{event.title}' by {getEventCreatorName(event.createdBy)}?
-                              </p>
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => {
-                                    approveEvent(event._id)
-                                    setPendingEventId(null)
-                                  }}
-                                  className="px-3 py-1 bg-white text-primary text-xs font-bold rounded hover:bg-surface-variant"
-                                >
-                                  Confirm Approval
-                                </button>
-                                <button
-                                  onClick={() => setPendingEventId(null)}
-                                  className="px-3 py-1 bg-transparent border border-white/30 text-white text-xs font-bold rounded hover:bg-white/10"
-                                >
-                                  Dismiss
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                  {events.filter(e => normalizeEventStatus(e.status) === 'approved').map((event, index) => (
-                    <tr key={event._id} className="hover:bg-surface-container transition-colors opacity-60">
-                      <td className="px-6 py-4 font-medium text-primary">{event.title}</td>
-                      <td className="px-6 py-4 text-on-surface-variant">{getEventCreatorName(event.createdBy)}</td>
-                      <td className="px-6 py-4 text-on-surface-variant">{event.date}</td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="px-2.5 py-0.5 rounded-full bg-green-500/10 text-green-600 text-[11px] font-bold uppercase">Approved</span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => navigate(`/admin/events/${event._id || event.id}/edit`)}
-                          className="text-on-surface-variant"
-                          title="Edit Event"
-                        >
-                          <Edit size={20} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            }
+          />
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[480px] text-left border-collapse">
+              <thead className="bg-surface-container-low border-b border-outline-variant">
+                <tr>
+                  <th className="px-3 sm:px-5 py-2.5 text-[10px] sm:text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Event</th>
+                  <th className="px-3 sm:px-5 py-2.5 text-[10px] sm:text-[11px] font-bold text-on-surface-variant uppercase tracking-wider hidden sm:table-cell">Organizer</th>
+                  <th className="px-3 sm:px-5 py-2.5 text-[10px] sm:text-[11px] font-bold text-on-surface-variant uppercase tracking-wider hidden md:table-cell">Date</th>
+                  <th className="px-3 sm:px-5 py-2.5 text-[10px] sm:text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+                  <th className="px-3 sm:px-5 py-2.5 text-[10px] sm:text-[11px] font-bold text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant">
 
-          {/* Recent Queries */}
-          <div className="bg-[#F8FAFC] border border-outline-variant rounded-xl overflow-hidden shadow-sm">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
-              <h3 className="text-headline-sm font-headline-sm text-primary flex items-center gap-2">
-                <Mail className="text-[#8B5CF6]" />
-                Recent Contact Queries
-              </h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-[#F1F5F9] border-b border-outline-variant">
+                {/* Pending rows */}
+                {pendingEvents.length === 0 && approvedEvents.length === 0 && (
                   <tr>
-                    <th className="px-6 py-3 font-semibold text-on-surface text-body-sm uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 font-semibold text-on-surface text-body-sm uppercase tracking-wider">ID</th>
-                    <th className="px-6 py-3 font-semibold text-on-surface text-body-sm uppercase tracking-wider">Category</th>
-                    <th className="px-6 py-3 font-semibold text-on-surface text-body-sm uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 font-semibold text-on-surface text-body-sm uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 font-semibold text-on-surface text-body-sm uppercase tracking-wider text-right">Action</th>
+                    <td colSpan={5} className="px-5 py-8 text-center text-sm text-on-surface-variant">
+                      No events to review.
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant">
-                  {recentQueries.map(query => (
-                    <tr key={query.id} className="hover:bg-surface-container transition-colors">
-                      <td className="px-6 py-4 font-medium text-primary">{query.name}</td>
-                      <td className="px-6 py-4">
-                        <span className="font-code-sm text-code-sm bg-surface-container-high px-2 py-1 rounded">{query.universityId}</span>
+                )}
+
+                {pendingEvents.map(event => (
+                  <React.Fragment key={event._id}>
+                    <tr className="hover:bg-surface-container-low transition-colors">
+                      <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm font-semibold text-primary max-w-[140px] sm:max-w-none truncate">
+                        {event.title}
                       </td>
-                      <td className="px-6 py-4 text-on-surface-variant">{query.category}</td>
-                      <td className="px-6 py-4 text-on-surface-variant text-sm">{query.date}</td>
-                      <td className="px-6 py-4">
-                        <div className={`flex items-center gap-2 px-2.5 py-1 rounded-full bg-white border border-outline-variant/20 w-fit ${
-                          query.status === 'pending' ? 'text-secondary' : 'text-on-surface-variant'
-                        }`}>
-                          {query.status === 'pending' && <div className="w-2 h-2 rounded-full bg-secondary animate-pulse"></div>}
-                          <span className="text-body-sm font-bold">{query.status === 'pending' ? 'Pending' : query.status === 'in_progress' ? 'In Progress' : query.status === 'resolved' ? 'Resolved' : query.status}</span>
+                      <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm text-on-surface-variant hidden sm:table-cell">
+                        {getEventCreatorName(event.createdBy)}
+                      </td>
+                      <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap hidden md:table-cell">
+                        {event.date}
+                      </td>
+                      <td className="px-3 sm:px-5 py-3">
+                        <StatusBadge status={event.status} />
+                      </td>
+                      <td className="px-3 sm:px-5 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1 sm:gap-2">
+                          <button
+                            onClick={() => setPendingConfirmId(pendingConfirmId === event._id ? null : event._id)}
+                            className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 bg-green-100 text-green-700 hover:bg-green-200 rounded-md text-[10px] sm:text-xs font-bold transition-colors"
+                          >
+                            <CheckCircle2 size={12} />
+                            <span className="hidden sm:inline">Approve</span>
+                          </button>
+                          <button
+                            onClick={() => rejectEvent(event._id)}
+                            className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-[10px] sm:text-xs font-bold transition-colors"
+                          >
+                            <X size={12} />
+                            <span className="hidden sm:inline">Reject</span>
+                          </button>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <button className="px-4 py-1.5 border border-outline-variant rounded-lg text-body-sm font-medium hover:bg-surface-variant transition-colors">
-                          View
-                        </button>
-                      </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+
+                    {/* Inline confirm prompt */}
+                    {pendingConfirmId === event._id && (
+                      <tr className="bg-primary/5">
+                        <td colSpan={5} className="px-3 sm:px-5 py-3">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-primary-container text-white px-3 sm:px-4 py-2.5 rounded-xl">
+                            <p className="text-xs sm:text-sm flex items-center gap-2">
+                              <HelpCircle size={15} className="shrink-0" />
+                              Approve <strong className="mx-1">"{event.title}"</strong>?
+                            </p>
+                            <div className="flex gap-2 shrink-0">
+                              <button
+                                onClick={() => { approveEvent(event._id); setPendingConfirmId(null) }}
+                                className="px-3 py-1 bg-white text-primary text-xs font-bold rounded-lg hover:bg-surface-variant transition-colors"
+                              >
+                                Confirm
+                              </button>
+                              <button
+                                onClick={() => setPendingConfirmId(null)}
+                                className="px-3 py-1 border border-white/30 text-white text-xs font-bold rounded-lg hover:bg-white/10 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+
+                {/* Approved rows (dimmed) */}
+                {approvedEvents.map(event => (
+                  <tr key={event._id} className="opacity-50 hover:opacity-70 transition-opacity hover:bg-surface-container">
+                    <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm font-semibold text-primary max-w-[140px] sm:max-w-none truncate">
+                      {event.title}
+                    </td>
+                    <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm text-on-surface-variant hidden sm:table-cell">
+                      {getEventCreatorName(event.createdBy)}
+                    </td>
+                    <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap hidden md:table-cell">
+                      {event.date}
+                    </td>
+                    <td className="px-3 sm:px-5 py-3">
+                      <StatusBadge status={event.status} />
+                    </td>
+                    <td className="px-3 sm:px-5 py-3 text-right">
+                      <button
+                        onClick={() => navigate(`/admin/events/${event._id || event.id}/edit`)}
+                        className="p-1.5 rounded-lg hover:bg-surface-container-high transition-colors text-on-surface-variant hover:text-primary"
+                        title="Edit"
+                      >
+                        <Edit size={15} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* ── Recent contact queries ───────────────────────────────────── */}
+        <section className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+          <SectionHeader
+            icon={Mail}
+            iconColor="text-violet-500"
+            title="Recent Contact Queries"
+            action={
+              <Link to="/admin/queries" className="text-xs sm:text-sm text-secondary font-semibold hover:underline">
+                View All
+              </Link>
+            }
+          />
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[440px] text-left border-collapse">
+              <thead className="bg-surface-container-low border-b border-outline-variant">
+                <tr>
+                  <th className="px-3 sm:px-5 py-2.5 text-[10px] sm:text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Name</th>
+                  <th className="px-3 sm:px-5 py-2.5 text-[10px] sm:text-[11px] font-bold text-on-surface-variant uppercase tracking-wider hidden sm:table-cell">Category</th>
+                  <th className="px-3 sm:px-5 py-2.5 text-[10px] sm:text-[11px] font-bold text-on-surface-variant uppercase tracking-wider hidden md:table-cell">Date</th>
+                  <th className="px-3 sm:px-5 py-2.5 text-[10px] sm:text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+                  <th className="px-3 sm:px-5 py-2.5 text-right w-16"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant">
+                {recentQueries.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-8 text-center text-sm text-on-surface-variant">
+                      No queries yet.
+                    </td>
+                  </tr>
+                ) : recentQueries.map(query => (
+                  <tr key={query._id || query.id} className="hover:bg-surface-container transition-colors">
+                    <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm font-semibold text-primary">
+                      <div className="max-w-[120px] sm:max-w-none truncate">{query.name}</div>
+                      <div className="text-[10px] text-on-surface-variant mt-0.5 sm:hidden">{query.category}</div>
+                    </td>
+                    <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm text-on-surface-variant hidden sm:table-cell">
+                      {query.category}
+                    </td>
+                    <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap hidden md:table-cell">
+                      {query.date}
+                    </td>
+                    <td className="px-3 sm:px-5 py-3">
+                      <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] sm:text-[11px] font-bold whitespace-nowrap ${
+                        query.status === 'pending'     ? 'border-yellow-200 bg-yellow-50 text-yellow-700' :
+                        query.status === 'in_progress' ? 'border-blue-200   bg-blue-50   text-blue-700'   :
+                        query.status === 'resolved'    ? 'border-green-200  bg-green-50  text-green-700'  :
+                        'border-outline-variant bg-surface text-on-surface-variant'
+                      }`}>
+                        {query.status === 'pending' && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse shrink-0" />
+                        )}
+                        {query.status === 'pending'     ? 'Pending'     :
+                         query.status === 'in_progress' ? 'In Progress' :
+                         query.status === 'resolved'    ? 'Resolved'    : query.status}
+                      </div>
+                    </td>
+                    <td className="px-3 sm:px-5 py-3 text-right">
+                      <Link
+                        to="/admin/queries"
+                        className="inline-flex items-center px-2.5 sm:px-3 py-1 border border-outline-variant rounded-lg text-[10px] sm:text-xs font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
+                      >
+                        View
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+
+      {/* ── Event detail modal (bottom sheet on mobile) ─────────────── */}
+      {selectedEvent && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
+          onClick={() => setSelectedEvent(null)}
+        >
+          <div
+            className="bg-white w-full sm:w-auto sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Mobile drag handle */}
+            <div className="sm:hidden flex justify-center pt-3 pb-1">
+              <div className="w-8 h-1 bg-outline-variant rounded-full" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3 px-5 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-outline-variant">
+              <h3 className="text-sm sm:text-base font-bold text-primary leading-snug">
+                {selectedEvent.title}
+              </h3>
+              <button
+                onClick={() => setSelectedEvent(null)}
+                className="text-on-surface-variant hover:text-primary shrink-0"
+              >
+                <XCircle size={20} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-5 sm:px-6 py-4 space-y-2.5 max-h-[60vh] overflow-y-auto">
+              {[
+                { label: 'Organizer', value: getEventCreatorName(selectedEvent.createdBy) },
+                { label: 'Date',      value: selectedEvent.date },
+                { label: 'Time',      value: selectedEvent.time },
+                { label: 'Venue',     value: selectedEvent.venue },
+                { label: 'Category',  value: selectedEvent.category },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex gap-2">
+                  <span className="text-xs font-semibold text-on-surface-variant w-20 shrink-0">{label}:</span>
+                  <span className="text-xs text-on-surface">{value || '—'}</span>
+                </div>
+              ))}
+              {selectedEvent.description && (
+                <div>
+                  <span className="text-xs font-semibold text-on-surface-variant">Description:</span>
+                  <p className="text-xs text-on-surface mt-1 leading-relaxed">{selectedEvent.description}</p>
+                </div>
+              )}
+              <div className="pt-1">
+                <StatusBadge status={selectedEvent.status} />
+              </div>
+            </div>
+
+            {/* Mobile close */}
+            <div className="sm:hidden px-5 pb-6 pt-2">
+              <button
+                onClick={() => setSelectedEvent(null)}
+                className="w-full py-2.5 border border-outline-variant rounded-btn text-sm font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
-
-        {/* Event Details Modal */}
-        {selectedEvent && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedEvent(null)}>
-            <div className="bg-white rounded-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-headline-md font-headline-md text-primary">{selectedEvent.title}</h3>
-                <button onClick={() => setSelectedEvent(null)} className="text-on-surface-variant hover:text-primary">
-                  <XCircle size={24} />
-                </button>
-              </div>
-              <div className="space-y-3">
-                <p className="text-body-md text-on-surface"><strong>Organizer:</strong> {selectedEvent.createdBy}</p>
-                <p className="text-body-md text-on-surface"><strong>Date:</strong> {selectedEvent.date}</p>
-                <p className="text-body-md text-on-surface"><strong>Time:</strong> {selectedEvent.time}</p>
-                <p className="text-body-md text-on-surface"><strong>Venue:</strong> {selectedEvent.venue}</p>
-                <p className="text-body-md text-on-surface"><strong>Category:</strong> {selectedEvent.category}</p>
-                <p className="text-body-md text-on-surface"><strong>Description:</strong> {selectedEvent.description}</p>
-                <div className="mt-4">
-                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${
-                    selectedEvent.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                    selectedEvent.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-red-100 text-red-700'
-                  }`}>
-                    {selectedEvent.status}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </PageWrapper>
   )
 }

@@ -88,6 +88,20 @@ app.use((req, res) => {
 
 // Global Error Handler — never leak stack traces in production
 app.use((err, req, res, next) => {
+  // Handle multer errors explicitly — return 400 with a clear message
+  if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+    return res.status(400).json({
+      success: false,
+      message: `Unexpected file field "${err.field}". Allowed fields: image, gallery.`,
+    })
+  }
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({
+      success: false,
+      message: 'File too large. Maximum size is 5 MB per image.',
+    })
+  }
+
   const statusCode = err.statusCode || 500
   const message = err.message || 'Internal Server Error'
   if (process.env.NODE_ENV !== 'production') {

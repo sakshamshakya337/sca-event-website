@@ -1,21 +1,11 @@
 import Event from '../models/Event.js'
 import ApiResponse from '../utils/ApiResponse.js'
 import ApiError from '../utils/ApiError.js'
-import multer from 'multer'
 import cloudinary from '../config/cloudinary.js'
+import { handleEventUpload } from '../config/multer.js'
 
-const storage = multer.memoryStorage()
-export const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    if (!file.mimetype?.startsWith('image/')) {
-      cb(new ApiError(400, 'Event image must be an image'))
-      return
-    }
-    cb(null, true)
-  }
-})
+// Re-export so routes can import directly from this file if needed
+export { handleEventUpload as uploadFields }
 
 const uploadToCloudinary = async (fileBuffer, options = {}) => {
   return new Promise((resolve, reject) => {
@@ -74,11 +64,23 @@ export const getApprovedEvents = async (req, res, next) => {
   try {
     const events = await Event.find({ status: 'approved' })
       .sort({ date: 1 })
-      .select('title type date time venue description imageUrl registerLink registrationNotRequired')
+      .select('title type date time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery')
       .populate('assignedFaculty', 'firstName lastName')
-      .populate('assignedStudents', 'firstName lastName')
 
     res.status(200).json(new ApiResponse(200, events, 'Approved events fetched successfully'))
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Get single approved event for public detail page (no auth)
+export const getPublicEventById = async (req, res, next) => {
+  try {
+    const event = await Event.findOne({ _id: req.params.id, status: 'approved' })
+      .select('title type date time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery isImportant')
+      .populate('assignedFaculty', 'firstName lastName')
+    if (!event) throw new ApiError(404, 'Event not found or not yet approved')
+    res.status(200).json(new ApiResponse(200, event, 'Event fetched'))
   } catch (error) {
     next(error)
   }
@@ -151,67 +153,74 @@ export const getEventById = async (req, res, next) => {
 export const createEvent = async (req, res, next) => {
   try {
     const {
-      title,
-      type,
-      date,
-      time,
-      venue,
-      expectedAudience,
-      description,
-      registerLink,
-      assignedStudents = []
+      title, type, date, time, venue, expectedAudience,
+      description, registerLink, assignedStudents = []
     } = req.body
 
+    // Validate required fields first
+    if (!title || !type || !date || !venue) {
+      return next(new ApiError(400, 'Missing required fields: title, type, date, venue'))
+    }
+
     const parsedAudience = expectedAudience ? Number(expectedAudience) : undefined
-    const isImportant = req.body.isImportant === 'true' || req.body.isImportant === true
+    const isImportant           = req.body.isImportant           === 'true' || req.body.isImportant           === true
     const registrationNotRequired = req.body.registrationNotRequired === 'true' || req.body.registrationNotRequired === true
-    
-    // Parse assignedFaculty from JSON string or use as-is
+    const registrationOpen      = req.body.registrationOpen      === 'true' || req.body.registrationOpen      === true
+
     let assignedFaculty = []
     if (req.body.assignedFaculty) {
       try {
-        assignedFaculty = typeof req.body.assignedFaculty === 'string' 
-          ? JSON.parse(req.body.assignedFaculty) 
+        assignedFaculty = typeof req.body.assignedFaculty === 'string'
+          ? JSON.parse(req.body.assignedFaculty)
           : req.body.assignedFaculty
-      } catch (e) {
-        assignedFaculty = []
-      }
+      } catch { assignedFaculty = [] }
     }
 
     const eventData = {
-      title,
-      type,
-      date,
-      time,
-      venue,
+      title, type, date, time, venue,
       expectedAudience: parsedAudience,
-      description,
-      registerLink,
-      registrationNotRequired,
-      isImportant,
+      description, registerLink,
+      registrationNotRequired, registrationOpen, isImportant,
       status: 'pending',
       createdBy: req.user.id,
-      assignedFaculty,
-      assignedStudents
+      assignedFaculty, assignedStudents,
+      gallery: []  // Initialize empty to prevent undefined issues
     }
 
-    if (req.file) {
-      const result = await uploadToCloudinary(req.file.buffer, {
-        folder: 'sca-ems/events',
-        resource_type: 'image'
-      })
-      eventData.imageUrl = result.secure_url
-      eventData.imagePublicId = result.public_id
+    // Banner image
+    const bannerFile = req?.files?.image?.[0] ?? req?.file
+    if (bannerFile) {
+      try {
+        const result = await uploadToCloudinary(bannerFile.buffer, { folder: 'sca-ems/events' })
+        eventData.imageUrl      = result.secure_url
+        eventData.imagePublicId = result.public_id
+      } catch (uploadErr) {
+        console.error('Banner upload failed:', uploadErr)
+        return next(new ApiError(400, 'Failed to upload banner image'))
+      }
+    }
+
+    // Gallery images (up to 6)
+    const galleryFiles = req?.files?.gallery ?? []
+    if (galleryFiles.length > 0) {
+      try {
+        const galleryUploads = await Promise.all(
+          galleryFiles.map(f => uploadToCloudinary(f.buffer, { folder: 'sca-ems/events/gallery' }))
+        )
+        eventData.gallery = galleryUploads.map(r => ({ url: r.secure_url, publicId: r.public_id }))
+      } catch (uploadErr) {
+        console.error('Gallery upload failed:', uploadErr)
+        return next(new ApiError(400, 'Failed to upload gallery images'))
+      }
     }
 
     const event = await Event.create(eventData)
-
     await event.populate('createdBy', 'firstName lastName')
     await event.populate('assignedFaculty', 'firstName lastName')
-    await event.populate('assignedStudents', 'firstName lastName')
 
     res.status(201).json(new ApiResponse(201, event, 'Event created successfully'))
   } catch (error) {
+    console.error('Create event error:', error)
     next(error)
   }
 }
@@ -220,63 +229,78 @@ export const createEvent = async (req, res, next) => {
 export const updateEvent = async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id)
-    if (!event) {
-      throw new ApiError(404, 'Event not found')
-    }
+    if (!event) throw new ApiError(404, 'Event not found')
 
-    // Check if user is owner or admin
     if (event.createdBy.toString() !== req.user.id.toString() && !['admin', 'superadmin'].includes(req.user.role)) {
       throw new ApiError(403, 'Not authorized to update this event')
     }
 
-    const {
-      title,
-      type,
-      date,
-      time,
-      venue,
-      expectedAudience,
-      description,
-      registerLink,
-      assignedFaculty,
-      assignedStudents
-    } = req.body
+    const { title, type, date, time, venue, expectedAudience, description, registerLink, assignedFaculty, assignedStudents } = req.body
+    const isImportant           = req.body.isImportant           === 'true' || req.body.isImportant           === true
+    const registrationNotRequired = req.body.registrationNotRequired === 'true' || req.body.registrationNotRequired === true
+    const registrationOpen      = req.body.registrationOpen      === 'true' || req.body.registrationOpen      === true
+    const parsedAudience        = expectedAudience ? Number(expectedAudience) : undefined
 
-    const isImportant = req.body.isImportant === 'true' || req.body.isImportant === true
-    const parsedAudience = expectedAudience ? Number(expectedAudience) : undefined
-
-    if (title) event.title = title
-    if (type) event.type = type
-    if (date) event.date = date
-    if (time) event.time = time
-    if (venue) event.venue = venue
+    if (title)                    event.title             = title
+    if (type)                     event.type              = type
+    if (date)                     event.date              = date
+    if (time !== undefined)       event.time              = time
+    if (venue)                    event.venue             = venue
     if (parsedAudience !== undefined) event.expectedAudience = parsedAudience
-    if (description !== undefined) event.description = description
-    if (registerLink !== undefined) event.registerLink = registerLink
-    event.isImportant = isImportant
-    if (assignedFaculty) event.assignedFaculty = assignedFaculty
+    if (description !== undefined)    event.description   = description
+    if (registerLink !== undefined)   event.registerLink  = registerLink
+    event.isImportant             = isImportant
+    event.registrationNotRequired = registrationNotRequired
+    event.registrationOpen        = registrationOpen
+    if (assignedFaculty)  event.assignedFaculty  = assignedFaculty
     if (assignedStudents) event.assignedStudents = assignedStudents
 
+    // Non-admin editing an approved event → revert to pending for re-approval
     if (!['admin', 'superadmin'].includes(req.user.role) && event.status === 'approved') {
-      event.status = 'pending'
+      event.status     = 'pending'
       event.approvedBy = undefined
       event.approvedAt = undefined
     }
 
-    let oldImagePublicId = event.imagePublicId
-    if (req.file) {
-      const result = await uploadToCloudinary(req.file.buffer, {
-        folder: 'sca-ems/events',
-        resource_type: 'image'
-      })
-      event.imageUrl = result.secure_url
-      event.imagePublicId = result.public_id
+    // Banner image
+    const bannerFile      = req?.files?.image?.[0] ?? req?.file
+    const oldBannerPublicId = event.imagePublicId
+    if (bannerFile) {
+      const result         = await uploadToCloudinary(bannerFile.buffer, { folder: 'sca-ems/events' })
+      event.imageUrl       = result.secure_url
+      event.imagePublicId  = result.public_id
+    }
+
+    // Gallery images — append up to 6 total
+    const galleryFiles = req?.files?.gallery ?? []
+    if (galleryFiles.length > 0) {
+      const remaining = 6 - (event.gallery?.length ?? 0)
+      if (remaining > 0) {
+        const toUpload = galleryFiles.slice(0, remaining)
+        const uploaded = await Promise.all(
+          toUpload.map(f => uploadToCloudinary(f.buffer, { folder: 'sca-ems/events/gallery' }))
+        )
+        event.gallery = [...(event.gallery ?? []), ...uploaded.map(r => ({ url: r.secure_url, publicId: r.public_id }))]
+      }
+    }
+
+    // Remove gallery items flagged for deletion
+    if (req.body.removeGalleryIds) {
+      let toRemove = []
+      try { toRemove = JSON.parse(req.body.removeGalleryIds) } catch { /* ignore */ }
+      if (toRemove.length > 0) {
+        const kept = (event.gallery ?? []).filter(g => !toRemove.includes(g.publicId))
+        // Delete from Cloudinary in background
+        Promise.all(toRemove.map(pid => cloudinary.uploader.destroy(pid))).catch(console.error)
+        event.gallery = kept
+      }
     }
 
     await event.save()
 
-    if (req.file && oldImagePublicId && oldImagePublicId !== event.imagePublicId) {
-      await cloudinary.uploader.destroy(oldImagePublicId)
+    // Delete old banner from Cloudinary if replaced
+    if (bannerFile && oldBannerPublicId && oldBannerPublicId !== event.imagePublicId) {
+      cloudinary.uploader.destroy(oldBannerPublicId).catch(console.error)
     }
 
     await event.populate('createdBy', 'firstName lastName')
@@ -285,6 +309,7 @@ export const updateEvent = async (req, res, next) => {
 
     res.status(200).json(new ApiResponse(200, event, 'Event updated successfully'))
   } catch (error) {
+    console.error('Update event error:', error)
     next(error)
   }
 }

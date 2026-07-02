@@ -1,362 +1,386 @@
-import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
 import {
-  LayoutDashboard,
-  Calendar,
-  Plus,
-  CheckCircle2,
-  Users,
-  Search,
-  Bell,
-  ChevronRight,
-  Star,
-  MapPin,
-  Clock,
-  Calendar as CalendarRange,
-  ShieldCheck,
-  Settings,
-  HelpCircle,
-  User,
-  Link2Off
+  Plus, Users, ChevronRight, Star, MapPin, Clock,
+  Calendar as CalendarRange, Link2Off, UserCheck, Trash2,
 } from 'lucide-react'
 import api from '../../config/axios'
 import useAuthStore from '../../store/authStore'
+import toast from 'react-hot-toast'
+
+// ── Reusable toggle ──────────────────────────────────────────────────────────
+function Toggle({ checked, onChange, colorOn = 'peer-checked:bg-secondary' }) {
+  return (
+    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+      <input type="checkbox" className="sr-only peer" checked={checked} onChange={onChange} />
+      <div className={`w-11 h-6 bg-outline-variant rounded-full peer ${colorOn} peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all`} />
+    </label>
+  )
+}
 
 export default function CreateEvent() {
-  const navigate = useNavigate()
-  const { user } = useAuthStore()
-  const [formData, setFormData] = useState({
-    title: '',
-    type: 'Workshop',
-    expectedAudience: '',
-    date: '',
-    time: '',
-    venue: '',
-    description: '',
-    registerLink: '',
-    registrationNotRequired: false,
-    isImportant: false,
-    assignedFaculty: []
-  })
-  const [facultyList, setFacultyList] = useState([])
-  const [loadingFaculty, setLoadingFaculty] = useState(false)
-  const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const navigate        = useNavigate()
+  const { user }        = useAuthStore()
+  const galleryInputRef = useRef(null)
 
+  const inp = 'w-full h-12 px-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all'
+
+  const [formData, setFormData] = useState({
+    title:                   '',
+    type:                    'Workshop',
+    expectedAudience:        '',
+    date:                    '',
+    time:                    '',
+    venue:                   '',
+    description:             '',
+    registerLink:            '',
+    registrationNotRequired: false,
+    registrationOpen:        false,
+    isImportant:             false,
+    assignedFaculty:         [],
+  })
+
+  const [facultyList,    setFacultyList]    = useState([])
+  const [loadingFaculty, setLoadingFaculty] = useState(false)
+  const [imageFile,      setImageFile]      = useState(null)
+  const [imagePreview,   setImagePreview]   = useState(null)
+  const [galleryFiles,   setGalleryFiles]   = useState([])   // up to 6
+  const [loading,        setLoading]        = useState(false)
+
+  // Fetch faculty list for assignment
   useEffect(() => {
-    const fetchFaculty = async () => {
+    const fetch_ = async () => {
       setLoadingFaculty(true)
       try {
         const res = await api.get('/users/faculty')
         setFacultyList(res.data.data || [])
-      } catch (err) {
-        console.error('Failed to fetch faculty:', err)
-      } finally {
-        setLoadingFaculty(false)
-      }
+      } catch { /* silently ignore */ }
+      finally { setLoadingFaculty(false) }
     }
-    fetchFaculty()
+    fetch_()
   }, [])
 
+  // ── Gallery helpers ──────────────────────────────────────────────────────
+  const handleGalleryAdd = (e) => {
+    const slots = 6 - galleryFiles.length
+    if (slots <= 0) { toast.error('Maximum 6 gallery images allowed.'); return }
+    const files = Array.from(e.target.files).slice(0, slots)
+    setGalleryFiles(prev => [...prev, ...files])
+    e.target.value = ''
+  }
+
+  const removeGalleryFile = (idx) =>
+    setGalleryFiles(prev => prev.filter((_, i) => i !== idx))
+
+  // ── Submit ───────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     try {
       const payload = new FormData()
-      payload.append('title', formData.title)
-      payload.append('type', formData.type)
-      payload.append('date', formData.date)
-      if (formData.time) payload.append('time', formData.time)
-      payload.append('venue', formData.venue)
+      payload.append('title',                   formData.title)
+      payload.append('type',                    formData.type)
+      payload.append('date',                    formData.date)
+      if (formData.time)            payload.append('time',            formData.time)
+      payload.append('venue',                   formData.venue)
       if (formData.expectedAudience) payload.append('expectedAudience', formData.expectedAudience)
-      if (formData.description) payload.append('description', formData.description)
-      if (formData.registerLink) payload.append('registerLink', formData.registerLink)
-      payload.append('isImportant', formData.isImportant ? 'true' : 'false')
+      if (formData.description)     payload.append('description',     formData.description)
+      if (formData.registerLink)    payload.append('registerLink',    formData.registerLink)
+      payload.append('isImportant',             formData.isImportant             ? 'true' : 'false')
       payload.append('registrationNotRequired', formData.registrationNotRequired ? 'true' : 'false')
-      if (formData.assignedFaculty.length > 0) {
+      payload.append('registrationOpen',        formData.registrationOpen        ? 'true' : 'false')
+      if (formData.assignedFaculty.length > 0)
         payload.append('assignedFaculty', JSON.stringify(formData.assignedFaculty))
-      }
       if (imageFile) payload.append('image', imageFile)
+      galleryFiles.forEach(f => payload.append('gallery', f))
 
       await api.post('/events', payload)
-      alert('Event created successfully. It is now pending admin approval.')
-      if (user?.role === 'admin' || user?.role === 'superadmin') {
-        navigate('/admin')
-      } else {
-        navigate('/faculty')
-      }
+      toast.success('Event created! Pending admin approval.')
+      navigate(['admin', 'superadmin'].includes(user?.role) ? '/admin' : '/faculty')
     } catch (err) {
-      console.error(err)
-      alert(err.response?.data?.message || 'Failed to create event')
+      toast.error(err.response?.data?.message || 'Failed to create event')
     } finally {
       setLoading(false)
     }
   }
 
+  const set = (k, v) => setFormData(d => ({ ...d, [k]: v }))
+  const toggleFaculty = (id, checked) =>
+    set('assignedFaculty', checked
+      ? [...formData.assignedFaculty, id]
+      : formData.assignedFaculty.filter(x => x !== id))
+
   return (
     <PageWrapper>
-      <div className="max-w-[720px] mx-auto">
+      <div className="max-w-[760px] mx-auto">
         <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+
           {/* Header */}
-          <div className="px-8 py-6 border-b border-outline-variant bg-surface-container-low">
-            <h2 className="text-headline-lg text-primary">Create New Event</h2>
-            <p className="text-body-sm text-on-surface-variant mt-1">
-              Enter the official details to register this event into the University Management System.
+          <div className="px-6 sm:px-8 py-5 sm:py-6 border-b border-outline-variant bg-surface-container-low">
+            <h2 className="text-lg sm:text-xl font-bold text-primary">Create New Event</h2>
+            <p className="text-sm text-on-surface-variant mt-1">
+              Fill in the event details. It will go to admin for approval before appearing publicly.
             </p>
           </div>
 
-          {/* Form Content */}
-          <form onSubmit={handleSubmit} className="p-8 space-y-6">
+          <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
+
             {/* Title */}
-            <div className="space-y-2">
-              <label className="text-headline-sm text-primary block">Event Title</label>
-              <input
-                className="w-full h-12 px-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all"
-                placeholder="Enter formal event name"
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                required
-              />
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-on-surface block">Event Title *</label>
+              <input className={inp} placeholder="Enter formal event name" type="text"
+                value={formData.title} onChange={e => set('title', e.target.value)} required />
             </div>
 
-            {/* Row 1 */}
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-headline-sm text-primary block">Event Type</label>
-                <select
-                  className="w-full h-12 px-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none appearance-none"
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  required
-                >
-                  <option>Workshop</option>
-                  <option>Seminar</option>
-                  <option>Cultural</option>
-                  <option>Sports</option>
-                  <option>Technical</option>
-                  <option>Other</option>
+            {/* Type + Audience */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-on-surface block">Event Type *</label>
+                <select className={inp} value={formData.type} onChange={e => set('type', e.target.value)} required>
+                  {['Workshop','Seminar','Cultural','Sports','Technical','Other'].map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
                 </select>
               </div>
-              <div className="space-y-2">
-                <label className="text-headline-sm text-primary block">Expected Audience</label>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-on-surface block">Expected Audience</label>
                 <div className="relative">
-                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
-                  <input
-                    className="w-full h-12 pl-12 pr-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none"
-                    type="number"
-                    value={formData.expectedAudience}
-                    onChange={(e) => setFormData({ ...formData, expectedAudience: e.target.value })}
-                    required
-                  />
+                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
+                  <input className={`${inp} pl-11`} type="number" placeholder="e.g. 100"
+                    value={formData.expectedAudience} onChange={e => set('expectedAudience', e.target.value)} />
                 </div>
               </div>
             </div>
 
-            {/* Row 2 */}
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-headline-sm text-primary block">Event Date</label>
+            {/* Date + Time */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-on-surface block">Event Date *</label>
                 <div className="relative">
-                  <CalendarRange className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
-                  <input
-                    className="w-full h-12 pl-12 pr-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    required
-                  />
+                  <CalendarRange className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
+                  <input className={`${inp} pl-11`} type="date"
+                    value={formData.date} onChange={e => set('date', e.target.value)} required />
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-headline-sm text-primary block">Event Time</label>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-on-surface block">Event Time</label>
                 <div className="relative">
-                  <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
-                  <input
-                    className="w-full h-12 pl-12 pr-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none"
-                    type="time"
-                    value={formData.time}
-                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                  />
+                  <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
+                  <input className={`${inp} pl-11`} type="time"
+                    value={formData.time} onChange={e => set('time', e.target.value)} />
                 </div>
               </div>
             </div>
 
             {/* Venue */}
-            <div className="space-y-2">
-              <label className="text-headline-sm text-primary block">Venue</label>
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-on-surface block">Venue *</label>
               <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
-                <input
-                  className="w-full h-12 pl-12 pr-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none"
-                  placeholder="Enter precise location"
-                  type="text"
-                  value={formData.venue}
-                  onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
-                  required
-                />
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
+                <input className={`${inp} pl-11`} placeholder="Enter precise location"
+                  value={formData.venue} onChange={e => set('venue', e.target.value)} required />
               </div>
             </div>
 
             {/* Description */}
-            <div className="space-y-2">
-              <label className="text-headline-sm text-primary block">Description</label>
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-on-surface block">Description / Blog Content</label>
+              <p className="text-xs text-on-surface-variant">This will appear on the public event detail page. Each new line becomes a paragraph.</p>
               <textarea
-                className="w-full px-4 py-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none resize-none"
-                rows={4}
+                className="w-full px-4 py-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none resize-none transition-all"
+                rows={6}
+                placeholder="Write a detailed description of the event…"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              ></textarea>
+                onChange={e => set('description', e.target.value)}
+              />
             </div>
 
-            {/* Register Link and Image Upload */}
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-headline-sm text-primary block">Registration Link</label>
-                <input
-                  className="w-full h-12 px-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none"
-                  placeholder="https://example.com/register"
-                  type="url"
-                  value={formData.registerLink}
-                  onChange={(e) => setFormData({ ...formData, registerLink: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-headline-sm text-primary block">Event Image (optional)</label>
-                <p className="text-xs text-on-surface-variant">Recommended: 1200x630px (16:9 ratio)</p>
-                <input
-                  className="w-full text-body-md file:border-0 file:bg-secondary/10 file:px-4 file:py-2 file:rounded-lg file:text-secondary file:font-semibold"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    setImageFile(file || null)
-                    setImagePreview(file ? URL.createObjectURL(file) : null)
-                  }}
-                />
-                {imagePreview && (
-                  <div className="rounded-xl overflow-hidden border border-outline-variant shadow-sm">
-                    <img src={imagePreview} alt="Event preview" className="w-full h-40 object-contain" />
-                  </div>
-                )}
-              </div>
+            {/* Registration link */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-on-surface block">External Registration Link (optional)</label>
+              <input className={inp} placeholder="https://example.com/register" type="url"
+                value={formData.registerLink} onChange={e => set('registerLink', e.target.value)} />
             </div>
 
-            {/* Toggle Section - Mark as Important */}
-            <div className="flex items-center justify-between p-4 bg-secondary/5 rounded-xl border border-secondary/20">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-secondary">
-                  <Star size={20} fill="currentColor" />
-                </div>
-                <div>
-                  <p className="text-headline-sm text-primary leading-tight">Mark as Important</p>
-                  <p className="text-body-sm text-on-surface-variant">Flag for priority scheduling</p>
-                </div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={formData.isImportant}
-                  onChange={(e) => setFormData({ ...formData, isImportant: e.target.checked })}
-                />
-                <div className="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
-              </label>
-            </div>
-
-            {/* Toggle Section - Registration Not Required */}
-            <div className="flex items-center justify-between p-4 bg-error/5 rounded-xl border border-error/20">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-error/20 flex items-center justify-center text-error">
-                  <Link2Off size={20} />
-                </div>
-                <div>
-                  <p className="text-headline-sm text-primary leading-tight">Registration Not Required</p>
-                  <p className="text-body-sm text-on-surface-variant">Hide registration link from public page</p>
-                </div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={formData.registrationNotRequired}
-                  onChange={(e) => setFormData({ ...formData, registrationNotRequired: e.target.checked })}
-                />
-                <div className="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-error"></div>
-              </label>
-            </div>
-
-            {/* Assigned Faculty */}
+            {/* Banner image */}
             <div className="space-y-2">
-              <label className="text-headline-sm text-primary block">Assign Faculty (Optional)</label>
-              <p className="text-xs text-on-surface-variant">Select faculty to assign to this event</p>
-              <div className="max-h-48 overflow-y-auto border border-outline-variant rounded-lg p-2 space-y-2">
-                {loadingFaculty ? (
-                  <p className="text-body-sm text-on-surface-variant p-2">Loading faculty...</p>
-                ) : facultyList.length === 0 ? (
-                  <p className="text-body-sm text-on-surface-variant p-2">No faculty found</p>
-                ) : (
-                  facultyList.map((faculty) => (
-                    <label
-                      key={faculty._id}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container-high cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 text-secondary rounded border-outline focus:ring-secondary"
-                        checked={formData.assignedFaculty.includes(faculty._id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData({
-                              ...formData,
-                              assignedFaculty: [...formData.assignedFaculty, faculty._id]
-                            })
-                          } else {
-                            setFormData({
-                              ...formData,
-                              assignedFaculty: formData.assignedFaculty.filter(id => id !== faculty._id)
-                            })
-                          }
-                        }}
-                      />
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold">
-                          {faculty.firstName?.[0] || ''}{faculty.lastName?.[0] || ''}
-                        </div>
-                        <div>
-                          <p className="text-body-sm font-medium">{faculty.firstName} {faculty.lastName}</p>
-                          <p className="text-xs text-on-surface-variant">{faculty.employeeId || 'N/A'}</p>
-                        </div>
+              <label className="text-sm font-semibold text-on-surface block">Banner Image (optional)</label>
+              <p className="text-xs text-on-surface-variant">Recommended: 1200×630 px (16:9 ratio). Shown on event cards and detail page.</p>
+              <input
+                type="file" accept="image/*"
+                className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary file:font-semibold hover:file:bg-primary/20"
+                onChange={e => {
+                  const f = e.target.files?.[0]
+                  setImageFile(f || null)
+                  setImagePreview(f ? URL.createObjectURL(f) : null)
+                }}
+              />
+              {imagePreview && (
+                <div className="rounded-xl overflow-hidden border border-outline-variant mt-2">
+                  <img src={imagePreview} alt="Banner preview" className="w-full max-h-48 object-cover" />
+                </div>
+              )}
+            </div>
+
+            {/* Gallery images */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-semibold text-on-surface block">Gallery Images (optional)</label>
+                  <p className="text-xs text-on-surface-variant mt-0.5">
+                    Up to 6 photos shown in a carousel on the event detail page.
+                  </p>
+                </div>
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full shrink-0 ${
+                  galleryFiles.length >= 6 ? 'bg-red-100 text-red-700' : 'bg-surface-container text-on-surface-variant'
+                }`}>
+                  {galleryFiles.length}/6
+                </span>
+              </div>
+
+              {/* Gallery previews */}
+              {galleryFiles.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {galleryFiles.map((f, i) => (
+                    <div key={i} className="relative group">
+                      <div className="w-full aspect-square rounded-lg overflow-hidden border-2 border-primary/30">
+                        <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />
                       </div>
-                    </label>
-                  ))
-                )}
+                      <button
+                        type="button"
+                        onClick={() => removeGalleryFile(i)}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-error text-white rounded-full flex items-center justify-center hover:bg-error/80 transition-colors shadow"
+                      >
+                        <Trash2 size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add button */}
+              {galleryFiles.length < 6 && (
+                <>
+                  <input
+                    ref={galleryInputRef}
+                    type="file" accept="image/*" multiple
+                    className="hidden"
+                    onChange={handleGalleryAdd}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => galleryInputRef.current?.click()}
+                    className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-outline-variant rounded-xl text-sm text-on-surface-variant hover:border-primary hover:text-primary transition-colors"
+                  >
+                    <Plus size={16} /> Add Photos ({6 - galleryFiles.length} slots left)
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* ── Toggles ──────────────────────────────────────────────────── */}
+            <div className="space-y-3">
+
+              {/* Mark as Important */}
+              <div className="flex items-center justify-between gap-4 p-4 bg-secondary/5 rounded-xl border border-secondary/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-secondary/20 flex items-center justify-center text-secondary shrink-0">
+                    <Star size={18} fill="currentColor" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-primary">Mark as Important</p>
+                    <p className="text-xs text-on-surface-variant">Flag this event for priority display</p>
+                  </div>
+                </div>
+                <Toggle checked={formData.isImportant} onChange={e => set('isImportant', e.target.checked)} />
+              </div>
+
+              {/* Registration Not Required */}
+              <div className="flex items-center justify-between gap-4 p-4 bg-error/5 rounded-xl border border-error/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-error/20 flex items-center justify-center text-error shrink-0">
+                    <Link2Off size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-primary">Registration Not Required</p>
+                    <p className="text-xs text-on-surface-variant">Hides all registration options from the public page</p>
+                  </div>
+                </div>
+                <Toggle
+                  checked={formData.registrationNotRequired}
+                  onChange={e => set('registrationNotRequired', e.target.checked)}
+                  colorOn="peer-checked:bg-error"
+                />
+              </div>
+
+              {/* Open Registrations */}
+              <div className="flex items-center justify-between gap-4 p-4 bg-green-50 rounded-xl border border-green-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-green-700 shrink-0">
+                    <UserCheck size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-primary">Open Registrations at Launch</p>
+                    <p className="text-xs text-on-surface-variant">
+                      If on, "Register Now" button shows once the event is approved.
+                      You can also toggle this anytime from Edit Event.
+                    </p>
+                  </div>
+                </div>
+                <Toggle
+                  checked={formData.registrationOpen}
+                  onChange={e => set('registrationOpen', e.target.checked)}
+                  colorOn="peer-checked:bg-green-600"
+                />
               </div>
             </div>
 
-            {/* Form Footer Actions */}
-            <div className="flex items-center justify-end gap-4 pt-4 border-t border-outline-variant">
+            {/* Assign Faculty */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-on-surface block">Assign Co-Faculty (Optional)</label>
+              <p className="text-xs text-on-surface-variant">Selected faculty can also manage and edit this event.</p>
+              <div className="max-h-48 overflow-y-auto border border-outline-variant rounded-lg divide-y divide-outline-variant">
+                {loadingFaculty ? (
+                  <p className="text-sm text-on-surface-variant p-4">Loading faculty…</p>
+                ) : facultyList.length === 0 ? (
+                  <p className="text-sm text-on-surface-variant p-4">No faculty found</p>
+                ) : facultyList.map(f => (
+                  <label key={f._id} className="flex items-center gap-3 p-3 hover:bg-surface-container-high cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 text-secondary rounded border-outline focus:ring-secondary"
+                      checked={formData.assignedFaculty.includes(f._id)}
+                      onChange={e => toggleFaculty(f._id, e.target.checked)}
+                    />
+                    <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold shrink-0">
+                      {f.firstName?.[0]}{f.lastName?.[0]}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-on-surface">{f.firstName} {f.lastName}</p>
+                      <p className="text-xs text-on-surface-variant">{f.employeeId || 'N/A'}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-outline-variant">
               <button
-                onClick={() => {
-                  if (user?.role === 'admin' || user?.role === 'superadmin') {
-                    navigate('/admin')
-                  } else {
-                    navigate('/faculty')
-                  }
-                }}
-                className="px-8 h-11 border border-outline-variant text-on-surface-variant font-semibold rounded-lg hover:bg-surface-container transition-colors flex items-center justify-center"
+                type="button"
+                onClick={() => navigate(['admin','superadmin'].includes(user?.role) ? '/admin' : '/faculty')}
+                className="w-full sm:w-auto px-8 h-11 border border-outline-variant text-on-surface-variant text-sm font-semibold rounded-lg hover:bg-surface-container transition-colors"
               >
                 Cancel
               </button>
               <button
-                className="px-8 h-11 bg-secondary text-white font-bold rounded-lg hover:shadow-lg hover:shadow-secondary/20 transition-all flex items-center gap-2 active:scale-95"
                 type="submit"
                 disabled={loading}
+                className="w-full sm:w-auto px-8 h-11 bg-primary text-white text-sm font-bold rounded-lg hover:shadow-lg hover:shadow-primary/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60"
               >
-                {loading ? 'Creating...' : 'Create Event'}
-                <ChevronRight size={18} />
+                {loading ? 'Creating…' : 'Create Event'}
+                {!loading && <ChevronRight size={16} />}
               </button>
             </div>
           </form>

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import api from '../../config/axios'
 import { formatDate } from '../../lib/utils'
 import PublicLayout from '../../components/layout/PublicLayout'
+import { MapPin, Calendar, ArrowRight, Image } from 'lucide-react'
 
 export default function Events() {
   const [approvedEvents, setApprovedEvents] = useState([])
@@ -26,7 +28,7 @@ export default function Events() {
 
   return (
     <PublicLayout>
-      {/* Header */}
+      {/* ── Hero header ─────────────────────────────────────────────────── */}
       <section className="py-12 sm:py-16 bg-secondary-container">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-2xl">
@@ -43,19 +45,19 @@ export default function Events() {
         </div>
       </section>
 
-      {/* Events Grid */}
+      {/* ── Events grid ─────────────────────────────────────────────────── */}
       <section className="py-12 sm:py-16 bg-surface-card">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
             <div>
-              <h2 className="text-2xl sm:text-[32px] text-on-surface font-bold">All Approved Events</h2>
+              <h2 className="text-2xl sm:text-[28px] text-on-surface font-bold">All Approved Events</h2>
               <p className="text-on-surface-variant text-sm sm:text-base mt-1">
-                Only SCA approved events appear here with registration details and event imagery.
+                Only SCA-approved events appear here.
               </p>
             </div>
-            <div className="text-sm text-on-surface-variant shrink-0">
-              {approvedEvents.length} approved event{approvedEvents.length === 1 ? '' : 's'}
-            </div>
+            <span className="text-sm text-on-surface-variant shrink-0">
+              {approvedEvents.length} event{approvedEvents.length !== 1 ? 's' : ''}
+            </span>
           </div>
 
           {isEventsLoading ? (
@@ -71,52 +73,67 @@ export default function Events() {
               No upcoming events are approved yet.
             </div>
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {approvedEvents.map((event) => (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {approvedEvents.map(event => (
                 <article
                   key={event._id}
-                  className="overflow-hidden rounded-card border border-outline-variant shadow-sm hover:shadow-card transition-shadow bg-surface-card"
+                  className="group flex flex-col overflow-hidden rounded-card border border-outline-variant shadow-sm hover:shadow-card transition-all duration-200 bg-surface-card"
                 >
-                  <div className="overflow-hidden bg-surface-container-low">
+                  {/* Image */}
+                  <div className="relative overflow-hidden bg-surface-container-low aspect-video">
                     {event.imageUrl ? (
-                      <img src={event.imageUrl} alt={event.title} className="w-full h-auto" />
+                      <img
+                        src={event.imageUrl}
+                        alt={event.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
                     ) : (
-                      <div className="flex items-center justify-center text-center text-on-surface-variant px-4 py-10">
-                        <div>
-                          <p className="font-semibold text-sm">No image uploaded</p>
-                          <p className="text-xs mt-1">This event was approved without a banner image.</p>
-                        </div>
+                      <div className="w-full h-full flex flex-col items-center justify-center text-on-surface-variant/40 gap-2">
+                        <Image size={32} />
+                        <p className="text-xs">No image</p>
                       </div>
                     )}
-                  </div>
-                  <div className="p-5 space-y-3">
-                    <div className="flex items-center justify-between gap-4 flex-wrap">
-                      <span className="inline-flex rounded-full bg-primary-fixed text-on-primary-fixed px-3 py-1 text-xs font-semibold">
-                        {event.type || 'Event'}
+                    {/* Type badge */}
+                    <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-primary text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                      {event.type}
+                    </span>
+                    {/* Gallery count badge */}
+                    {event.gallery?.length > 0 && (
+                      <span className="absolute top-3 right-3 bg-black/50 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                        +{event.gallery.length} photos
                       </span>
-                      <span className="text-xs text-on-surface-variant">{formatDate(event.date)}</span>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex flex-col flex-1 p-5 gap-3">
+                    <h3 className="text-base sm:text-lg font-bold text-on-surface leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                      {event.title}
+                    </h3>
+
+                    <p className="text-on-surface-variant text-sm line-clamp-2 flex-1">
+                      {event.description || 'No description provided.'}
+                    </p>
+
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-1.5 text-xs text-on-surface-variant">
+                        <Calendar size={12} className="shrink-0 text-primary" />
+                        {formatDate(event.date)}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-on-surface-variant">
+                        <MapPin size={12} className="shrink-0 text-primary" />
+                        <span className="truncate">{event.venue}</span>
+                      </div>
                     </div>
-                    <div className="space-y-1.5">
-                      <h3 className="text-base sm:text-lg font-bold text-on-surface">{event.title}</h3>
-                      <p className="text-on-surface-variant line-clamp-3 text-sm">
-                        {event.description || 'No description provided.'}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-xs text-on-surface-variant">
-                        <span className="font-semibold text-on-surface">Venue:</span> {event.venue}
-                      </p>
-                      {event.registerLink && !event.registrationNotRequired && (
-                        <a
-                          href={event.registerLink}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center justify-center rounded-btn bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary hover:opacity-90 transition-all shadow-md"
-                        >
-                          Register Now
-                        </a>
-                      )}
-                    </div>
+
+                    {/* CTA */}
+                    <Link
+                      to={`/events/${event._id}`}
+                      className="mt-1 inline-flex items-center justify-center gap-2 rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary hover:opacity-90 active:scale-[0.98] transition-all shadow-md"
+                    >
+                      View Details
+                      <ArrowRight size={15} />
+                    </Link>
                   </div>
                 </article>
               ))}

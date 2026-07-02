@@ -14,8 +14,16 @@ const eventSchema = new mongoose.Schema({
   description: String,
   registerLink: { type: String, trim: true },
   registrationNotRequired: { type: Boolean, default: false },
+  registrationOpen: { type: Boolean, default: false },
   imageUrl: String,
   imagePublicId: String,
+  // Up to 6 gallery images
+  gallery: [
+    {
+      url:      { type: String, required: true },
+      publicId: { type: String, required: true },
+    },
+  ],
   isImportant: { type: Boolean, default: false },
   status: {
     type: String,

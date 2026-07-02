@@ -293,19 +293,29 @@ export default function EventDetail() {
     <PageWrapper>
       <div className="max-w-[1200px] mx-auto space-y-6">
 
-        {/* Back + Edit */}
-        <div className="flex items-center justify-between">
+        {/* Back + Edit + Registrations */}
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-on-surface-variant hover:text-on-surface text-sm font-medium">
             <ChevronLeft size={20} /> Back
           </button>
-          {canManage && (
-            <button
-              onClick={() => navigate(isAdmin ? `/admin/events/${id}/edit` : `/faculty/events/${id}/edit`)}
-              className="px-4 py-2 bg-surface-container border border-outline-variant text-on-surface text-sm font-semibold rounded-lg hover:bg-surface-container-high transition-colors"
-            >
-              Edit Event
-            </button>
-          )}
+          <div className="flex items-center gap-2 flex-wrap">
+            {canManage && event?.status === 'approved' && (
+              <button
+                onClick={() => navigate(isAdmin ? `/admin/events/${id}/registrations` : `/faculty/events/${id}/registrations`)}
+                className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <Users size={14} /> Registrations
+              </button>
+            )}
+            {canManage && (
+              <button
+                onClick={() => navigate(isAdmin ? `/admin/events/${id}/edit` : `/faculty/events/${id}/edit`)}
+                className="px-4 py-2 bg-surface-container border border-outline-variant text-on-surface text-sm font-semibold rounded-lg hover:bg-surface-container-high transition-colors"
+              >
+                Edit Event
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Event Info Card */}

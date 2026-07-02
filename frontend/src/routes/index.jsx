@@ -8,6 +8,7 @@ import About         from '../pages/public/About'
 import Team          from '../pages/public/Team'
 import Events       from '../pages/public/Events'
 import Contact       from '../pages/public/Contact'
+import PublicEventDetail from '../pages/public/EventDetail'
 
 // Auth pages
 import Portal        from '../pages/auth/Portal'
@@ -52,6 +53,9 @@ const AdminMyTasks       = lazy(() => import('../pages/admin/MyTasks'))
 const AdminProfile       = lazy(() => import('../pages/admin/Profile'))
 const AdminNotifications = lazy(() => import('../pages/Notifications'))
 
+// Event Registrations (admin + faculty)
+const EventRegistrations = lazy(() => import('../pages/EventRegistrations'))
+
 // Event detail (all roles)
 const EventDetail        = lazy(() => import('../pages/EventDetail'))
 
@@ -61,11 +65,12 @@ const SuperadminProfile   = lazy(() => import('../pages/superadmin/Profile'))
 
 const router = createBrowserRouter([
   // Public
-  { path: '/',          element: <Landing /> },
-  { path: '/about',     element: <About /> },
-  { path: '/team',      element: <Team /> },
-  { path: '/events',   element: <Events /> },
-  { path: '/contact',   element: <Contact /> },
+  { path: '/',              element: <Landing /> },
+  { path: '/about',         element: <About /> },
+  { path: '/team',          element: <Team /> },
+  { path: '/events',        element: <Events /> },
+  { path: '/events/:id',    element: <PublicEventDetail /> },
+  { path: '/contact',       element: <Contact /> },
 
   // Auth (redirect if already logged in)
   { path: '/portal',          element: <PublicOnlyRoute><Portal /></PublicOnlyRoute> },
@@ -94,6 +99,7 @@ const router = createBrowserRouter([
   { path: '/faculty/events',    element: <ProtectedRoute role="faculty"><Suspense><FacultyMyEvents /></Suspense></ProtectedRoute> },
   { path: '/faculty/events/create', element: <ProtectedRoute role={['faculty', 'admin', 'superadmin']}><Suspense><FacultyCreateEvent /></Suspense></ProtectedRoute> },
   { path: '/faculty/events/:id/edit', element: <ProtectedRoute role="faculty"><Suspense><FacultyEditEvent /></Suspense></ProtectedRoute> },
+  { path: '/faculty/events/:id/registrations', element: <ProtectedRoute role={['faculty','admin','superadmin']}><Suspense><EventRegistrations /></Suspense></ProtectedRoute> },
   { path: '/faculty/events/:id', element: <ProtectedRoute role="faculty"><Suspense><EventDetail /></Suspense></ProtectedRoute> },
   { path: '/faculty/tasks',     element: <ProtectedRoute role="faculty"><Suspense><FacultyMyTasks /></Suspense></ProtectedRoute> },
   { path: '/faculty/profile',   element: <ProtectedRoute role="faculty"><Suspense><FacultyProfile /></Suspense></ProtectedRoute> },
@@ -103,6 +109,7 @@ const router = createBrowserRouter([
   { path: '/admin',             element: <ProtectedRoute role={['admin','superadmin']}><Suspense><AdminDashboard /></Suspense></ProtectedRoute> },
   { path: '/admin/events',      element: <ProtectedRoute role={['admin','superadmin']}><Suspense><AdminAllEvents /></Suspense></ProtectedRoute> },
   { path: '/admin/events/:id/edit', element: <ProtectedRoute role={['admin','superadmin']}><Suspense><FacultyEditEvent /></Suspense></ProtectedRoute> },
+  { path: '/admin/events/:id/registrations', element: <ProtectedRoute role={['admin','superadmin']}><Suspense><EventRegistrations /></Suspense></ProtectedRoute> },
   { path: '/admin/events/:id',  element: <ProtectedRoute role={['admin','superadmin']}><Suspense><EventDetail /></Suspense></ProtectedRoute> },
   { path: '/admin/users',       element: <ProtectedRoute role={['admin','superadmin']}><Suspense><AdminManageUsers /></Suspense></ProtectedRoute> },
   { path: '/admin/verify',      element: <ProtectedRoute role={['admin','superadmin']}><Suspense><AdminVerifyUsers /></Suspense></ProtectedRoute> },
