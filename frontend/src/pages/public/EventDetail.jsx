@@ -13,6 +13,13 @@ function Gallery({ images }) {
   const [idx, setIdx] = useState(0)
   const [lightbox, setLightbox] = useState(false)
 
+  // Reset index when images change
+  useEffect(() => {
+    if (images && idx >= images.length) {
+      setIdx(0)
+    }
+  }, [images.length, idx])
+
   if (!images?.length) return null
 
   const prev = () => setIdx(i => (i - 1 + images.length) % images.length)
@@ -271,6 +278,8 @@ export default function PublicEventDetail() {
           api.get(`/events/detail/${id}`),
           api.get(`/events/detail/${id}/registrations/count`).catch(() => null),
         ])
+        console.log('Event data from API:', evRes.data.data)
+        console.log('Event externalImageUrls:', evRes.data.data.externalImageUrls)
         setEvent(evRes.data.data)
         if (cntRes) setCount(cntRes.data.data.count)
       } catch (err) {
@@ -284,9 +293,15 @@ export default function PublicEventDetail() {
 
   const allImages = event ? [
     ...(event.imageUrl ? [{ url: event.imageUrl, publicId: 'banner' }] : []),
-    ...(event.gallery  ?? []),
-    ...(event.externalImageUrls?.map((url, i) => ({ url, publicId: `ext-${i}` })) ?? []),
+    ...(Array.isArray(event.gallery) ? event.gallery : []),
+    ...(Array.isArray(event.externalImageUrls) 
+      ? event.externalImageUrls
+          .filter(url => url && url.trim() !== '')
+          .map((url, i) => ({ url: url.trim(), publicId: `ext-${i}` })) 
+      : []),
   ] : []
+  console.log('allImages:', allImages)
+  console.log('event.externalImageUrls:', event?.externalImageUrls, 'type:', typeof event?.externalImageUrls)
 
   const showRegButton = event &&
     !event.registrationNotRequired &&

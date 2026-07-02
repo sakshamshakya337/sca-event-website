@@ -139,6 +139,7 @@ export default function EditEvent() {
         payload.append('removeGalleryIds', JSON.stringify(removeIds))
       // Add external image URLs
       const validUrls = externalImageUrls.filter(url => url.trim().length > 0)
+      console.log('EditEvent validUrls:', validUrls)
       payload.append('externalImageUrls', JSON.stringify(validUrls))
 
       await api.put(`/events/${id}`, payload)

@@ -54,6 +54,14 @@ const eventSchema = new mongoose.Schema({
 
 }, { timestamps: true })
 
+// Ensure externalImageUrls is always an array before saving
+eventSchema.pre('save', function(next) {
+  if (!this.externalImageUrls || !Array.isArray(this.externalImageUrls)) {
+    this.externalImageUrls = []
+  }
+  next()
+})
+
 eventSchema.index({ status: 1, date: 1 })
 eventSchema.index({ createdBy: 1 })
 

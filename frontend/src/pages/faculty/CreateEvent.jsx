@@ -98,6 +98,7 @@ export default function CreateEvent() {
       galleryFiles.forEach(f => payload.append('gallery', f))
       // Add external image URLs
       const validUrls = externalImageUrls.filter(url => url.trim().length > 0)
+      console.log('CreateEvent validUrls:', validUrls)
       payload.append('externalImageUrls', JSON.stringify(validUrls))
 
       await api.post('/events', payload)

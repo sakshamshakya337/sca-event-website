@@ -4,6 +4,7 @@ import * as eventController from '../controllers/event.controller.js'
 import * as regController from '../controllers/registration.controller.js'
 import { uploadLimiter } from '../middleware/rateLimiter.js'
 import { handleEventUpload } from '../config/multer.js'
+import Event from '../models/Event.js'
 
 // Wraps handleEventUpload so multer errors return 400 JSON instead of 500
 const safeUpload = (req, res, next) => {
@@ -21,6 +22,30 @@ const safeUpload = (req, res, next) => {
 }
 
 const router = express.Router()
+
+// Temporary route to update all events (remove after use)
+router.get('/temp-update-all', async (req, res) => {
+  try {
+    const result = await Event.updateMany(
+      { externalImageUrls: { $exists: false } },
+      { $set: { externalImageUrls: [] } }
+    )
+    const result2 = await Event.updateMany(
+      { externalImageUrls: { $not: { $type: 'array' } } },
+      { $set: { externalImageUrls: [] } }
+    )
+    res.json({
+      success: true,
+      message: 'Events updated',
+      data: {
+        updatedExisting: result.modifiedCount,
+        fixedInvalid: result2.modifiedCount
+      }
+    })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+})
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PUBLIC ROUTES — no authentication required

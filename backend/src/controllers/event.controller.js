@@ -79,6 +79,7 @@ export const getPublicEventById = async (req, res, next) => {
     const event = await Event.findOne({ _id: req.params.id, status: 'approved' })
       .select('title type date time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery externalImageUrls isImportant')
       .populate('assignedFaculty', 'firstName lastName')
+    console.log('getPublicEventById event:', event)
     if (!event) throw new ApiError(404, 'Event not found or not yet approved')
     res.status(200).json(new ApiResponse(200, event, 'Event fetched'))
   } catch (error) {
@@ -183,6 +184,7 @@ export const createEvent = async (req, res, next) => {
         parsedExternalUrls = typeof externalImageUrls === 'string'
           ? JSON.parse(externalImageUrls)
           : externalImageUrls
+        console.log('Parsed external image URLs (create):', parsedExternalUrls)
         // Filter out any empty/whitespace-only URLs and limit to 10
         parsedExternalUrls = parsedExternalUrls
           .filter(url => typeof url === 'string' && url.trim().length > 0)
@@ -230,6 +232,7 @@ export const createEvent = async (req, res, next) => {
     }
 
     const event = await Event.create(eventData)
+    console.log('Created event:', event)
     await event.populate('createdBy', 'firstName lastName')
     await event.populate('assignedFaculty', 'firstName lastName')
 
@@ -270,20 +273,24 @@ export const updateEvent = async (req, res, next) => {
     if (assignedFaculty)  event.assignedFaculty  = assignedFaculty
     if (assignedStudents) event.assignedStudents = assignedStudents
 
-    // Handle external image URLs
+    // Handle external image URLs: always set it (even if not provided)
+    let parsedExternalUrls = []
     if (externalImageUrls !== undefined) {
-      let parsedExternalUrls = []
       try {
         parsedExternalUrls = typeof externalImageUrls === 'string'
           ? JSON.parse(externalImageUrls)
           : externalImageUrls
+        console.log('Parsed external image URLs (update):', parsedExternalUrls)
         // Filter out any empty/whitespace-only URLs and limit to 10
         parsedExternalUrls = parsedExternalUrls
           .filter(url => typeof url === 'string' && url.trim().length > 0)
           .slice(0, 10)
       } catch { parsedExternalUrls = [] }
-      event.externalImageUrls = parsedExternalUrls
     }
+    // Set it to the parsed value or the existing one (or empty array if neither)
+    event.externalImageUrls = parsedExternalUrls.length > 0 
+      ? parsedExternalUrls 
+      : (event.externalImageUrls || [])
 
     // Non-admin editing an approved event → revert to pending for re-approval
     if (!['admin', 'superadmin'].includes(req.user.role) && event.status === 'approved') {
@@ -327,6 +334,7 @@ export const updateEvent = async (req, res, next) => {
     }
 
     await event.save()
+    console.log('Updated event:', event)
 
     // Delete old banner from Cloudinary if replaced
     if (bannerFile && oldBannerPublicId && oldBannerPublicId !== event.imagePublicId) {
