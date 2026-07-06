@@ -5,6 +5,42 @@ import { formatDate } from '../../lib/utils'
 import PublicLayout from '../../components/layout/PublicLayout'
 import { MapPin, Calendar, ArrowRight, Image, CheckCircle2 } from 'lucide-react'
 
+// ─────────────────────────────────────────────────────────────────────────────
+// EVENT SKELETON LOADER
+// ─────────────────────────────────────────────────────────────────────────────
+function EventSkeleton() {
+  return (
+    <article className="flex flex-col overflow-hidden rounded-card border border-outline-variant shadow-sm bg-surface-card">
+      {/* Image skeleton */}
+      <div className="relative overflow-hidden bg-surface-container-low aspect-video animate-pulse" />
+
+      {/* Content skeleton */}
+      <div className="flex flex-col flex-1 p-5 gap-3">
+        {/* Title skeleton */}
+        <div className="space-y-2">
+          <div className="h-5 bg-surface-container-low rounded animate-pulse" />
+          <div className="h-5 bg-surface-container-low rounded w-3/4 animate-pulse" />
+        </div>
+
+        {/* Description skeleton */}
+        <div className="space-y-1.5 pt-2">
+          <div className="h-4 bg-surface-container-low rounded animate-pulse" />
+          <div className="h-4 bg-surface-container-low rounded w-5/6 animate-pulse" />
+        </div>
+
+        {/* Meta info skeleton */}
+        <div className="flex flex-col gap-2 pt-2">
+          <div className="h-3 bg-surface-container-low rounded w-1/2 animate-pulse" />
+          <div className="h-3 bg-surface-container-low rounded w-2/3 animate-pulse" />
+        </div>
+
+        {/* Button skeleton */}
+        <div className="mt-2 w-full h-10 bg-surface-container-low rounded-lg animate-pulse" />
+      </div>
+    </article>
+  )
+}
+
 // Status badge styles
 const getStatusBadgeClass = (status) => {
   const normalized = status?.toLowerCase()
@@ -78,8 +114,10 @@ export default function Events() {
           </div>
 
           {isEventsLoading ? (
-            <div className="rounded-card border border-dashed border-outline-variant p-12 text-center text-on-surface-variant">
-              Loading events…
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <EventSkeleton key={idx} />
+              ))}
             </div>
           ) : eventsError ? (
             <div className="rounded-card border border-error-container bg-error-container p-12 text-center text-on-error-container">

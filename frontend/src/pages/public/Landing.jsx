@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight, ChevronDown, ShieldCheck, Calendar,
@@ -7,6 +7,53 @@ import {
 import api from '../../config/axios'
 import { formatDate } from '../../lib/utils'
 import PublicLayout from '../../components/layout/PublicLayout'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LAZY LOAD BACKGROUND IMAGE HOOK
+// Uses Intersection Observer to load image only when element is in viewport
+// ─────────────────────────────────────────────────────────────────────────────
+function useLazyBgImage(imageSrc) {
+  const ref = useRef(null)
+  const [backgroundImage, setBackgroundImage] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !backgroundImage) {
+            setIsLoading(true)
+            // Preload image to ensure it's cached before setting as background
+            const img = new Image()
+            img.onload = () => {
+              setBackgroundImage(`url('${imageSrc}')`)
+              setIsLoading(false)
+            }
+            img.onerror = () => {
+              setBackgroundImage(`url('${imageSrc}')`) // Set anyway if error
+              setIsLoading(false)
+            }
+            img.src = imageSrc
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { rootMargin: '100px' } // Start loading 100px before element is visible
+    )
+
+    if (ref.current) {
+      observer.observe(ref.current)
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current)
+      }
+    }
+  }, [imageSrc, backgroundImage])
+
+  return { ref, backgroundImage, isLoading }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONFIGURATION — change these two values only
@@ -361,6 +408,7 @@ export default function Landing() {
   const [approvedEvents, setApprovedEvents] = useState([])
   const [isEventsLoading, setIsEventsLoading] = useState(false)
   const [eventsError, setEventsError] = useState(null)
+  const howitWorksImage = useLazyBgImage('https://i.ibb.co/gZNKm5FB/1000049206.jpg')
 
   useEffect(() => {
     const fetchApprovedEvents = async () => {
@@ -624,10 +672,13 @@ export default function Landing() {
             <div className="relative hidden lg:block">
               <div className="absolute inset-0 bg-primary/5 rounded-[40px] -rotate-3" />
               <div
+                ref={howitWorksImage.ref}
                 className="relative z-10 aspect-square rounded-[40px] overflow-hidden
-                           bg-cover bg-center shadow-card border-8 border-surface-card"
+                           bg-cover bg-center shadow-card border-8 border-surface-card
+                           bg-gray-300 transition-opacity duration-500"
                 style={{
-                  backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA2TVxD18ns2BQsXhcTj1GS6bR4oqmlGnyxLI7pgptCg4kATxv2qBujBFq0tULC1CKMt-qAScaSJOQfc_9kmK8iug2DF2CFdL_5clSTpdpAQiaJ-IOZedbhBRub03neO5Ha1zO6uov7CTeN2x6aUaQN_T-GrsMsWeiNx9OFGWEj43Wp2L0nPGTGoLU4wnfMCcEc9bhKdvQErDfQIrhVRkxMFQuoBXSqIfeu8JSSSpI5mBlGGOm3j6lINCEJBoBdGEOR8Qk68k_BP5w')",
+                  backgroundImage: howitWorksImage.backgroundImage || "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzMzMzMzMyIvPjwvc3ZnPg==')",
+                  opacity: howitWorksImage.isLoading ? 0.6 : 1,
                 }}
               />
               <div className="absolute -bottom-6 -left-6 bg-surface-card p-5 rounded-2xl
