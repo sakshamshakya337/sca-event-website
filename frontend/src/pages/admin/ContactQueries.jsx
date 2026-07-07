@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import PageWrapper from '../../components/layout/PageWrapper'
-import { Search, RefreshCw, ChevronLeft, ChevronRight, MailOpen, ClipboardCheck, Timer, TrendingUp, Download, CheckCircle2 } from 'lucide-react'
+import { Search, RefreshCw, ChevronLeft, ChevronRight, MailOpen, ClipboardCheck, Timer, TrendingUp, Download, CheckCircle2, Eye, X } from 'lucide-react'
 import useAdminQueriesStore from '../../store/adminQueriesStore'
 
 const statusLabelMap = {
@@ -16,6 +16,7 @@ export default function ContactQueries() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [categoryFilter, setCategoryFilter] = useState('All')
+  const [selectedQuery, setSelectedQuery] = useState(null)
 
   useEffect(() => {
     fetchQueries()
@@ -147,7 +148,11 @@ export default function ContactQueries() {
               </thead>
               <tbody className="divide-y divide-outline-variant">
                 {filteredQueries.map((query, index) => (
-                  <tr key={query.id} className={`hover:bg-surface-container-low transition-colors ${query.status === 'pending' ? 'bg-primary/5' : ''}`}>
+                  <tr 
+                    key={query.id} 
+                    onClick={() => setSelectedQuery(query)}
+                    className={`cursor-pointer hover:bg-surface-container-low transition-colors ${query.status === 'pending' ? 'bg-primary/5' : ''}`}
+                  >
                     <td className="px-6 py-4 text-body-md font-semibold text-secondary">{index + 1}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -170,9 +175,16 @@ export default function ContactQueries() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setSelectedQuery(query); }}
+                          className="px-3 py-1.5 border border-outline-variant text-on-surface-variant rounded-lg text-body-sm font-semibold hover:bg-surface-container transition-all flex items-center gap-1"
+                          title="View Details"
+                        >
+                          <Eye size={16} /> View
+                        </button>
                         {query.status === 'pending' && (
                           <button 
-                            onClick={() => markAsRead(query.id)}
+                            onClick={(e) => { e.stopPropagation(); markAsRead(query.id); }}
                             className="px-4 py-1.5 border border-primary text-primary rounded-lg text-body-sm font-semibold hover:bg-primary/10 transition-all"
                           >
                             Mark In Progress
@@ -180,7 +192,7 @@ export default function ContactQueries() {
                         )}
                         {query.status === 'in_progress' && (
                           <button 
-                            onClick={() => markAsReplied(query.id)}
+                            onClick={(e) => { e.stopPropagation(); markAsReplied(query.id); }}
                             className="px-4 py-1.5 bg-green-600 text-white rounded-lg text-body-sm font-semibold hover:bg-green-700 transition-all flex items-center gap-2"
                           >
                             Mark Resolved <CheckCircle2 size={16} />
@@ -195,6 +207,77 @@ export default function ContactQueries() {
           </div>
         </div>
       </div>
+
+      {selectedQuery && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedQuery(null)}></div>
+          <div className="bg-surface w-full max-w-2xl rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-outline-variant flex justify-between items-center shrink-0">
+              <h2 className="text-xl font-bold text-on-surface">Query Details</h2>
+              <button onClick={() => setSelectedQuery(null)} className="p-2 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-full transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+              <div>
+                <h3 className="text-sm font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">From</h3>
+                <p className="text-lg font-bold text-on-surface">{selectedQuery.name} <span className="text-sm font-normal text-on-surface-variant ml-2">({selectedQuery.email})</span></p>
+                <p className="text-sm text-on-surface-variant mt-1">ID: {selectedQuery.universityId} • Role: {selectedQuery.role || 'Student'}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 border-y border-outline-variant py-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Category</h3>
+                  <p className="font-medium text-on-surface">{selectedQuery.category}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Date Received</h3>
+                  <p className="font-medium text-on-surface">{selectedQuery.date}</p>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Subject</h3>
+                <p className="text-lg font-bold text-primary">{selectedQuery.subject}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-on-surface-variant mb-2 uppercase tracking-wider">Message</h3>
+                <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant whitespace-pre-wrap text-on-surface">
+                  {selectedQuery.message}
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-outline-variant flex justify-end gap-3 shrink-0 bg-surface">
+              <button 
+                onClick={() => setSelectedQuery(null)}
+                className="px-6 py-2.5 border border-outline-variant text-on-surface font-bold rounded-btn hover:bg-surface-container transition-all active:scale-95"
+              >
+                Close
+              </button>
+              {selectedQuery.status === 'pending' && (
+                <button 
+                  onClick={() => {
+                    markAsRead(selectedQuery.id)
+                    setSelectedQuery(null)
+                  }}
+                  className="px-6 py-2.5 bg-primary text-on-primary rounded-btn font-bold shadow-md hover:opacity-90 transition-all active:scale-95"
+                >
+                  Mark In Progress
+                </button>
+              )}
+              {selectedQuery.status === 'in_progress' && (
+                <button 
+                  onClick={() => {
+                    markAsReplied(selectedQuery.id)
+                    setSelectedQuery(null)
+                  }}
+                  className="px-6 py-2.5 bg-green-600 text-white rounded-btn font-bold shadow-md hover:bg-green-700 transition-all active:scale-95 flex items-center gap-2"
+                >
+                  Mark Resolved <CheckCircle2 size={16} />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </PageWrapper>
   )
 }
