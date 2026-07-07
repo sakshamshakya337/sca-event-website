@@ -2,12 +2,10 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft, ShieldQuestion, Eye, EyeOff,
-  CheckCircle2, Loader2, KeyRound, Mail, AlertCircle,
+  CheckCircle2, Loader2, KeyRound, AlertCircle,
 } from 'lucide-react'
 import api from '../../config/axios'
-import { sendPasswordResetEmail } from '../../config/emailjs'
 import toast from 'react-hot-toast'
-import RecaptchaWidget from '../../components/ui/RecaptchaWidget'
 
 // ── Progress step indicator ──────────────────────────────────────────────────
 function StepDot({ num, label, active, done }) {
@@ -62,8 +60,6 @@ export default function ForgotPassword() {
   /* step 2 */
   const [resetToken, setResetToken] = useState(null)
   const [userInfo, setUserInfo] = useState(null)
-  const [emailSent, setEmailSent] = useState(false)
-  const [sendingEmail, setSendingEmail] = useState(false)
 
   /* step 3 */
   const [newPassword, setNewPassword] = useState('')
@@ -76,10 +72,6 @@ export default function ForgotPassword() {
   /* shared */
   const [error, setError] = useState(null)
   const [step, setStep] = useState(1)
-
-  /* recaptcha — only used in step 2 */
-  const recaptchaRef = useRef(null)
-  const [captchaToken, setCaptchaToken] = useState(null)
 
   // On mount: if URL contains ?token=...&step=3 (from the email link),
   // jump straight to step 3 so the user can set their new password.
@@ -105,7 +97,7 @@ export default function ForgotPassword() {
     finally { setFetchingQ(false) }
   }
 
-  // Step 1 — verify identity + security answer (no captcha here)
+  // Step 1 — verify identity, security answer AND send email from backend
   const handleVerify = async (e) => {
     e.preventDefault()
     setError(null)
@@ -118,36 +110,13 @@ export default function ForgotPassword() {
         role,
         securityAnswer: securityAnswer.trim(),
       })
-      const { resetToken: tok, maskedEmail, firstName, personalEmail } = res.data.data
-      setResetToken(tok)
-      setUserInfo({ firstName, maskedEmail, personalEmail })
+      const { maskedEmail } = res.data.data
+      setUserInfo({ maskedEmail })
       setStep(2)
+      toast.success('Reset email sent! Check your inbox.')
     } catch (err) {
       setError(err.response?.data?.message || 'Verification failed. Check your details.')
     } finally { setStep1Loading(false) }
-  }
-
-  // Step 2 — send reset email via EmailJS (captcha required here)
-  const handleSendEmail = async () => {
-    setError(null)
-    if (!captchaToken) return setError('Please complete the security verification.')
-    setSendingEmail(true)
-    try {
-      const resetLink = `${window.location.origin}/forgot-password?token=${resetToken}&step=3`
-      const result = await sendPasswordResetEmail({
-        toName: userInfo.firstName,
-        toEmail: userInfo.personalEmail,
-        resetLink,
-        userId: identifier.trim().toUpperCase(),
-      })
-      if (!result.success) throw new Error('EmailJS send failed')
-      setEmailSent(true)
-      toast.success('Reset email sent! Check your inbox.')
-    } catch {
-      recaptchaRef.current?.reset()
-      setCaptchaToken(null)
-      setError('Failed to send email. Please try again or contact sca@lpu.edu.in.')
-    } finally { setSendingEmail(false) }
   }
 
   // Step 3 — set new password
@@ -306,73 +275,28 @@ export default function ForgotPassword() {
         )}
 
         {/* ─────────────────────────────────────────────
-            STEP 2 — Send reset email (captcha here)
+            STEP 2 — Check Email Screen
         ───────────────────────────────────────────── */}
         {step === 2 && (
-          <div className="px-5 sm:px-8 py-5 sm:py-6 flex flex-col gap-4">
-
-            {/* Identity confirmed banner */}
-            <div className="flex items-start gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
-              <CheckCircle2 size={20} className="text-green-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-green-800">Identity confirmed!</p>
-                <p className="text-xs text-green-700 mt-0.5 leading-relaxed">
-                  Hi <strong>{userInfo?.firstName}</strong> — we'll send a secure reset link to:
-                </p>
-                <p className="text-sm font-mono font-bold text-green-800 mt-1 break-all">
-                  {userInfo?.maskedEmail}
-                </p>
-              </div>
+          <div className="px-5 sm:px-8 py-8 sm:py-10 flex flex-col gap-4 text-center">
+            
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+              <CheckCircle2 size={36} className="text-green-500" />
             </div>
 
-            {/* Info box */}
-            <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-4 space-y-1.5">
-              <p className="text-xs font-semibold text-[#022448] mb-2">What happens next</p>
-              {[
-                'A secure reset link is emailed to your personal email',
-                'The link is valid for 15 minutes only',
-                'After clicking the link, return here to set your new password',
-              ].map((t, i) => (
-                <p key={i} className="text-xs text-[#43474e] flex items-start gap-2">
-                  <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                  {t}
-                </p>
-              ))}
-            </div>
-
-            <ErrorBox msg={error} />
-
-            {/* reCAPTCHA — mounts fresh here because step 1 never had it */}
-            <RecaptchaWidget ref={recaptchaRef} onChange={setCaptchaToken} />
-
-            <button
-              onClick={handleSendEmail}
-              disabled={sendingEmail || emailSent || !captchaToken}
-              className="w-full py-3 bg-primary text-on-primary text-sm font-semibold rounded-xl hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60 shadow-md transition-all"
-            >
-              {sendingEmail
-                ? <><Loader2 size={15} className="animate-spin" /> Sending…</>
-                : emailSent
-                ? <><CheckCircle2 size={15} /> Email Sent!</>
-                : <><Mail size={15} /> Send Reset Email</>
-              }
-            </button>
-
-            {emailSent && (
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-800 leading-relaxed text-center">
-                <p className="font-semibold mb-1">📬 Check your inbox</p>
-                <p>A reset link has been sent to <strong>{userInfo?.maskedEmail}</strong>. Click the link in the email to set your new password.</p>
-                <p className="mt-2 text-xs text-green-700">The link expires in 15 minutes. Don't forget to check your spam folder.</p>
-              </div>
-            )}
-
-            <p className="text-center text-xs text-[#74777f]">
-              Didn't receive it? Check your spam folder or{' '}
-              <button onClick={handleSendEmail} disabled={sendingEmail || !captchaToken}
-                className="text-primary font-semibold hover:underline disabled:opacity-50">
-                resend
-              </button>.
+            <h2 className="text-lg sm:text-xl font-bold text-[#022448]">Check your inbox</h2>
+            
+            <p className="text-sm text-[#43474e] mt-1 leading-relaxed">
+              We've sent a secure reset link to your email:<br/>
+              <strong className="text-primary tracking-wide text-base">{userInfo?.maskedEmail}</strong>
             </p>
+
+            <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-4 mt-4 text-xs text-[#74777f] text-left space-y-2">
+              <p>• The link is valid for <strong>15 minutes</strong> only.</p>
+              <p>• Click the link in the email to set your new password.</p>
+              <p>• If you don't see it, be sure to check your spam/junk folder.</p>
+            </div>
+
           </div>
         )}
 

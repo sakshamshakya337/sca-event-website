@@ -4,6 +4,8 @@ import Joi from 'joi'
 import User from '../models/User.js'
 import ApiResponse from '../utils/ApiResponse.js'
 import ApiError from '../utils/ApiError.js'
+import { sendMail } from '../utils/mailer.js'
+import { resetPasswordTemplate } from '../utils/emailTemplates.js'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const JWT_SECRET = process.env.JWT_SECRET
@@ -375,15 +377,32 @@ export const forgotPassword = async (req, res, next) => {
       passwordResetExpires: new Date(Date.now() + 15 * 60 * 1000)
     })
 
-    // Return plain token + masked email to frontend
+    // Build reset link
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
+    const resetLink = `${frontendUrl}/forgot-password?token=${plainToken}&step=3`
+
+    // Send email
+    const html = resetPasswordTemplate({
+      name: userDoc.firstName,
+      resetLink,
+    });
+
+    const mailResult = await sendMail({
+      to: userDoc.personalEmail,
+      subject: 'Password Reset Request — SCA Portal',
+      html,
+    });
+
+    if (!mailResult.success) {
+      throw new ApiError(500, 'Failed to send password reset email. Please try again later.')
+    }
+
+    // Return success to frontend (without the token)
     const maskedEmail = userDoc.personalEmail.replace(/(.{2}).+(@.+)/, '$1***$2')
 
     res.status(200).json(new ApiResponse(200, {
-      resetToken: plainToken,
       maskedEmail,
-      firstName: userDoc.firstName,
-      personalEmail: userDoc.personalEmail,
-    }, 'Identity verified. Use the token to reset your password.'))
+    }, 'Identity verified. A reset link has been sent to your email.'))
   } catch (error) {
     next(error)
   }

@@ -1,11 +1,10 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
 import { ArrowLeft, Info, CheckCircle2, XCircle, UserSquare, ExternalLink, MailCheck, Trash2, AlertTriangle } from 'lucide-react'
 import useAdminVerifyStore from '../../store/adminVerifyStore'
 import useAdminUserStore from '../../store/adminUserStore'
 import api from '../../config/axios'
-import { sendVerificationDecisionEmail } from '../../config/emailjs'
 import toast from 'react-hot-toast'
 
 export default function VerifyUserDetail() {
@@ -53,17 +52,7 @@ export default function VerifyUserDetail() {
     try {
       await approveVerification(id, notes, checklist)
       setVerification(v => ({ ...v, status: 'approved' }))
-      // Send approval email — fire-and-forget, don't block the UI
-      sendVerificationDecisionEmail({
-        toName:     `${user.firstName} ${user.lastName}`.trim(),
-        toEmail:    user.personalEmail,
-        decision:   'approved',
-        role:       user.role,
-        adminNotes: notes,
-      }).then(res => {
-        if (res.success) toast.success('Approval email sent to user.')
-        else toast.error('Decision saved, but email failed to send.')
-      })
+      toast.success('Approval saved and email sent to user.')
     } catch (err) {
       toast.error(err.message || 'Failed to approve.')
     }
@@ -73,16 +62,7 @@ export default function VerifyUserDetail() {
     try {
       await rejectVerification(id, notes, checklist)
       setVerification(v => ({ ...v, status: 'rejected' }))
-      sendVerificationDecisionEmail({
-        toName:     `${user.firstName} ${user.lastName}`.trim(),
-        toEmail:    user.personalEmail,
-        decision:   'rejected',
-        role:       user.role,
-        adminNotes: notes,
-      }).then(res => {
-        if (res.success) toast.success('Rejection email sent to user.')
-        else toast.error('Decision saved, but email failed to send.')
-      })
+      toast.success('Rejection saved and email sent to user.')
     } catch (err) {
       toast.error(err.message || 'Failed to reject.')
     }

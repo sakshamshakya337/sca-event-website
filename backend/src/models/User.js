@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
   employeeId: { type: String, trim: true, uppercase: true, sparse: true },
   department: String,
   designation: String,
+  coordinatorRole: { type: String, trim: true },
 
   // Profile
   profilePhotoUrl: String,

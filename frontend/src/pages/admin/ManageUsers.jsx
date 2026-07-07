@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import PageWrapper from '../../components/layout/PageWrapper'
 import { Search, Filter, Edit, Trash2, Download, User, UserPlus, X, ChevronDown, Copy } from 'lucide-react'
 import useAdminUserStore from '../../store/adminUserStore'
@@ -42,8 +42,7 @@ export default function ManageUsers() {
   const handleAddUser = async () => {
     try {
       const res = await addUser(formData)
-      setTempPassword(res.data.tempPassword)
-      alert(`User created! Temporary password: ${res.data.tempPassword}`)
+      alert(res.message || 'User created successfully! The temporary password has been emailed to the user.')
       setDrawerOpen(false)
       setFormData({
         role: 'faculty',
@@ -370,7 +369,7 @@ export default function ManageUsers() {
               <button onClick={() => setDrawerOpen(false)} className="px-6 py-3 border border-outline-variant rounded-lg text-body-md font-bold text-primary hover:bg-surface-container">
                 Cancel
               </button>
-              <button onClick={handleAddUser} className="px-6 py-3 bg-secondary text-white rounded-lg text-body-md font-bold hover:shadow-lg hover:shadow-secondary/20">
+              <button onClick={handleAddUser} className="px-6 py-3 bg-primary text-on-primary rounded-lg text-body-md font-bold hover:shadow-lg hover:opacity-90">
                 Create User Account
               </button>
             </div>

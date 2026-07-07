@@ -5,6 +5,8 @@ import ApiError from '../utils/ApiError.js'
 import generateRefNumber from '../utils/generateRefNumber.js'
 import cloudinary from '../config/cloudinary.js'
 import multer from 'multer'
+import { sendMail } from '../utils/mailer.js'
+import { verificationApprovedTemplate, verificationRejectedTemplate } from '../utils/emailTemplates.js'
 
 const storage = multer.memoryStorage()
 const upload = multer({ storage })
@@ -96,7 +98,9 @@ export const getAllApplications = async (req, res, next) => {
       .populate('reviewedBy', 'firstName lastName')
       .sort({ createdAt: -1 })
 
-    res.status(200).json(new ApiResponse(200, applications, 'Applications fetched successfully'))
+    const validApplications = applications.filter(app => app.user !== null);
+
+    res.status(200).json(new ApiResponse(200, validApplications, 'Applications fetched successfully'))
   } catch (error) {
     next(error)
   }
@@ -145,6 +149,18 @@ export const approveApplication = async (req, res, next) => {
     await application.save()
     await application.populate('reviewedBy', 'firstName lastName')
 
+    // Send email
+    const html = verificationApprovedTemplate({
+      name: `${user.firstName} ${user.lastName}`.trim(),
+      role: user.role,
+    });
+
+    sendMail({
+      to: user.personalEmail,
+      subject: 'Account Verification Approved — SCA Portal',
+      html,
+    }).catch(err => console.error('Failed to send verification approval email:', err));
+
     res.status(200).json(new ApiResponse(200, application, 'Application approved successfully'))
   } catch (error) {
     next(error)
@@ -155,6 +171,7 @@ export const approveApplication = async (req, res, next) => {
 export const rejectApplication = async (req, res, next) => {
   try {
     const application = await VerificationApplication.findById(req.params.id)
+      .populate('user')
     if (!application) {
       throw new ApiError(404, 'Application not found')
     }
@@ -170,6 +187,21 @@ export const rejectApplication = async (req, res, next) => {
 
     await application.save()
     await application.populate('reviewedBy', 'firstName lastName')
+
+    const user = application.user;
+
+    // Send email
+    const html = verificationRejectedTemplate({
+      name: `${user.firstName} ${user.lastName}`.trim(),
+      role: user.role,
+      reason: rejectionReason || adminNotes || '',
+    });
+
+    sendMail({
+      to: user.personalEmail,
+      subject: 'Account Verification Rejected — SCA Portal',
+      html,
+    }).catch(err => console.error('Failed to send verification rejection email:', err));
 
     res.status(200).json(new ApiResponse(200, application, 'Application rejected successfully'))
   } catch (error) {

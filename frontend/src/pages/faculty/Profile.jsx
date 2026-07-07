@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import PageWrapper from '../../components/layout/PageWrapper'
 import useAuthStore from '../../store/authStore'
 import api from '../../config/axios'
@@ -41,7 +41,8 @@ export default function FacultyProfile() {
       setFormData({
         firstName: user.firstName || '', lastName: user.lastName || '',
         personalEmail: user.personalEmail || '', phone: user.phone || '',
-        department: user.department || '', designation: user.designation || ''
+        department: user.department || '', designation: user.designation || '',
+        coordinatorRole: user.coordinatorRole || ''
       })
       if (user.profilePhotoUrl) setPhotoPreview(user.profilePhotoUrl)
     }
@@ -240,6 +241,18 @@ export default function FacultyProfile() {
                     <option value="Head of Department">Head of Department</option>
                   </select>
                 </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="block text-xs font-semibold text-on-surface-variant">Coordinator Role</label>
+                  <select className={inputCls} value={formData.coordinatorRole || ''}
+                    onChange={e => setFormData({ ...formData, coordinatorRole: e.target.value })}>
+                    <option value="">None / Select Role</option>
+                    <option value="Cultural Coordinator">Cultural Coordinator</option>
+                    <option value="Event Coordinator">Event Coordinator</option>
+                    <option value="Project Coordinator">Project Coordinator</option>
+                    <option value="Sports Coordinator">Sports Coordinator</option>
+                    <option value="Technical Coordinator">Technical Coordinator</option>
+                  </select>
+                </div>
               </div>
 
               <h4 className="text-base font-bold text-primary flex items-center gap-2">
@@ -263,7 +276,7 @@ export default function FacultyProfile() {
 
               <div className="flex justify-end">
                 <button type="submit" disabled={loading}
-                  className="flex items-center gap-2 px-5 py-2 bg-secondary text-white rounded-lg text-sm font-semibold hover:bg-secondary/90 active:scale-95 transition-all disabled:opacity-60">
+                  className="flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-60">
                   <Save size={15} /> {loading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
@@ -318,7 +331,7 @@ export default function FacultyProfile() {
               </div>
               <div className="flex justify-start">
                 <button type="submit" disabled={loading}
-                  className="px-5 py-2 bg-secondary text-white rounded-lg text-sm font-semibold hover:bg-secondary/90 active:scale-95 transition-all disabled:opacity-60">
+                  className="px-5 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-60">
                   {loading ? 'Updating...' : 'Update Password'}
                 </button>
               </div>
@@ -383,7 +396,7 @@ export default function FacultyProfile() {
               <p className="text-[11px] text-on-surface-variant">Answer is case-insensitive and stored securely as a hash.</p>
               <div className="flex items-center gap-3">
                 <button type="submit" disabled={secLoading}
-                  className="flex items-center gap-2 px-5 py-2 bg-secondary text-white rounded-lg text-sm font-semibold hover:bg-secondary/90 active:scale-95 transition-all disabled:opacity-60">
+                  className="flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-60">
                   <Save size={14} /> {secLoading ? 'Saving…' : 'Save Question'}
                 </button>
                 {secSaved && (

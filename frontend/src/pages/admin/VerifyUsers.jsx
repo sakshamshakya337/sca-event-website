@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
 import { Search, CheckCircle2, XCircle, ArrowRight, Eye, Users, ClipboardList, Trash2, AlertTriangle } from 'lucide-react'
@@ -33,7 +33,7 @@ export default function VerifyUsers() {
     try {
       await deleteUser(userId)
       await fetchVerifications()
-      toast.success(`${v.user?.firstName} ${v.user?.lastName}'s account deleted.`)
+      toast.success(`${v.user?.firstName || 'User'} ${v.user?.lastName || ''}'s account deleted.`)
     } catch (err) {
       toast.error(err.message || 'Failed to delete user.')
     } finally {

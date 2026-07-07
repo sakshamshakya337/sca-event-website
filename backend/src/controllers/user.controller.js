@@ -5,6 +5,8 @@ import Joi from 'joi'
 import passwordGenerator from '../utils/passwordGenerator.js'
 import cloudinary from '../config/cloudinary.js'
 import multer from 'multer'
+import { sendMail } from '../utils/mailer.js'
+import { credentialsTemplate } from '../utils/emailTemplates.js'
 
 const storage = multer.memoryStorage()
 const upload = multer({
@@ -149,7 +151,7 @@ export const createUser = async (req, res, next) => {
     const {
       role, firstName, lastName, personalEmail, officialEmail, phone,
       registrationNumber, program, degree, semester, section,
-      employeeId, department, designation
+      employeeId, department, designation, coordinatorRole
     } = value
 
     const orConditions = [{ personalEmail: personalEmail.toLowerCase() }]
@@ -186,6 +188,7 @@ export const createUser = async (req, res, next) => {
       userData.employeeId = employeeId?.toUpperCase()
       userData.department = department || ''
       userData.designation = designation || ''
+      userData.coordinatorRole = coordinatorRole || ''
     }
 
     const user = await User.create(userData)
@@ -194,7 +197,24 @@ export const createUser = async (req, res, next) => {
     if (process.env.NODE_ENV !== 'production') {
       console.log(`[DEV] Temp password for ${personalEmail}: ${tempPassword}`)
     }
-    // TODO: send tempPassword via email using nodemailer
+    // Send temporary password via email
+    const html = credentialsTemplate({
+      name: user.firstName,
+      email: user.personalEmail,
+      tempPassword,
+      role,
+    });
+
+    const mailResult = await sendMail({
+      to: user.personalEmail,
+      subject: `Your ${role} Portal Account Credentials`,
+      html,
+    });
+
+    if (!mailResult.success) {
+      // Optional: Handle error without deleting user
+      console.error('Failed to send credentials email for user:', user.personalEmail);
+    }
 
     res.status(201).json(new ApiResponse(201, { user }, 'User created successfully. Temporary password has been generated.'))
   } catch (error) {
@@ -213,7 +233,7 @@ export const updateProfile = async (req, res, next) => {
     // Whitelist only allowed fields per role — never trust raw req.body keys
     const commonFields = ['firstName', 'lastName', 'personalEmail', 'phone']
     const studentFields = ['program', 'degree', 'semester', 'section']
-    const facultyFields = ['department', 'designation']
+    const facultyFields = ['department', 'designation', 'coordinatorRole']
 
     const allowedFields = [
       ...commonFields,
@@ -245,6 +265,7 @@ export const updateProfile = async (req, res, next) => {
       // Faculty fields
       department:    Joi.string().trim().max(100).optional().allow(''),
       designation:   Joi.string().trim().max(100).optional().allow(''),
+      coordinatorRole: Joi.string().trim().max(100).optional().allow(''),
     })
     const { error, value } = profileSchema.validate(sanitized, { abortEarly: false, stripUnknown: true })
     if (error) {
@@ -270,6 +291,7 @@ export const updateProfile = async (req, res, next) => {
     if (['faculty', 'admin', 'superadmin'].includes(user.role)) {
       if (value.department !== undefined)  user.department  = value.department
       if (value.designation !== undefined) user.designation = value.designation
+      if (value.coordinatorRole !== undefined) user.coordinatorRole = value.coordinatorRole
     }
 
     if (!user.lastName) user.lastName = 'User'
@@ -358,6 +380,8 @@ export const updateUser = async (req, res, next) => {
 }
 
 // Delete user (admin only)
+import VerificationApplication from '../models/VerificationApplication.js'
+
 export const deleteUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id)
@@ -371,6 +395,9 @@ export const deleteUser = async (req, res, next) => {
     }
 
     await User.findByIdAndDelete(req.params.id)
+    
+    // Cascade delete verification applications
+    await VerificationApplication.deleteMany({ user: req.params.id })
 
     res.status(200).json(new ApiResponse(200, null, 'User deleted successfully'))
   } catch (error) {
