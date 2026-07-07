@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
-import { LayoutDashboard, Calendar, CheckSquare, Users, ShieldCheck, Mail, Settings, HelpCircle, LogOut, Menu, Bell } from 'lucide-react'
+import { LayoutDashboard, Calendar, CheckSquare, Users, ShieldCheck, Mail, Settings, HelpCircle, LogOut, Menu, Bell, Image } from 'lucide-react'
 import useAuthStore from '../../store/authStore'
 import useUiStore from '../../store/uiStore'
 import { useNavigate } from 'react-router-dom'
@@ -25,6 +25,7 @@ const roleNavItems = {
     { path: '/admin/users', label: 'Manage Users', icon: Users },
     { path: '/admin/verify', label: 'Verify Users', icon: ShieldCheck },
     { path: '/admin/queries', label: 'Contact Queries', icon: Mail },
+    { path: '/admin/gallery', label: 'Gallery', icon: Image },
     { path: '/admin/notifications', label: 'Notifications', icon: Bell },
   ],
   superadmin: [
@@ -33,6 +34,7 @@ const roleNavItems = {
     { path: '/admin/users', label: 'Manage Users', icon: Users },
     { path: '/admin/verify', label: 'Verify Users', icon: ShieldCheck },
     { path: '/admin/queries', label: 'Contact Queries', icon: Mail },
+    { path: '/admin/gallery', label: 'Gallery', icon: Image },
     { path: '/admin/notifications', label: 'Notifications', icon: Bell },
   ],
 }

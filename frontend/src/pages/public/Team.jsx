@@ -44,7 +44,7 @@ export default function Team() {
             to="/portal"
             className="hidden md:flex bg-secondary text-on-secondary px-6 py-2 rounded-btn text-sm font-semibold hover:opacity-90 transition-all active:scale-95"
           >
-            Enter Portal
+            Login
           </Link>
           <Menu className="text-on-surface cursor-pointer md:hidden" size={24} />
         </div>

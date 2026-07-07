@@ -373,7 +373,7 @@ export default function PublicEventDetail() {
                   <h2 className="text-sm font-bold text-on-surface uppercase tracking-widest">Event Details</h2>
 
                   {[
-                    { icon: Calendar, label: 'Date',  value: formatDate(event.date) },
+                    { icon: Calendar, label: 'Date',  value: formatDate(event.startDate) },
                     { icon: Clock,    label: 'Time',  value: event.time || 'TBA' },
                     { icon: MapPin,   label: 'Venue', value: event.venue },
                   ].map(({ icon: Icon, label, value }) => (

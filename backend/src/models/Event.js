@@ -9,7 +9,8 @@ const eventSchema = new mongoose.Schema({
     enum: ['Workshop', 'Seminar', 'Cultural', 'Sports', 'Technical', 'Other'],
     required: true,
   },
-  date:             { type: Date, required: true },
+  startDate:        { type: Date, required: true },
+  endDate:          { type: Date, required: true },
   time:             String,
   venue:            { type: String, required: true, trim: true },
   expectedAudience: Number,
@@ -64,9 +65,9 @@ eventSchema.pre('save', async function(next) {
   }
 
   // Generate slug only if it's new or title/date changed
-  if (this.isModified('title') || this.isModified('date') || !this.slug) {
+  if (this.isModified('title') || this.isModified('startDate') || !this.slug) {
     // Format date as ddmmyy (e.g., 030726)
-    const dateObj = new Date(this.date)
+    const dateObj = new Date(this.startDate)
     const day = String(dateObj.getDate()).padStart(2, '0')
     const month = String(dateObj.getMonth() + 1).padStart(2, '0') // months are 0-based
     const year = String(dateObj.getFullYear()).slice(-2) // last 2 digits
@@ -92,7 +93,7 @@ eventSchema.pre('save', async function(next) {
   next()
 })
 
-eventSchema.index({ status: 1, date: 1 })
+eventSchema.index({ status: 1, startDate: 1 })
 eventSchema.index({ createdBy: 1 })
 
 export default mongoose.model('Event', eventSchema)

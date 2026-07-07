@@ -62,7 +62,7 @@ export const getAllEvents = async (req, res, next) => {
       .populate('approvedBy', 'firstName lastName')
       .populate('assignedFaculty', 'firstName lastName')
       .populate('assignedStudents', 'firstName lastName')
-      .sort({ date: -1 })
+      .sort({ startDate: -1 })
 
     res.status(200).json(new ApiResponse(200, events, 'Events fetched successfully'))
   } catch (error) {
@@ -79,10 +79,10 @@ export const getApprovedEvents = async (req, res, next) => {
 
     const events = await Event.find({ 
       status: 'approved',
-      date: { $gte: today } // Only events on or after today
+      startDate: { $gte: today } // Only events on or after today
     })
-      .sort({ date: 1, createdAt: -1 }) // Sort by upcoming date first, then latest created
-      .select('title type date time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery externalImageUrls isImportant slug')
+      .sort({ startDate: 1, createdAt: -1 }) // Sort by upcoming date first, then latest created
+      .select('title type startDate endDate time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery externalImageUrls isImportant slug')
       .populate('assignedFaculty', 'firstName lastName')
 
     res.status(200).json(new ApiResponse(200, events, 'Approved events fetched successfully'))
@@ -97,8 +97,8 @@ export const getAllPublicEvents = async (req, res, next) => {
     const events = await Event.find({ 
       status: { $in: ['approved', 'completed'] }
     })
-      .sort({ date: -1, createdAt: -1 }) // Sort by latest date first
-      .select('title type date time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery externalImageUrls isImportant status slug')
+      .sort({ startDate: -1, createdAt: -1 }) // Sort by latest date first
+      .select('title type startDate endDate time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery externalImageUrls isImportant status slug')
       .populate('assignedFaculty', 'firstName lastName')
 
     res.status(200).json(new ApiResponse(200, events, 'All public events fetched successfully'))
@@ -123,7 +123,8 @@ export const getPublicEventById = async (req, res, next) => {
       slug: event.slug,
       title: event.title,
       type: event.type,
-      date: event.date,
+      startDate: event.startDate,
+      endDate: event.endDate,
       time: event.time,
       venue: event.venue,
       description: event.description,
@@ -166,7 +167,7 @@ export const getMyEvents = async (req, res, next) => {
       .populate('createdBy', 'firstName lastName')
       .populate('assignedFaculty', 'firstName lastName')
       .populate('assignedStudents', 'firstName lastName')
-      .sort({ date: -1 })
+      .sort({ startDate: -1 })
 
     res.status(200).json(new ApiResponse(200, events, 'Events fetched successfully'))
   } catch (error) {
@@ -220,13 +221,13 @@ export const getEventById = async (req, res, next) => {
 export const createEvent = async (req, res, next) => {
   try {
     const {
-      title, type, date, time, venue, expectedAudience,
+      title, type, startDate, endDate, time, venue, expectedAudience,
       description, registerLink, assignedStudents = [], externalImageUrls = []
     } = req.body
 
     // Validate required fields first
-    if (!title || !type || !date || !venue) {
-      return next(new ApiError(400, 'Missing required fields: title, type, date, venue'))
+    if (!title || !type || !startDate || !endDate || !venue) {
+      return next(new ApiError(400, 'Missing required fields: title, type, startDate, endDate, venue'))
     }
 
     const parsedAudience = expectedAudience ? Number(expectedAudience) : undefined
@@ -259,7 +260,7 @@ export const createEvent = async (req, res, next) => {
     }
 
     const eventData = {
-      title, type, date, time, venue,
+      title, type, startDate, endDate, time, venue,
       expectedAudience: parsedAudience,
       description, registerLink,
       registrationNotRequired, registrationOpen, isImportant,
@@ -320,7 +321,7 @@ export const updateEvent = async (req, res, next) => {
       throw new ApiError(403, 'Not authorized to update this event')
     }
 
-    const { title, type, date, time, venue, expectedAudience, description, registerLink, assignedFaculty, assignedStudents, externalImageUrls } = req.body
+    const { title, type, startDate, endDate, time, venue, expectedAudience, description, registerLink, assignedFaculty, assignedStudents, externalImageUrls } = req.body
     const isImportant           = req.body.isImportant           === 'true' || req.body.isImportant           === true
     const registrationNotRequired = req.body.registrationNotRequired === 'true' || req.body.registrationNotRequired === true
     const registrationOpen      = req.body.registrationOpen      === 'true' || req.body.registrationOpen      === true
@@ -328,7 +329,8 @@ export const updateEvent = async (req, res, next) => {
 
     if (title)                    event.title             = title
     if (type)                     event.type              = type
-    if (date)                     event.date              = date
+    if (startDate)                event.startDate         = startDate
+    if (endDate)                  event.endDate           = endDate
     if (time !== undefined)       event.time              = time
     if (venue)                    event.venue             = venue
     if (parsedAudience !== undefined) event.expectedAudience = parsedAudience

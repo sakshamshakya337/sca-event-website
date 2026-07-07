@@ -30,7 +30,8 @@ export default function CreateEvent() {
     title: '',
     type: 'Workshop',
     expectedAudience: '',
-    date: '',
+    startDate: '',
+    endDate: '',
     time: '',
     venue: '',
     description: '',
@@ -83,7 +84,8 @@ export default function CreateEvent() {
       const payload = new FormData()
       payload.append('title',                   formData.title)
       payload.append('type',                    formData.type)
-      payload.append('date',                    formData.date)
+      payload.append('startDate',               formData.startDate)
+      payload.append('endDate',                 formData.endDate)
       if (formData.time)            payload.append('time',            formData.time)
       payload.append('venue',                   formData.venue)
       if (formData.expectedAudience) payload.append('expectedAudience', formData.expectedAudience)
@@ -159,14 +161,22 @@ export default function CreateEvent() {
               </div>
             </div>
 
-            {/* Date + Time */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            {/* Dates & Time row */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-on-surface block">Event Date *</label>
+                <label className="text-sm font-semibold text-on-surface flex items-center gap-2"><CalendarRange size={16} className="text-secondary" /> Start Date *</label>
                 <div className="relative">
                   <CalendarRange className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
                   <input className={`${inp} pl-11`} type="date"
-                    value={formData.date} onChange={e => set('date', e.target.value)} required />
+                    value={formData.startDate} onChange={e => set('startDate', e.target.value)} required />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-on-surface flex items-center gap-2"><CalendarRange size={16} className="text-secondary" /> End Date *</label>
+                <div className="relative">
+                  <CalendarRange className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
+                  <input className={`${inp} pl-11`} type="date"
+                    value={formData.endDate} onChange={e => set('endDate', e.target.value)} required min={formData.startDate} />
                 </div>
               </div>
               <div className="space-y-1.5">
@@ -178,7 +188,6 @@ export default function CreateEvent() {
                 </div>
               </div>
             </div>
-
             {/* Venue */}
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-on-surface block">Venue *</label>

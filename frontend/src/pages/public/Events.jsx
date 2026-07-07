@@ -178,7 +178,7 @@ export default function Events() {
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-1.5 text-xs text-on-surface-variant">
                         <Calendar size={12} className="shrink-0 text-primary" />
-                        {formatDate(event.date)}
+                        {formatDate(event.startDate)}{event.endDate && event.endDate !== event.startDate ? ` - ${formatDate(event.endDate)}` : ''}
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-on-surface-variant">
                         <MapPin size={12} className="shrink-0 text-primary" />

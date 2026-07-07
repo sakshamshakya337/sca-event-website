@@ -94,7 +94,7 @@ export default function StudentDashboard() {
                   <p className="font-semibold text-primary text-sm leading-snug min-w-0 truncate">{event.title}</p>
                   {statusBadge(event.status)}
                 </div>
-                <p className="text-xs text-on-surface-variant mt-1">{formatDate(event.date)}</p>
+                <p className="text-xs text-on-surface-variant mt-1">{formatDate(event.startDate)}{event.endDate && event.endDate !== event.startDate ? ` - ${formatDate(event.endDate)}` : ''}</p>
               </div>
             ))}
           </div>

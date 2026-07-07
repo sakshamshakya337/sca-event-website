@@ -98,7 +98,7 @@ export default function MyEvents() {
 
                 {/* Meta */}
                 <div className="space-y-1 text-xs text-on-surface-variant">
-                  <p>{fmt(event.date)}</p>
+                  <p>{fmt(event.startDate)}</p>
                   {event.venue && (
                     <p className="flex items-center gap-1"><MapPin size={10} /><span className="truncate">{event.venue}</span></p>
                   )}

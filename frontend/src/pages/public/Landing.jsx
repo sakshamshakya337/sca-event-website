@@ -7,6 +7,7 @@ import {
 import api from '../../config/axios'
 import { formatDate } from '../../lib/utils'
 import PublicLayout from '../../components/layout/PublicLayout'
+import useAuthStore from '../../store/authStore'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LAZY LOAD BACKGROUND IMAGE HOOK
@@ -81,11 +82,6 @@ const CAROUSEL_SLIDES = [
     sub: 'Connecting students across departments and universities for collaboration',
   },
   {
-    src: 'https://res.cloudinary.com/amqo58is/image/upload/v1782934080/IMG_0878_d2vykp.jpg',
-    label: 'LPU 9th Innotek Inter University Event',
-    sub: 'Faculty-led event coordination',
-  },
-  {
     src: 'https://res.cloudinary.com/amqo58is/image/upload/v1782934087/IMG_1222.HEIC_n0nuhi.jpg',
     label: 'School Commencement Ceremony',
     sub: 'Celebrating student achievements and milestones',
@@ -94,6 +90,11 @@ const CAROUSEL_SLIDES = [
     src: 'https://res.cloudinary.com/amqo58is/image/upload/v1782934088/IMG_9329.HEIC_xwzbug.jpg',
     label: 'Spectra',
     sub: 'Showcasing student talent through events',
+  },
+  {
+    src: 'https://res.cloudinary.com/amqo58is/image/upload/v1783412602/IMG-2271_ez97uo.jpg',
+    label: 'LPU Experience 2026',
+    sub: 'Showcasing Projects for freshers',
   },
 ]
 
@@ -125,16 +126,15 @@ function FullBgCarousel({ children }) {
       {CAROUSEL_SLIDES.map((slide, idx) => (
         <div
           key={idx}
-          className={`absolute inset-0 transition-opacity duration-1000 ${
-            idx === current ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`absolute inset-0 transition-opacity duration-1000 ${idx === current ? 'opacity-100' : 'opacity-0'
+            }`}
         >
           <img
             src={slide.src}
             alt={slide.label}
             className="w-full h-full object-cover"
             onError={e => {
-              e.target.src = 'https://res.cloudinary.com/amqo58is/image/upload/v1782934088/IMG_9329.HEIC_xwzbug.jpg'
+              e.target.src = 'https://res.cloudinary.com/amqo58is/image/upload/v1783408632/IMG-2271_1_optimized_3500_cd2fhf.jpg'
             }}
           />
         </div>
@@ -186,11 +186,10 @@ function FullBgCarousel({ children }) {
             key={idx}
             onClick={() => setCurrent(idx)}
             aria-label={`Go to slide ${idx + 1}`}
-            className={`rounded-full transition-all duration-300 ${
-              idx === current
-                ? 'w-6 h-2 bg-[#E87722]'
-                : 'w-2 h-2 bg-white/40 hover:bg-white/70'
-            }`}
+            className={`rounded-full transition-all duration-300 ${idx === current
+              ? 'w-6 h-2 bg-[#E87722]'
+              : 'w-2 h-2 bg-white/40 hover:bg-white/70'
+              }`}
           />
         ))}
       </div>
@@ -375,9 +374,9 @@ function VideoSection() {
         Three feature chips below video
         <div className="max-w-4xl mx-auto mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { icon: ShieldCheck, label: 'Role-Based Access',  desc: 'Admin, Faculty, Student' },
-            { icon: Calendar,    label: 'Event Lifecycle',    desc: 'Propose → Approve → Run' },
-            { icon: CheckSquare, label: 'Task Tracking',      desc: 'Real-time todo updates' },
+            { icon: ShieldCheck, label: 'Role-Based Access', desc: 'Admin, Faculty, Student' },
+            { icon: Calendar, label: 'Event Lifecycle', desc: 'Propose → Approve → Run' },
+            { icon: CheckSquare, label: 'Task Tracking', desc: 'Real-time todo updates' },
           ].map(({ icon: Icon, label, desc }) => (
             <div
               key={label}
@@ -405,9 +404,14 @@ function VideoSection() {
 // MAIN LANDING PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 export default function Landing() {
+  const { user } = useAuthStore()
   const [approvedEvents, setApprovedEvents] = useState([])
   const [isEventsLoading, setIsEventsLoading] = useState(false)
   const [eventsError, setEventsError] = useState(null)
+  
+  const [galleries, setGalleries] = useState([])
+  const [isGalleriesLoading, setIsGalleriesLoading] = useState(false)
+
   const howitWorksImage = useLazyBgImage('https://i.ibb.co/gZNKm5FB/1000049206.jpg')
 
   useEffect(() => {
@@ -423,7 +427,21 @@ export default function Landing() {
         setIsEventsLoading(false)
       }
     }
+    
+    const fetchGalleries = async () => {
+      setIsGalleriesLoading(true)
+      try {
+        const res = await api.get('/galleries?page=1&limit=3')
+        setGalleries(res.data.data.galleries)
+      } catch (err) {
+        console.error('Unable to load galleries', err)
+      } finally {
+        setIsGalleriesLoading(false)
+      }
+    }
+    
     fetchApprovedEvents()
+    fetchGalleries()
   }, [])
 
   return (
@@ -451,16 +469,29 @@ export default function Landing() {
             </p>
 
             <div className="flex flex-wrap gap-3 sm:gap-4 pt-2">
-              <Link
-                to="/portal"
-                className="bg-[#E87722] hover:bg-[#C4611A] text-white px-6 sm:px-8 py-3 sm:py-4
-                           rounded-btn font-bold flex items-center gap-2
-                           shadow-[0_4px_20px_rgba(232,119,34,0.5)]
-                           transition-all active:scale-95 text-sm sm:text-base"
-              >
-                Enter Portal
-                <ArrowRight size={18} />
-              </Link>
+              {user ? (
+                <Link
+                  to="/portal"
+                  className="bg-[#E87722] hover:bg-[#C4611A] text-white px-6 sm:px-8 py-3 sm:py-4
+                             rounded-btn font-bold flex items-center gap-2
+                             shadow-[0_4px_20px_rgba(232,119,34,0.5)]
+                             transition-all active:scale-95 text-sm sm:text-base"
+                >
+                  Dashboard
+                  <ArrowRight size={18} />
+                </Link>
+              ) : (
+                <Link
+                  to="/portal"
+                  className="bg-[#E87722] hover:bg-[#C4611A] text-white px-6 sm:px-8 py-3 sm:py-4
+                             rounded-btn font-bold flex items-center gap-2
+                             shadow-[0_4px_20px_rgba(232,119,34,0.5)]
+                             transition-all active:scale-95 text-sm sm:text-base"
+                >
+                  Login
+                  <ArrowRight size={18} />
+                </Link>
+              )}
               <Link
                 to="/about"
                 className="border-2 border-white/70 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-btn
@@ -526,56 +557,107 @@ export default function Landing() {
                     className="overflow-hidden rounded-card border border-outline-variant
                                shadow-sm hover:shadow-card transition-shadow bg-surface-card cursor-pointer"
                   >
-                  <div className="overflow-hidden bg-surface-container-low">
-                    {event.imageUrl ? (
-                      <img src={event.imageUrl} alt={event.title} className="w-full h-auto" />
-                    ) : (
-                      <div className="flex items-center justify-center text-center
+                    <div className="overflow-hidden bg-surface-container-low">
+                      {event.imageUrl ? (
+                        <img src={event.imageUrl} alt={event.title} className="w-full h-auto" />
+                      ) : (
+                        <div className="flex items-center justify-center text-center
                                       text-on-surface-variant px-4 py-10">
-                        <div>
-                          <p className="font-semibold text-sm">No image uploaded</p>
-                          <p className="text-xs mt-1">This event was approved without a banner image.</p>
+                          <div>
+                            <p className="font-semibold text-sm">No image uploaded</p>
+                            <p className="text-xs mt-1">This event was approved without a banner image.</p>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-5 space-y-3">
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="inline-flex rounded-full bg-primary-fixed
-                                       text-on-primary-fixed px-3 py-1 text-xs font-semibold">
-                        {event.type || 'Event'}
-                      </span>
-                      <span className="text-xs text-on-surface-variant">
-                        {formatDate(event.date)}
-                      </span>
-                    </div>
-                    <div className="space-y-1.5">
-                      <h3 className="text-base sm:text-lg font-bold text-on-surface">{event.title}</h3>
-                      <p className="text-on-surface-variant line-clamp-3 text-sm">
-                        {event.description || 'No description provided.'}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-xs text-on-surface-variant">
-                        <span className="font-semibold text-on-surface">Venue:</span>{' '}
-                        {event.venue}
-                      </p>
-                      {event.registerLink && !event.registrationNotRequired && (
-                        <a
-                          href={event.registerLink}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center justify-center rounded-full
-                                     bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary
-                                     hover:opacity-90 transition-colors"
-                        >
-                          Register Now
-                        </a>
                       )}
                     </div>
-                  </div>
+                    <div className="p-5 space-y-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="inline-flex rounded-full bg-primary-fixed
+                                       text-on-primary-fixed px-3 py-1 text-xs font-semibold">
+                          {event.type || 'Event'}
+                        </span>
+                        <span className="text-xs text-on-surface-variant">
+                          {formatDate(event.startDate)}{event.endDate && event.endDate !== event.startDate ? ` - ${formatDate(event.endDate)}` : ''}
+                        </span>
+                      </div>
+                      <div className="space-y-1.5">
+                        <h3 className="text-base sm:text-lg font-bold text-on-surface">{event.title}</h3>
+                        <p className="text-on-surface-variant line-clamp-3 text-sm">
+                          {event.description || 'No description provided.'}
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs text-on-surface-variant">
+                          <span className="font-semibold text-on-surface">Venue:</span>{' '}
+                          {event.venue}
+                        </p>
+                        {event.registerLink && !event.registrationNotRequired && (
+                          <a
+                            href={event.registerLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center justify-center rounded-full
+                                     bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary
+                                     hover:opacity-90 transition-colors"
+                          >
+                            Register Now
+                          </a>
+                        )}
+                      </div>
+                    </div>
                   </article>
                 </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── GALLERIES SECTION ── */}
+      <section className="py-14 sm:py-24 bg-background">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 sm:mb-10">
+            <div>
+              <h2 className="text-2xl sm:text-[32px] text-on-surface font-bold">
+                Event Gallery
+              </h2>
+              <p className="text-on-surface-variant max-w-2xl text-sm sm:text-base mt-1">
+                Explore highlights and memories from past SCA events.
+              </p>
+            </div>
+          </div>
+
+          {isGalleriesLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="animate-pulse bg-surface-container rounded-2xl h-64 border border-outline-variant"></div>
+              ))}
+            </div>
+          ) : galleries.length === 0 ? (
+            <div className="rounded-card border border-dashed border-outline-variant
+                            p-12 text-center text-on-surface-variant">
+              No galleries are available yet.
+            </div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {galleries.map(gallery => (
+                <div key={gallery._id} className="bg-surface-card rounded-card border border-outline-variant overflow-hidden flex flex-col shadow-sm hover:shadow-card transition-shadow group">
+                  <div className="h-48 overflow-hidden relative">
+                    <img src={gallery.bannerImage} alt={gallery.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute top-3 right-3 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-md">
+                      {gallery.images?.length || 0} Images
+                    </div>
+                  </div>
+                  <div className="p-5 flex flex-col flex-1">
+                    <h3 className="font-bold text-lg text-on-surface line-clamp-1">{gallery.title}</h3>
+                    <p className="text-on-surface-variant text-sm mt-2 line-clamp-2 flex-1">{gallery.description}</p>
+                    <div className="mt-4 pt-4 border-t border-outline-variant flex justify-between items-center">
+                      <span className="text-xs text-on-surface-variant font-medium">
+                        {gallery.startDate ? `${new Date(gallery.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}${gallery.endDate && gallery.endDate !== gallery.startDate ? ` - ${new Date(gallery.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}` : new Date(gallery.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -680,14 +762,7 @@ export default function Landing() {
                   backgroundImage: howitWorksImage.backgroundImage || "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzMzMzMzMyIvPjwvc3ZnPg==')",
                   opacity: howitWorksImage.isLoading ? 0.6 : 1,
                 }}
-              />
-              <div className="absolute -bottom-6 -left-6 bg-surface-card p-5 rounded-2xl
-                              shadow-card border border-outline-variant max-w-[200px] z-20">
-                <p className="font-mono text-primary font-bold text-sm">98% Efficient</p>
-                <p className="text-xs text-on-surface-variant">
-                  Reduced paperwork and coordination delays.
-                </p>
-              </div>
+              />              
             </div>
           </div>
         </div>
@@ -711,7 +786,7 @@ export default function Landing() {
                            text-base sm:text-lg shadow-md hover:opacity-90 transition-all active:scale-95
                            flex items-center gap-3"
               >
-                Access Student Portal
+                Access SCA Portal
                 <LogIn size={22} />
               </Link>
             </div>

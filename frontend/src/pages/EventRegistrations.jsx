@@ -143,7 +143,7 @@ export default function EventRegistrations() {
             </h1>
             {event && (
               <p className="text-sm text-on-surface-variant mt-0.5">
-                {event.title} &bull; {event.venue} &bull; {new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                {event.title} &bull; {event.venue} &bull; {new Date(event.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
             )}
           </div>

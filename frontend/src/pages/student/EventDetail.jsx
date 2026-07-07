@@ -111,8 +111,8 @@ export default function StudentEventDetail() {
                   <div className="flex flex-wrap gap-2 sm:gap-3 mt-2 text-xs sm:text-sm text-on-surface-variant">
                     <span className="flex items-center gap-1.5">
                       <CalendarDays size={13} className="text-outline" />
-                      {event.date
-                        ? new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                      {event.startDate
+                        ? new Date(event.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
                         : '—'}
                     </span>
                     {event.time && (

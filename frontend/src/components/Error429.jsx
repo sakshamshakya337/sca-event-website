@@ -48,7 +48,7 @@ export default function Error429() {
         {/* Content */}
         <div className="p-8">
           <p className="text-on-surface-variant text-center mb-8">
-            {message || "You've exceeded the rate limit. Please wait a moment and try again."}
+            {rateLimitMessage || "You've exceeded the rate limit. Please wait a moment and try again."}
           </p>
 
           {/* Countdown Timer */}

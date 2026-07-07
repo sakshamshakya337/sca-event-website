@@ -1,12 +1,33 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowRight, Menu, Sun, Moon, X } from 'lucide-react'
-import useUiStore from '../../store/uiStore'
+import { useState, useEffect, useRef } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ArrowRight, Menu, X, Settings, LogOut, LayoutDashboard } from 'lucide-react'
+import useAuth from '../../hooks/useAuth'
+import useAuthStore from '../../store/authStore'
+import { getCloudinaryUrl } from '../../lib/utils'
 
 // ─── Shared Navbar ────────────────────────────────────────────────────────────
 function PublicNavbar({ scrolled }) {
-  const { theme, toggleTheme } = useUiStore()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { user } = useAuth()
+  const logout = useAuthStore(state => state.logout)
+  const navigate = useNavigate()
+  const [profileOpen, setProfileOpen] = useState(false)
+  const profileRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+  
+  const getInitials = () => {
+    if (!user) return 'U'
+    return `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase()
+  }
 
   return (
     <>
@@ -26,35 +47,80 @@ function PublicNavbar({ scrolled }) {
         <div className="hidden md:flex items-center gap-6">
           <Link className="text-on-surface-variant text-sm font-medium hover:text-primary transition-colors" to="/about">About</Link>
           <Link className="text-on-surface-variant text-sm font-medium hover:text-primary transition-colors" to="/events">Events</Link>
+          <Link className="text-on-surface-variant text-sm font-medium hover:text-primary transition-colors" to="/gallery">Gallery</Link>
           <Link className="text-on-surface-variant text-sm font-medium hover:text-primary transition-colors" to="/contact">Contact</Link>
 
-          {/* Theme toggle */}
-          <button
-            onClick={toggleTheme}
-            aria-label="Toggle theme"
-            className="p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all"
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-
-          <Link
-            to="/portal"
-            className="bg-primary text-on-primary px-5 py-2 rounded-btn text-sm font-semibold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-md"
-          >
-            Enter Portal
-            <ArrowRight size={15} />
-          </Link>
+          {user ? (
+            <div className="flex items-center gap-4">
+              <Link
+                to={`/${user.role}`}
+                className="bg-primary text-on-primary px-5 py-2 rounded-btn text-sm font-semibold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-md"
+              >
+                Dashboard
+                <LayoutDashboard size={15} />
+              </Link>
+              
+              {/* Profile Dropdown */}
+              <div className="relative" ref={profileRef}>
+                <div onClick={() => setProfileOpen(!profileOpen)}>
+                  {user?.profilePhotoUrl ? (
+                    <img
+                      src={getCloudinaryUrl(user.profilePhotoUrl, { width: 40, height: 40 })}
+                      alt={`${user.firstName || 'User'} ${user.lastName || ''}`}
+                      className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover cursor-pointer shrink-0"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                        e.currentTarget.nextElementSibling.style.display = 'flex'
+                      }}
+                    />
+                  ) : null}
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary-container items-center justify-center text-on-primary-container text-xs sm:text-sm font-bold cursor-pointer shrink-0 ${user?.profilePhotoUrl ? 'hidden' : 'flex'}`}>
+                    {getInitials()}
+                  </div>
+                </div>
+                
+                {profileOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-surface rounded-xl shadow-lg border border-outline-variant py-2 z-50">
+                    <div className="px-4 py-2 border-b border-outline-variant mb-2">
+                      <p className="text-sm font-bold text-on-surface truncate">{user?.firstName} {user?.lastName}</p>
+                      <p className="text-xs text-on-surface-variant truncate capitalize">{user?.role}</p>
+                    </div>
+                    <Link 
+                      to={`/${user?.role}/profile`}
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-on-surface hover:bg-surface-container transition-colors"
+                    >
+                      <Settings size={16} className="text-on-surface-variant" />
+                      My Profile
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setProfileOpen(false)
+                        logout()
+                        navigate('/')
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-error hover:bg-error/10 transition-colors text-left"
+                    >
+                      <LogOut size={16} />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <Link
+              to="/portal"
+              className="bg-primary text-on-primary px-5 py-2 rounded-btn text-sm font-semibold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-md"
+            >
+              Login
+              <ArrowRight size={15} />
+            </Link>
+          )}
         </div>
 
-        {/* Mobile: theme + hamburger */}
+        {/* Mobile: hamburger */}
         <div className="md:hidden flex items-center gap-2">
-          <button
-            onClick={toggleTheme}
-            aria-label="Toggle theme"
-            className="p-2 rounded-full text-on-surface-variant hover:bg-surface-container transition-all"
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
           <button
             onClick={() => setMobileOpen(true)}
             aria-label="Open menu"
@@ -93,13 +159,42 @@ function PublicNavbar({ scrolled }) {
                 </Link>
               ))}
             </nav>
-            <Link
-              to="/portal"
-              onClick={() => setMobileOpen(false)}
-              className="bg-primary text-on-primary px-5 py-2.5 rounded-btn text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-md mt-auto"
-            >
-              Enter Portal <ArrowRight size={15} />
-            </Link>
+            {user ? (
+              <div className="flex flex-col gap-2 mt-auto">
+                <Link
+                  to={`/${user.role}`}
+                  onClick={() => setMobileOpen(false)}
+                  className="bg-primary text-on-primary px-5 py-2.5 rounded-btn text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-md"
+                >
+                  Dashboard <LayoutDashboard size={15} />
+                </Link>
+                <Link
+                  to={`/${user.role}/profile`}
+                  onClick={() => setMobileOpen(false)}
+                  className="bg-surface-container text-on-surface px-5 py-2.5 rounded-btn text-sm font-semibold flex items-center justify-center gap-2 hover:bg-surface-variant transition-all shadow-sm"
+                >
+                  My Profile <Settings size={15} />
+                </Link>
+                <button
+                  onClick={() => {
+                    setMobileOpen(false)
+                    logout()
+                    navigate('/')
+                  }}
+                  className="bg-error/10 text-error px-5 py-2.5 rounded-btn text-sm font-semibold flex items-center justify-center gap-2 hover:bg-error/20 transition-all shadow-sm"
+                >
+                  Logout <LogOut size={15} />
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/portal"
+                onClick={() => setMobileOpen(false)}
+                className="bg-primary text-on-primary px-5 py-2.5 rounded-btn text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-md mt-auto"
+              >
+                Login <ArrowRight size={15} />
+              </Link>
+            )}
           </div>
         </div>
       )}
@@ -166,7 +261,6 @@ function PublicFooter() {
 // ─── Public Layout Wrapper ────────────────────────────────────────────────────
 export default function PublicLayout({ children }) {
   const [scrolled, setScrolled] = useState(false)
-  const { theme } = useUiStore()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -174,15 +268,10 @@ export default function PublicLayout({ children }) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Apply dark class to html element based on theme from store
+  // Ensure dark mode is always disabled
   useEffect(() => {
-    const html = document.documentElement
-    if (theme === 'dark') {
-      html.classList.add('dark')
-    } else {
-      html.classList.remove('dark')
-    }
-  }, [theme])
+    document.documentElement.classList.remove('dark')
+  }, [])
 
   return (
     <div className="bg-background text-on-background font-sans min-h-screen flex flex-col">

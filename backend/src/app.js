@@ -16,6 +16,7 @@ import todoRoutes from './routes/todo.routes.js'
 import taskRoutes from './routes/task.routes.js'
 import contactRoutes from './routes/contact.routes.js'
 import verificationRoutes from './routes/verification.routes.js'
+import galleryRoutes from './routes/gallery.routes.js'
 
 const app = express()
 
@@ -75,6 +76,7 @@ app.use('/api/todos', todoRoutes)
 app.use('/api/tasks', taskRoutes)
 app.use('/api/contact', contactRoutes)
 app.use('/api/verification', verificationRoutes)
+app.use('/api/galleries', galleryRoutes)
 
 // Health Check — only confirms the server is alive, no env details
 app.get('/api/health', (req, res) => {

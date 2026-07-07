@@ -82,13 +82,6 @@ export default function Dashboard() {
               Real-time management and administrative oversight.
             </p>
           </div>
-          <button
-            onClick={() => navigate('/faculty/events/create')}
-            className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 sm:py-2.5 bg-primary text-on-primary text-sm font-semibold rounded-btn shadow-md hover:opacity-90 transition-all active:scale-95 shrink-0"
-          >
-            <Plus size={15} />
-            Create New Event
-          </button>
         </div>
 
         {/* ── Stats — 2×3 on mobile, 5 cols on lg ────────────────────── */}
@@ -147,7 +140,7 @@ export default function Dashboard() {
                     ) : events.map(event => (
                       <tr key={event._id} className="hover:bg-surface-container transition-colors">
                         <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium text-primary max-w-[140px] truncate">{event.title}</td>
-                        <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap">{event.date}</td>
+                        <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap">{event.startDate}</td>
                         <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface-variant max-w-[120px] truncate">{event.venue}</td>
                         <td className="px-3 sm:px-4 py-2.5"><StatusBadge status={event.status} /></td>
                       </tr>
@@ -203,7 +196,7 @@ export default function Dashboard() {
                         {getEventCreatorName(event.createdBy)}
                       </td>
                       <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap hidden md:table-cell">
-                        {event.date}
+                        {event.startDate}
                       </td>
                       <td className="px-3 sm:px-5 py-3">
                         <StatusBadge status={event.status} />
@@ -268,7 +261,7 @@ export default function Dashboard() {
                       {getEventCreatorName(event.createdBy)}
                     </td>
                     <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap hidden md:table-cell">
-                      {event.date}
+                      {event.startDate}
                     </td>
                     <td className="px-3 sm:px-5 py-3">
                       <StatusBadge status={event.status} />
@@ -396,7 +389,7 @@ export default function Dashboard() {
             <div className="px-5 sm:px-6 py-4 space-y-2.5 max-h-[60vh] overflow-y-auto">
               {[
                 { label: 'Organizer', value: getEventCreatorName(selectedEvent.createdBy) },
-                { label: 'Date',      value: selectedEvent.date },
+                { label: 'Date',      value: selectedEvent.startDate ? `${selectedEvent.startDate}${selectedEvent.endDate && selectedEvent.endDate !== selectedEvent.startDate ? ` to ${selectedEvent.endDate}` : ''}` : '—' },
                 { label: 'Time',      value: selectedEvent.time },
                 { label: 'Venue',     value: selectedEvent.venue },
                 { label: 'Category',  value: selectedEvent.category },

@@ -341,7 +341,7 @@ export default function EventDetail() {
               <div>
                 <h1 className="text-headline-lg text-on-surface font-bold">{event.title}</h1>
                 <div className="flex flex-wrap gap-4 mt-2 text-sm text-on-surface-variant">
-                  <span className="flex items-center gap-1"><CalendarDays size={15} />{event.date ? new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</span>
+                  <span className="flex items-center gap-1"><CalendarDays size={15} />{event.startDate ? `${new Date(event.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}${event.endDate && event.endDate !== event.startDate ? ` - ${new Date(event.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}` : '—'}</span>
                   {event.time && <span className="flex items-center gap-1"><Clock size={15} />{event.time}</span>}
                   <span className="flex items-center gap-1"><MapPin size={15} />{event.venue}</span>
                 </div>

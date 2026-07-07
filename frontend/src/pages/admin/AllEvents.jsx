@@ -145,7 +145,7 @@ export default function AllEvents() {
                     <div className="space-y-1.5 text-xs text-on-surface-variant">
                       <div className="flex items-center gap-2">
                         <CalendarDays size={13} className="shrink-0 text-outline" />
-                        <span>{event.date ? new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</span>
+                        <span>{event.startDate ? `${new Date(event.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}${event.endDate && event.endDate !== event.startDate ? ` - ${new Date(event.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}` : '—'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <MapPin size={13} className="shrink-0 text-outline" />

@@ -198,7 +198,7 @@ export default function Portal() {
                 ? <><Loader2 className="animate-spin" size={16} /> Logging in…</>
                 : (lockedUntil && Date.now() < lockedUntil)
                 ? 'Account locked — try later'
-                : <><span>Enter Portal</span><ArrowRight size={16} /></>
+                : <><span>Login</span><ArrowRight size={16} /></>
               }
             </button>
           </form>

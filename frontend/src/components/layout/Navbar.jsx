@@ -1,14 +1,29 @@
+import { useState, useRef, useEffect } from 'react'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
-import { Bell, Sun, Moon, ChevronRight, Plus, Menu } from 'lucide-react'
+import useAuthStore from '../../store/authStore'
+import { Bell, Sun, Moon, ChevronRight, Plus, Menu, Settings, LogOut } from 'lucide-react'
 import useUiStore from '../../store/uiStore'
 import useNotificationsStore from '../../store/notificationsStore'
 import { getCloudinaryUrl } from '../../lib/utils'
 
 export default function Navbar({ breadcrumb = [] }) {
   const { user } = useAuth()
+  const logout = useAuthStore(state => state.logout)
   const location = useLocation()
   const navigate = useNavigate()
+  const [profileOpen, setProfileOpen] = useState(false)
+  const profileRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
   const { theme, toggleTheme, toggleSidebar, sidebarOpen } = useUiStore((state) => ({
     theme: state.theme,
     toggleTheme: state.toggleTheme,
@@ -54,7 +69,7 @@ export default function Navbar({ breadcrumb = [] }) {
           <Menu size={24} />
         </button>
         <nav className="hidden sm:flex items-center text-on-surface-variant font-body-md">
-          <span>Home</span>
+          <Link to="/" className="hover:text-primary transition-colors cursor-pointer">Home</Link>
           <ChevronRight className="w-4 h-4 mx-2" />
           <span className="text-primary font-bold">{getPageTitle()}</span>
         </nav>
@@ -99,19 +114,52 @@ export default function Navbar({ breadcrumb = [] }) {
           </button>
         )}
         
-        {user?.profilePhotoUrl ? (
-          <img
-            src={getCloudinaryUrl(user.profilePhotoUrl, { width: 40, height: 40 })}
-            alt={`${user.firstName || 'User'} ${user.lastName || ''}`}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover cursor-pointer shrink-0"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none'
-              e.currentTarget.nextElementSibling.style.display = 'flex'
-            }}
-          />
-        ) : null}
-        <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary-container items-center justify-center text-on-primary-container text-xs sm:text-sm font-bold cursor-pointer shrink-0 ${user?.profilePhotoUrl ? 'hidden' : 'flex'}`}>
-          {getInitials()}
+        {/* Profile Dropdown */}
+        <div className="relative" ref={profileRef}>
+          <div onClick={() => setProfileOpen(!profileOpen)}>
+            {user?.profilePhotoUrl ? (
+              <img
+                src={getCloudinaryUrl(user.profilePhotoUrl, { width: 40, height: 40 })}
+                alt={`${user.firstName || 'User'} ${user.lastName || ''}`}
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover cursor-pointer shrink-0"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                  e.currentTarget.nextElementSibling.style.display = 'flex'
+                }}
+              />
+            ) : null}
+            <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary-container items-center justify-center text-on-primary-container text-xs sm:text-sm font-bold cursor-pointer shrink-0 ${user?.profilePhotoUrl ? 'hidden' : 'flex'}`}>
+              {getInitials()}
+            </div>
+          </div>
+          
+          {profileOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-surface rounded-xl shadow-lg border border-outline-variant py-2 z-50">
+              <div className="px-4 py-2 border-b border-outline-variant mb-2">
+                <p className="text-sm font-bold text-on-surface truncate">{user?.firstName} {user?.lastName}</p>
+                <p className="text-xs text-on-surface-variant truncate capitalize">{user?.role}</p>
+              </div>
+              <Link 
+                to={`/${user?.role}/profile`}
+                onClick={() => setProfileOpen(false)}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-on-surface hover:bg-surface-container transition-colors"
+              >
+                <Settings size={16} className="text-on-surface-variant" />
+                My Profile
+              </Link>
+              <button
+                onClick={() => {
+                  setProfileOpen(false)
+                  logout()
+                  navigate('/portal')
+                }}
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-error hover:bg-error/10 transition-colors text-left"
+              >
+                <LogOut size={16} />
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

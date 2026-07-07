@@ -53,13 +53,6 @@ export default function MyEvents() {
             <h2 className="text-headline-lg text-on-surface">My Events</h2>
             <p className="text-body-md text-on-surface-variant">Academic Cycle 2025-26</p>
           </div>
-          <button
-            onClick={() => navigate('/faculty/events/create')}
-            className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary text-sm font-semibold rounded-btn hover:opacity-90 transition-all active:scale-95 shadow-md"
-          >
-            <Plus size={16} />
-            Create Event
-          </button>
         </div>
 
         {/* Filter Tabs */}
@@ -155,8 +148,8 @@ export default function MyEvents() {
                       <div className="flex items-center gap-2">
                         <CalendarDays size={13} className="shrink-0 text-outline" />
                         <span>
-                          {event.date
-                            ? new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                          {event.startDate
+                            ? new Date(event.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
                             : '—'}
                         </span>
                       </div>

@@ -43,17 +43,24 @@ export default function EditEvent() {
       try {
         const res   = await api.get(`/events/${id}`)
         const event = res.data.data
-        let formattedDate = ''
+        let formattedStartDate = ''
+        let formattedEndDate = ''
         try {
-          const d = new Date(event.date)
-          if (!isNaN(d.getTime())) formattedDate = d.toISOString().split('T')[0]
-        } catch { formattedDate = event.date || '' }
+          const sd = new Date(event.startDate)
+          if (!isNaN(sd.getTime())) formattedStartDate = sd.toISOString().split('T')[0]
+          const ed = new Date(event.endDate)
+          if (!isNaN(ed.getTime())) formattedEndDate = ed.toISOString().split('T')[0]
+        } catch { 
+          formattedStartDate = event.startDate || ''
+          formattedEndDate = event.endDate || ''
+        }
 
         setEventData({
           title:                    event.title || '',
           type:                     event.type  || 'Workshop',
           expectedAudience:         event.expectedAudience || '',
-          date:                     formattedDate,
+          startDate:                formattedStartDate,
+          endDate:                  formattedEndDate,
           time:                     event.time  || '',
           venue:                    event.venue || '',
           description:              event.description || '',
@@ -123,7 +130,8 @@ export default function EditEvent() {
       const payload = new FormData()
       payload.append('title',                   eventData.title)
       payload.append('type',                    eventData.type)
-      payload.append('date',                    eventData.date)
+      payload.append('startDate',               eventData.startDate)
+      payload.append('endDate',                 eventData.endDate)
       if (eventData.time)            payload.append('time',            eventData.time)
       payload.append('venue',                   eventData.venue)
       if (eventData.expectedAudience !== '')
@@ -267,12 +275,17 @@ export default function EditEvent() {
               </div>
             </div>
 
-            {/* Date + Time */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Dates & Time row */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-on-surface">Event Date *</label>
-                <input type="date" className={inp} value={eventData.date} required
-                  onChange={e => setEventData(d => ({ ...d, date: e.target.value }))} />
+                <label className="block text-sm font-semibold text-on-surface">Start Date *</label>
+                <input type="date" className={inp} value={eventData.startDate} required
+                  onChange={e => setEventData(d => ({ ...d, startDate: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-semibold text-on-surface">End Date *</label>
+                <input type="date" className={inp} value={eventData.endDate} required min={eventData.startDate}
+                  onChange={e => setEventData(d => ({ ...d, endDate: e.target.value }))} />
               </div>
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-on-surface">Event Time</label>
