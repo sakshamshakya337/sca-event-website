@@ -85,15 +85,28 @@ export default function ForgotPassword() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch security question when user leaves the ID field
+  const abortControllerRef = useRef(null)
+
   const handleIdBlur = async () => {
     const id = identifier.trim().toUpperCase()
     if (id.length < 2) return
+    
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    abortControllerRef.current = new AbortController()
+    
     setFetchingQ(true)
     setSecurityQuestion(null)
     try {
-      const res = await api.post('/auth/get-security-question', { identifier: id, role })
+      const res = await api.post('/auth/get-security-question', { identifier: id, role }, {
+        signal: abortControllerRef.current.signal
+      })
       setSecurityQuestion(res.data?.data?.securityQuestion || null)
-    } catch { /* silently ignore */ }
+    } catch (err) { 
+      if (err.name === 'CanceledError') return; // Ignore abort errors from axios
+      /* silently ignore other errors */ 
+    }
     finally { setFetchingQ(false) }
   }
 
