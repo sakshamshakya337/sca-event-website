@@ -247,9 +247,12 @@ export default function FacultyProfile() {
                     onChange={e => setFormData({ ...formData, coordinatorRole: e.target.value })}>
                     <option value="">None / Select Role</option>
                     <option value="Cultural Coordinator">Cultural Coordinator</option>
+                    <option value="Duty Leaves Coordinator">Duty Leaves Coordinator</option>
                     <option value="Event Coordinator">Event Coordinator</option>
                     <option value="Project Coordinator">Project Coordinator</option>
+                    <option value="Research Coordinator">Research Coordinator</option>
                     <option value="Sports Coordinator">Sports Coordinator</option>
+                    <option value="Startup and Revenue Generation">Startup and Revenue Generation</option>
                     <option value="Technical Coordinator">Technical Coordinator</option>
                   </select>
                 </div>
