@@ -1,5 +1,6 @@
 import express from 'express'
 import helmet from 'helmet'
+import net from 'net'
 import cors from 'cors'
 import mongoSanitize from 'express-mongo-sanitize'
 import xssClean from 'xss-clean'
@@ -77,6 +78,27 @@ app.use('/api/tasks', taskRoutes)
 app.use('/api/contact', contactRoutes)
 app.use('/api/verification', verificationRoutes)
 app.use('/api/galleries', galleryRoutes)
+
+// Test SMTP connection to Gmail on port 465
+app.get('/test-smtp', (req, res) => {
+  const socket = net.connect(465, 'smtp.gmail.com')
+  socket.setTimeout(10000)
+  
+  socket.on('connect', () => {
+    res.send('Connected to smtp.gmail.com on port 465')
+    socket.destroy()
+  })
+  
+  socket.on('timeout', () => {
+    res.send('Timeout: Port 465 might be blocked')
+    socket.destroy()
+  })
+  
+  socket.on('error', (err) => {
+    res.send('Error: ' + err.message)
+    socket.destroy()
+  })
+})
 
 // Health Check — only confirms the server is alive, no env details
 app.get('/api/health', (req, res) => {
