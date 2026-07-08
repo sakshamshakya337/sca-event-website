@@ -148,7 +148,7 @@ function PublicNavbar({ scrolled }) {
               </button>
             </div>
             <nav className="flex flex-col gap-4">
-              {[['/', 'Home'], ['/about', 'About'], ['/events', 'Events'], ['/contact', 'Contact']].map(([to, label]) => (
+              {[['/', 'Home'], ['/about', 'About'], ['/events', 'Events'], ['/gallery', 'Gallery'], ['/contact', 'Contact']].map(([to, label]) => (
                 <Link
                   key={to}
                   to={to}

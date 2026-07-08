@@ -75,11 +75,11 @@ export default function Sidebar() {
       )}
       
       {/* Sidebar */}
-      <aside className={`fixed left-0 top-0 h-screen z-40 bg-surface-sidebar border-r border-outline-variant flex flex-col overflow-hidden transition-all duration-300 ${sidebarOpen ? 'w-[240px] translate-x-0' : 'w-[240px] -translate-x-full lg:w-[64px] lg:translate-x-0'}`}>
+      <aside className={`fixed left-0 top-0 h-[100dvh] z-40 bg-surface-sidebar border-r border-outline-variant flex flex-col overflow-hidden transition-all duration-300 ${sidebarOpen ? 'w-[240px] translate-x-0' : 'w-[240px] -translate-x-full lg:w-[64px] lg:translate-x-0'}`}>
 
         {/* Logo + toggle */}
         <div className="px-4 py-4 flex items-center justify-between shrink-0 border-b border-outline-variant/50">
-          <div className={`flex items-center gap-2 ${!sidebarOpen && 'lg:hidden'}`}>
+          <div className={`flex items-center gap-2 ${!sidebarOpen ? 'lg:hidden' : ''}`}>
             <img src="/sca.png" alt="SCA Logo" className="h-12 w-auto" />
           </div>
           <button
@@ -118,7 +118,7 @@ export default function Sidebar() {
         <div className="shrink-0 border-t border-outline-variant">
 
           {/* Settings link */}
-          <div className={`${!sidebarOpen && 'lg:hidden'}`}>
+          <div className={`${!sidebarOpen ? 'lg:hidden' : ''}`}>
             <NavLink
               to={`/${user?.role}/profile`}
               onClick={() => { if (window.innerWidth < 1024 && sidebarOpen) toggleSidebar() }}
@@ -143,7 +143,7 @@ export default function Sidebar() {
           )}
 
           {/* User info + logout */}
-          <div className={`px-4 py-3 flex flex-col gap-2 ${!sidebarOpen && 'lg:hidden'}`}>
+          <div className={`px-4 py-3 flex flex-col gap-2 ${!sidebarOpen ? 'lg:hidden' : ''}`}>
             <div className="flex items-center gap-2 min-w-0">
               {user?.profilePhotoUrl ? (
                 <img
