@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import api from '../../config/axios'
 import toast from 'react-hot-toast'
+import RecaptchaWidget from '../../components/ui/RecaptchaWidget'
 
 // ── Progress step indicator ──────────────────────────────────────────────────
 function StepDot({ num, label, active, done }) {
@@ -72,6 +73,8 @@ export default function ForgotPassword() {
   /* shared */
   const [error, setError] = useState(null)
   const [step, setStep] = useState(1)
+  const [hcaptchaToken, setHcaptchaToken] = useState(null)
+  const captchaRef = useRef(null)
 
   // On mount: if URL contains ?token=...&step=3 (from the email link),
   // jump straight to step 3 so the user can set their new password.
@@ -116,12 +119,14 @@ export default function ForgotPassword() {
     setError(null)
     if (!identifier.trim()) return setError('Please enter your ID.')
     if (!securityAnswer.trim()) return setError('Please answer the security question.')
+    if (!hcaptchaToken) return setError('Please complete the captcha verification.')
     setStep1Loading(true)
     try {
       const res = await api.post('/auth/forgot-password', {
         identifier: identifier.trim().toUpperCase(),
         role,
         securityAnswer: securityAnswer.trim(),
+        hcaptchaToken,
       })
       const { maskedEmail } = res.data.data
       setUserInfo({ maskedEmail })
@@ -129,6 +134,9 @@ export default function ForgotPassword() {
       toast.success('Reset email sent! Check your inbox.')
     } catch (err) {
       setError(err.response?.data?.message || 'Verification failed. Check your details.')
+      // Captcha is single-use — reset it so the user can solve a fresh one.
+      captchaRef.current?.reset()
+      setHcaptchaToken(null)
     } finally { setStep1Loading(false) }
   }
 
@@ -270,8 +278,14 @@ export default function ForgotPassword() {
 
             <ErrorBox msg={error} />
 
+            <RecaptchaWidget
+              ref={captchaRef}
+              onChange={setHcaptchaToken}
+              className="mb-1"
+            />
+
             <button
-              type="submit" disabled={step1Loading}
+              type="submit" disabled={step1Loading || !hcaptchaToken}
               className="w-full py-3 bg-primary text-on-primary text-sm font-semibold rounded-xl hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60 shadow-md"
             >
               {step1Loading

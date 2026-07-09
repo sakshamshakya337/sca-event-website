@@ -6,6 +6,7 @@ import ApiResponse from '../utils/ApiResponse.js'
 import ApiError from '../utils/ApiError.js'
 import { sendMail } from '../utils/mailer.js'
 import { resetPasswordTemplate } from '../utils/emailTemplates.js'
+import { verifyHCaptcha } from '../utils/hcaptcha.js'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const JWT_SECRET = process.env.JWT_SECRET
@@ -287,6 +288,7 @@ const forgotSchema = Joi.object({
   identifier: Joi.string().trim().min(2).max(50).required(), // reg number or employee ID
   role: Joi.string().valid('student', 'faculty').required(),
   securityAnswer: Joi.string().trim().min(1).max(200).required(),
+  hcaptchaToken: Joi.string().required(), // hCaptcha widget token
 })
 
 const resetSchema = Joi.object({
@@ -307,7 +309,14 @@ export const forgotPassword = async (req, res, next) => {
     const { error, value } = forgotSchema.validate(req.body, { stripUnknown: true })
     if (error) throw new ApiError(400, error.details[0].message)
 
-    const { identifier, role, securityAnswer } = value
+    const { identifier, role, securityAnswer, hcaptchaToken } = value
+
+    // ── hCaptcha check first (cheap, rejects bots before any DB work) ──
+    const captcha = await verifyHCaptcha(hcaptchaToken, req.ip)
+    if (!captcha.success) {
+      throw new ApiError(400, 'Captcha verification failed. Please try again.')
+    }
+
     // Try both the raw value and uppercased — handle any stored format
     const normalizedId = identifier.trim().toUpperCase()
     const rawId = identifier.trim()
@@ -381,28 +390,27 @@ export const forgotPassword = async (req, res, next) => {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
     const resetLink = `${frontendUrl}/forgot-password?token=${plainToken}&step=3`
 
-    // Send email
-    const html = resetPasswordTemplate({
-      name: userDoc.firstName,
-      resetLink,
-    });
-
-    const mailResult = await sendMail({
-      to: userDoc.personalEmail,
-      subject: 'Password Reset Request — SCA Portal',
-      html,
-    });
-
-    if (!mailResult.success) {
-      throw new ApiError(500, 'Failed to send password reset email. Please try again later.')
-    }
-
-    // Return success to frontend (without the token)
+    // Mask the email for the response
     const maskedEmail = userDoc.personalEmail.replace(/(.{2}).+(@.+)/, '$1***$2')
 
+    // Respond immediately — the SMTP round-trip is the slow part, so we send
+    // the email in the background (fire-and-forget) and never block the user.
     res.status(200).json(new ApiResponse(200, {
       maskedEmail,
     }, 'Identity verified. A reset link has been sent to your email.'))
+
+    const html = resetPasswordTemplate({
+      name: userDoc.firstName,
+      resetLink,
+    })
+
+    sendMail({
+      to: userDoc.personalEmail,
+      subject: 'Password Reset Request — SCA Portal',
+      html,
+    }).catch((err) => {
+      console.error('❌ Async reset email failed:', err.message)
+    })
   } catch (error) {
     next(error)
   }

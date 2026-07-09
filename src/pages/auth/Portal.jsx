@@ -91,8 +91,9 @@ export default function Portal() {
       {/* Top strip — responsive */}
       <div className={`w-full max-w-[1400px] flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 mb-4 sm:mb-6 rounded-xl border ${strip}`}>
         <div className="flex items-center gap-2 sm:gap-3">
-          <img src="/sca.png" alt="SCA Logo" className="h-14 sm:h-16 w-auto" />
-          
+          <Link to="/" className="hover:opacity-90 transition-opacity">
+            <img src="/sca.png" alt="SCA Logo" className="h-14 sm:h-16 w-auto" />
+          </Link>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
           <span className={`text-xs sm:text-sm hidden sm:block ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
@@ -112,7 +113,9 @@ export default function Portal() {
         <section className={`rounded-2xl shadow-lg ${card} p-6 sm:p-10`}>
           {/* Logo + heading */}
           <div className="flex flex-col items-center text-center gap-2 mb-6 sm:mb-8">
-            <img src="/sca.png" alt="SCA Logo" className="h-20 sm:h-24 w-auto mb-2 sm:mb-4" />
+            <Link to="/" className="hover:opacity-90 transition-opacity">
+              <img src="/sca.png" alt="SCA Logo" className="h-20 sm:h-24 w-auto mb-2 sm:mb-4" />
+            </Link>
             <h1 className={`text-xl sm:text-2xl font-bold ${text}`}>Welcome Back</h1>
             <p className={`text-xs sm:text-sm ${sub} mt-0.5`}>School of Computer Applications, LPU</p>
           </div>

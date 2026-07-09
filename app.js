@@ -8,6 +8,7 @@ import hpp from 'hpp'
 import compression from 'compression'
 import morgan from 'morgan'
 import { generalLimiter } from './middleware/rateLimiter.js'
+import connectDB from './config/db.js'
 
 // Import routes
 import authRoutes from './routes/auth.routes.js'
@@ -76,6 +77,19 @@ if (process.env.NODE_ENV === 'development') {
 } else {
   app.use(morgan('combined'))
 }
+
+// Ensure DB is connected before handling any request.
+// Required when Express runs as a single Vercel serverless function
+// (there is no persistent server startup hook). Cached, so it's a no-op
+// after the first connection within a warm container.
+app.use(async (req, res, next) => {
+  try {
+    await connectDB()
+    next()
+  } catch (err) {
+    next(err)
+  }
+})
 
 // Global rate limit — 100 req/15min per IP
 app.use('/api', generalLimiter)
