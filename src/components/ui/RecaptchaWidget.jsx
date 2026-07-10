@@ -36,10 +36,10 @@ const RecaptchaWidget = forwardRef(function RecaptchaWidget(
         </span>
       </div>
 
-      <div className="relative min-h-[76px] w-[302px]">
+      <div className="relative min-h-[78px] w-[302px]">
         {/* Skeleton Loader placeholder */}
         {!isLoaded && (
-          <div className="absolute inset-0 flex items-center justify-between px-4 border border-[#e1e2ec] rounded bg-[#f9fafc] animate-pulse">
+          <div className="absolute inset-0 flex items-center justify-between px-4 border border-[#e1e2ec] rounded bg-[#f9fafc] animate-pulse z-10">
             <div className="flex items-center gap-3">
               <div className="w-6 h-6 rounded border-2 border-dashed border-[#74777f] animate-spin"></div>
               <div className="flex flex-col gap-1">
@@ -54,8 +54,8 @@ const RecaptchaWidget = forwardRef(function RecaptchaWidget(
           </div>
         )}
 
-        {/* hCaptcha widget */}
-        <div className={isLoaded ? 'block' : 'opacity-0 absolute top-0 left-0 -z-10'}>
+        {/* hCaptcha widget container */}
+        <div className="w-full h-full">
           <HCaptcha
             ref={captchaRef}
             sitekey={siteKey}
