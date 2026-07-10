@@ -2,10 +2,12 @@ import jwt from 'jsonwebtoken'
 import ApiError from '../utils/ApiError.js'
 import User from '../models/User.js'
 
-const JWT_SECRET = process.env.JWT_SECRET
-if (!JWT_SECRET) {
-  console.error('FATAL: JWT_SECRET is not set.')
-  process.exit(1)
+// Read JWT_SECRET lazily — process.exit(1) at module-load kills Vercel
+// serverless functions before they can handle any request.
+const getJwtSecret = () => {
+  const secret = process.env.JWT_SECRET
+  if (!secret) throw new Error('FATAL: JWT_SECRET is not set. Set it in your environment variables.')
+  return secret
 }
 
 export const protect = async (req, res, next) => {
@@ -22,7 +24,7 @@ export const protect = async (req, res, next) => {
 
     let decoded
     try {
-      decoded = jwt.verify(token, JWT_SECRET)
+      decoded = jwt.verify(token, getJwtSecret())
     } catch (err) {
       return next(new ApiError(401, 'Session expired or invalid. Please log in again.'))
     }

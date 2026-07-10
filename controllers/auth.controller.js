@@ -9,10 +9,12 @@ import { resetPasswordTemplate } from '../utils/emailTemplates.js'
 import { verifyHCaptcha } from '../utils/hcaptcha.js'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const JWT_SECRET = process.env.JWT_SECRET
-if (!JWT_SECRET) {
-  console.error('FATAL: JWT_SECRET is not set. Set it in your .env file.')
-  process.exit(1)
+// Read JWT_SECRET lazily — process.exit(1) at module-load kills Vercel
+// serverless functions before they can handle any request.
+const getJwtSecret = () => {
+  const secret = process.env.JWT_SECRET
+  if (!secret) throw new Error('FATAL: JWT_SECRET is not set. Set it in your environment variables.')
+  return secret
 }
 
 const MAX_LOGIN_ATTEMPTS = 5
@@ -20,7 +22,7 @@ const LOCK_DURATION_MS = 15 * 60 * 1000 // 15 minutes
 
 // ── Token ─────────────────────────────────────────────────────────────────────
 const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '7d' })
+  return jwt.sign({ id: userId }, getJwtSecret(), { expiresIn: '7d' })
 }
 
 // ── Validation Schemas ────────────────────────────────────────────────────────

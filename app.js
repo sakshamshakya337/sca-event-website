@@ -40,20 +40,30 @@ app.set('trust proxy', 1)
 // Security Headers
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
-      scriptSrc: ["'self'"],
-    },
-  },
+  // Disable CSP for API responses — the static frontend is served by Vercel's
+  // CDN with its own headers. CSP on JSON responses is unnecessary and can
+  // interfere with CORS preflight in some browsers.
+  contentSecurityPolicy: false,
 }))
 
-// CORS
+// CORS — On Vercel the frontend and API share the same domain, so CORS
+// is technically not needed. We allow the configured FRONTEND_URL plus
+// the auto-injected VERCEL_URL so both custom domains and preview
+// deployments work without manual env updates.
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+  'http://localhost:5173',
+].filter(Boolean)
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, cb) => {
+    // Allow same-origin requests (origin is undefined) and whitelisted origins
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true)
+    // Also allow any *.vercel.app preview deploy
+    if (origin.endsWith('.vercel.app')) return cb(null, true)
+    cb(null, false)
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
