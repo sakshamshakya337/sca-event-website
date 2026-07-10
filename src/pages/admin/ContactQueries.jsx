@@ -12,11 +12,31 @@ const statusLabelMap = {
 const displayStatus = (status) => statusLabelMap[status] || status
 
 export default function ContactQueries() {
-  const { queries, fetchQueries, isLoading, markAsRead, markAsReplied } = useAdminQueriesStore()
+  const { queries, fetchQueries, isLoading, markAsRead, markAsReplied, replyToQuery } = useAdminQueriesStore()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [categoryFilter, setCategoryFilter] = useState('All')
   const [selectedQuery, setSelectedQuery] = useState(null)
+  const [replyText, setReplyText] = useState('')
+  const [isReplying, setIsReplying] = useState(false)
+
+  useEffect(() => {
+    setReplyText('')
+  }, [selectedQuery])
+
+  const handleSendReply = async () => {
+    if (!replyText.trim()) return
+    setIsReplying(true)
+    try {
+      const updated = await replyToQuery(selectedQuery.id, replyText)
+      setSelectedQuery(updated)
+      setReplyText('')
+    } catch (err) {
+      alert(err.message || 'Failed to send reply')
+    } finally {
+      setIsReplying(false)
+    }
+  }
 
   useEffect(() => {
     fetchQueries()
@@ -244,6 +264,41 @@ export default function ContactQueries() {
                   {selectedQuery.message}
                 </div>
               </div>
+
+              {selectedQuery.status === 'resolved' ? (
+                <div className="border-t border-outline-variant pt-4 space-y-2">
+                  <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider">Admin Response</h3>
+                  <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 text-on-surface">
+                    <p className="whitespace-pre-wrap">{selectedQuery.response}</p>
+                    {selectedQuery.resolvedAt && (
+                      <p className="text-xs text-on-surface-variant mt-2 font-medium">
+                        Resolved on {new Date(selectedQuery.resolvedAt).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="border-t border-outline-variant pt-4 space-y-3">
+                  <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider">Write Reply (Sends Email)</h3>
+                  <textarea
+                    className="w-full min-h-[120px] bg-white border border-outline-variant rounded-xl p-3 text-body-md focus:ring-2 focus:ring-secondary/20 focus:outline-none placeholder:text-on-surface-variant/50 resize-y"
+                    placeholder="Write your email reply to the user..."
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    disabled={isReplying}
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSendReply}
+                      disabled={isReplying || !replyText.trim()}
+                      className="px-6 py-2 bg-primary text-white font-bold rounded-lg hover:opacity-90 transition-all disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {isReplying ? 'Sending...' : 'Send Email & Resolve'}
+                      <CheckCircle2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="p-6 border-t border-outline-variant flex justify-end gap-3 shrink-0 bg-surface">
               <button 

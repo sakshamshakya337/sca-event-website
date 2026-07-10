@@ -2,6 +2,8 @@ import ContactQuery from '../models/ContactQuery.js'
 import ApiResponse from '../utils/ApiResponse.js'
 import ApiError from '../utils/ApiError.js'
 import Joi from 'joi'
+import { sendMail } from '../utils/mailer.js'
+import { contactQueryReplyTemplate } from '../utils/emailTemplates.js'
 
 const contactSchema = Joi.object({
   name: Joi.string().trim().min(2).max(100).required(),
@@ -103,6 +105,50 @@ export const deleteQuery = async (req, res, next) => {
     await ContactQuery.findByIdAndDelete(req.params.id)
 
     res.status(200).json(new ApiResponse(200, null, 'Query deleted successfully'))
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Reply to contact query via email (admin only)
+export const replyToQuery = async (req, res, next) => {
+  try {
+    const { replyMessage } = req.body
+    if (!replyMessage || typeof replyMessage !== 'string' || replyMessage.trim().length < 5) {
+      throw new ApiError(400, 'Reply message is required and must be at least 5 characters long')
+    }
+
+    const query = await ContactQuery.findById(req.params.id)
+    if (!query) {
+      throw new ApiError(404, 'Query not found')
+    }
+
+    // Send email to query.email
+    const emailResult = await sendMail({
+      to: query.email,
+      subject: `Re: ${query.subject}`,
+      html: contactQueryReplyTemplate({
+        name: query.name,
+        querySubject: query.subject,
+        queryMessage: query.message,
+        replyMessage: replyMessage.trim(),
+      }),
+    })
+
+    if (!emailResult.success) {
+      throw new ApiError(500, `Failed to send email: ${emailResult.error}`)
+    }
+
+    // Update query in DB
+    query.status = 'resolved'
+    query.response = replyMessage.trim()
+    query.resolvedBy = req.user.id
+    query.resolvedAt = new Date()
+
+    await query.save()
+    await query.populate('assignedTo resolvedBy', 'firstName lastName')
+
+    res.status(200).json(new ApiResponse(200, query, 'Reply sent and query resolved successfully'))
   } catch (error) {
     next(error)
   }

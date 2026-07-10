@@ -1,59 +1,101 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import api from '../config/axios'
 
-const useNotificationsStore = create(
-  persist(
-    (set, get) => ({
-      // Start with an empty list — notifications are added by real actions
-      notifications: [],
+const normalizeNotification = (n) => ({
+  id: n._id || n.id,
+  title: n.title,
+  message: n.message,
+  type: n.type || 'info',
+  read: n.read || false,
+  time: n.createdAt || n.time || new Date().toISOString(),
+})
 
-      // Called by event/auth/verification actions across the app
-      addNotification: (notification) => {
-        set((state) => ({
-          notifications: [
-            {
-              ...notification,
-              id: Date.now(),
-              time: new Date().toISOString(),
-              read: false,
-            },
-            ...state.notifications,
-          ],
-        }))
-      },
+const useNotificationsStore = create((set, get) => ({
+  notifications: [],
+  isLoading: false,
+  error: null,
 
-      markAsRead: (id) => {
-        set((state) => ({
-          notifications: state.notifications.map((n) =>
-            n.id === id ? { ...n, read: true } : n
-          ),
-        }))
-      },
-
-      markAllAsRead: () => {
-        set((state) => ({
-          notifications: state.notifications.map((n) => ({ ...n, read: true })),
-        }))
-      },
-
-      deleteNotification: (id) => {
-        set((state) => ({
-          notifications: state.notifications.filter((n) => n.id !== id),
-        }))
-      },
-
-      clearAll: () => set({ notifications: [] }),
-
-      getUnreadCount: () => {
-        return get().notifications.filter((n) => !n.read).length
-      },
-    }),
-    {
-      name: 'sca-ems-notifications',
-      // Only persist the notifications array, not actions
-      partialize: (state) => ({ notifications: state.notifications }),
+  fetchNotifications: async () => {
+    set({ isLoading: true, error: null })
+    try {
+      const res = await api.get('/notifications')
+      const notifications = (res.data?.data || []).map(normalizeNotification)
+      set({ notifications, isLoading: false })
+    } catch (err) {
+      set({ error: err.response?.data?.message || 'Failed to fetch notifications', isLoading: false })
     }
-  )
-)
+  },
+
+  addNotification: (notification) => {
+    // Keep local add compatibility for frontend-only actions
+    set((state) => ({
+      notifications: [
+        {
+          ...notification,
+          id: notification.id || Date.now(),
+          time: new Date().toISOString(),
+          read: false,
+        },
+        ...state.notifications,
+      ],
+    }))
+  },
+
+  markAsRead: async (id) => {
+    const isDbId = typeof id === 'string' && id.length === 24
+    if (isDbId) {
+      try {
+        await api.put(`/notifications/${id}/read`)
+      } catch (err) {
+        console.error('Failed to mark notification as read on backend', err)
+      }
+    }
+    set((state) => ({
+      notifications: state.notifications.map((n) =>
+        n.id === id ? { ...n, read: true } : n
+      ),
+    }))
+  },
+
+  markAllAsRead: async () => {
+    try {
+      await api.put('/notifications/read-all')
+    } catch (err) {
+      console.error('Failed to mark all as read on backend', err)
+    }
+    set((state) => ({
+      notifications: state.notifications.map((n) => ({ ...n, read: true })),
+    }))
+  },
+
+  deleteNotification: async (id) => {
+    const isDbId = typeof id === 'string' && id.length === 24
+    if (isDbId) {
+      try {
+        await api.delete(`/notifications/${id}`)
+      } catch (err) {
+        console.error('Failed to delete notification on backend', err)
+      }
+    }
+    set((state) => ({
+      notifications: state.notifications.filter((n) => n.id !== id),
+    }))
+  },
+
+  clearAll: () => set({ notifications: [] }),
+
+  getUnreadCount: () => {
+    return get().notifications.filter((n) => !n.read).length
+  },
+
+  sendAdminNotification: async (data) => {
+    try {
+      const res = await api.post('/notifications/send-admin', data)
+      return res.data?.data
+    } catch (err) {
+      throw new Error(err.response?.data?.message || 'Failed to send notification')
+    }
+  }
+}))
 
 export default useNotificationsStore

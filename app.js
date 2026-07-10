@@ -19,6 +19,7 @@ import taskRoutes from './routes/task.routes.js'
 import contactRoutes from './routes/contact.routes.js'
 import verificationRoutes from './routes/verification.routes.js'
 import galleryRoutes from './routes/gallery.routes.js'
+import notificationRoutes from './routes/notification.routes.js'
 
 const app = express()
 
@@ -113,6 +114,7 @@ app.use('/api/tasks', taskRoutes)
 app.use('/api/contact', contactRoutes)
 app.use('/api/verification', verificationRoutes)
 app.use('/api/galleries', galleryRoutes)
+app.use('/api/notifications', notificationRoutes)
 
 // Test SMTP connection to Gmail on port 465
 app.get('/test-smtp', (req, res) => {

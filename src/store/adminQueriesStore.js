@@ -46,6 +46,22 @@ const useAdminQueriesStore = create((set, get) => ({
   markAsReplied: async (id) => {
     await get().updateQueryStatus(id, 'resolved')
   },
+  replyToQuery: async (id, replyMessage) => {
+    set({ isLoading: true, error: null })
+    try {
+      const res = await api.post(`/contact/${id}/reply`, { replyMessage })
+      const updatedQuery = normalizeQuery(res.data?.data)
+      set((state) => ({
+        queries: state.queries.map((query) => (query.id === id ? updatedQuery : query)),
+        isLoading: false,
+      }))
+      return updatedQuery
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Failed to send reply'
+      set({ error: errorMsg, isLoading: false })
+      throw new Error(errorMsg)
+    }
+  },
 }))
 
 export default useAdminQueriesStore

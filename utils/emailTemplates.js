@@ -216,3 +216,39 @@ export const eventRejectedTemplate = ({ facultyName, eventTitle, reason }) => {
     </div>
   `;
 };
+
+export const contactQueryReplyTemplate = ({ name, querySubject, queryMessage, replyMessage }) => {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      <div style="background-color: #1a73e8; padding: 30px; text-align: center;">
+        <h2 style="color: white; margin: 0; font-size: 24px;">Response to Your Inquiry</h2>
+        <p style="color: rgba(255,255,255,0.9); margin-top: 10px; font-size: 16px;">We have updated your query status.</p>
+      </div>
+      <div style="padding: 30px; background-color: #ffffff;">
+        <p style="font-size: 16px; color: #333; margin-bottom: 20px;">Dear <strong>${name}</strong>,</p>
+        <p style="font-size: 15px; color: #555; line-height: 1.5; margin-bottom: 20px;">
+          Thank you for contacting the SCA Portal. Here is the response to your inquiry regarding <strong>"${querySubject}"</strong>.
+        </p>
+
+        <div style="background-color: #f1f5f9; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #64748b;">
+          <strong style="color: #475569; font-size: 14px; display: block; margin-bottom: 6px;">Your Original Message:</strong>
+          <span style="color: #334155; font-size: 14px; font-style: italic; line-height: 1.4; display: block; white-space: pre-wrap;">${queryMessage}</span>
+        </div>
+
+        <div style="background-color: #e0f2fe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0284c7;">
+          <strong style="color: #0369a1; font-size: 15px; display: block; margin-bottom: 8px;">Admin Response:</strong>
+          <span style="color: #0f172a; font-size: 15px; line-height: 1.5; display: block; white-space: pre-wrap;">${replyMessage}</span>
+        </div>
+
+        <p style="font-size: 14px; color: #666; line-height: 1.5; margin-top: 25px;">
+          If you have further questions or if this issue isn't fully resolved, feel free to submit a new inquiry or visit our portal.
+        </p>
+      </div>
+      <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 13px; color: #888; border-top: 1px solid #eee;">
+        <p style="margin-bottom: 5px;">This is an automated message. Please do not reply directly to this email.</p>
+        <p style="margin: 0;">© ${new Date().getFullYear()} SCA Portal. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+};
+

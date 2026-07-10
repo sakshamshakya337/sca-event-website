@@ -19,6 +19,7 @@ router.use(authorize('admin', 'superadmin'))
 router.get('/', contactController.getAllQueries)
 router.get('/:id', contactController.getQueryById)
 router.put('/:id', contactController.updateQueryStatus)
+router.post('/:id/reply', contactController.replyToQuery)
 router.delete('/:id', contactController.deleteQuery)
 
 export default router
