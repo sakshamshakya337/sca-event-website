@@ -37,6 +37,16 @@ const roleNavItems = {
     { path: '/admin/gallery', label: 'Gallery', icon: Image },
     { path: '/admin/notifications', label: 'Notifications', icon: Bell },
   ],
+  dean: [
+    { path: '/dean', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/admin/events', label: 'All Events', icon: Calendar },
+    { path: '/dean/notifications', label: 'Notifications', icon: Bell },
+  ],
+  hos: [
+    { path: '/hos', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/admin/events', label: 'All Events', icon: Calendar },
+    { path: '/hos/notifications', label: 'Notifications', icon: Bell },
+  ],
 }
 
 export default function Sidebar() {
@@ -96,7 +106,7 @@ export default function Sidebar() {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/student' || item.path === '/faculty' || item.path === '/admin' || item.path === '/superadmin'}
+              end={['/student', '/faculty', '/admin', '/superadmin', '/dean', '/hos'].includes(item.path)}
               onClick={() => {
                 if (window.innerWidth < 1024 && sidebarOpen) toggleSidebar()
               }}

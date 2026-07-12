@@ -51,7 +51,17 @@ export default function Portal() {
       if (user.mustChangePassword) {
         navigate('/change-password')
       } else {
-        const roleNavMap = { student: '/student', faculty: '/faculty', admin: '/admin', superadmin: '/superadmin' }
+        const roleNavMap = {
+          student:             '/student',
+          club_president:      '/student',
+          club_vice_president: '/student',
+          faculty:             '/faculty',
+          faculty_coordinator: '/faculty',
+          admin:               '/admin',
+          dean:                '/dean',
+          hos:                 '/hos',
+          superadmin:          '/superadmin',
+        }
         navigate(roleNavMap[user.role] || '/student')
       }
     } catch (err) {

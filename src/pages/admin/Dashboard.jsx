@@ -9,7 +9,7 @@ import useEventStore from '../../store/eventStore'
 import useAdminUserStore from '../../store/adminUserStore'
 import useAdminQueriesStore from '../../store/adminQueriesStore'
 import { Link, useNavigate } from 'react-router-dom'
-import { getEventCreatorName, getEventStatusLabel, normalizeEventStatus } from '../../utils/eventUtils'
+import { getEventCreatorName, getEventStatusLabel, normalizeEventStatus, formatDateDMY } from '../../utils/eventUtils'
 
 // ── Status badge ───────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -60,14 +60,16 @@ export default function Dashboard() {
   const { users }   = useAdminUserStore()
   const { queries, fetchQueries } = useAdminQueriesStore()
 
-  const [pendingConfirmId, setPendingConfirmId] = useState(null)
+  const [pendingAction, setPendingAction] = useState(null) // { eventId, type: 'approve' | 'reject' }
+  const [actionRemarks, setActionRemarks] = useState('')
   const [viewMode, setViewMode]                 = useState('calendar')
 
   useEffect(() => { fetchEvents() }, [fetchEvents])
   useEffect(() => { if (!queries.length) fetchQueries() }, [fetchQueries, queries.length])
 
+  const actionablePendingEvents = events.filter(e => e.status === 'pending' || e.status === 'pending_admin')
   const pendingEvents  = events.filter(e => normalizeEventStatus(e.status) === 'pending')
-  const approvedEvents = events.filter(e => normalizeEventStatus(e.status) === 'approved')
+  const approvedEvents = events.filter(e => normalizeEventStatus(e.status) === 'approved' || e.status === 'pending_dean' || e.status === 'pending_hos')
   const recentQueries  = queries.slice(0, 4)
 
   return (
@@ -140,7 +142,7 @@ export default function Dashboard() {
                     ) : events.map(event => (
                       <tr key={event._id} className="hover:bg-surface-container transition-colors">
                         <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium text-primary max-w-[140px] truncate">{event.title}</td>
-                        <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap">{event.startDate}</td>
+                        <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap">{formatDateDMY(event.startDate)}</td>
                         <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface-variant max-w-[120px] truncate">{event.venue}</td>
                         <td className="px-3 sm:px-4 py-2.5"><StatusBadge status={event.status} /></td>
                       </tr>
@@ -178,7 +180,7 @@ export default function Dashboard() {
               <tbody className="divide-y divide-outline-variant">
 
                 {/* Pending rows */}
-                {pendingEvents.length === 0 && approvedEvents.length === 0 && (
+                {actionablePendingEvents.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-5 py-8 text-center text-sm text-on-surface-variant">
                       No events to review.
@@ -186,7 +188,7 @@ export default function Dashboard() {
                   </tr>
                 )}
 
-                {pendingEvents.map(event => (
+                {actionablePendingEvents.map(event => (
                   <React.Fragment key={event._id}>
                     <tr className="hover:bg-surface-container-low transition-colors">
                       <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm font-semibold text-primary max-w-[140px] sm:max-w-none truncate">
@@ -196,7 +198,7 @@ export default function Dashboard() {
                         {getEventCreatorName(event.createdBy)}
                       </td>
                       <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap hidden md:table-cell">
-                        {event.startDate}
+                        {formatDateDMY(event.startDate)}
                       </td>
                       <td className="px-3 sm:px-5 py-3">
                         <StatusBadge status={event.status} />
@@ -204,14 +206,20 @@ export default function Dashboard() {
                       <td className="px-3 sm:px-5 py-3 text-right">
                         <div className="flex items-center justify-end gap-1 sm:gap-2">
                           <button
-                            onClick={() => setPendingConfirmId(pendingConfirmId === event._id ? null : event._id)}
+                            onClick={() => {
+                              setPendingAction({ eventId: event._id, type: 'approve' })
+                              setActionRemarks('')
+                            }}
                             className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 bg-green-100 text-green-700 hover:bg-green-200 rounded-md text-[10px] sm:text-xs font-bold transition-colors"
                           >
                             <CheckCircle2 size={12} />
                             <span className="hidden sm:inline">Approve</span>
                           </button>
                           <button
-                            onClick={() => rejectEvent(event._id)}
+                            onClick={() => {
+                              setPendingAction({ eventId: event._id, type: 'reject' })
+                              setActionRemarks('')
+                            }}
                             className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-[10px] sm:text-xs font-bold transition-colors"
                           >
                             <X size={12} />
@@ -221,27 +229,44 @@ export default function Dashboard() {
                       </td>
                     </tr>
 
-                    {/* Inline confirm prompt */}
-                    {pendingConfirmId === event._id && (
+                    {/* Inline confirm/remarks prompt */}
+                    {pendingAction && pendingAction.eventId === event._id && (
                       <tr className="bg-primary/5">
                         <td colSpan={5} className="px-3 sm:px-5 py-3">
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-primary-container text-white px-3 sm:px-4 py-2.5 rounded-xl">
-                            <p className="text-xs sm:text-sm flex items-center gap-2">
-                              <HelpCircle size={15} className="shrink-0" />
-                              Approve <strong className="mx-1">"{event.title}"</strong>?
+                          <div className="flex flex-col gap-2 bg-surface-container-high border border-outline-variant p-4 rounded-xl">
+                            <p className="text-xs sm:text-sm font-semibold text-primary">
+                              {pendingAction.type === 'approve' ? 'Approve' : 'Reject'} event <strong>"{event.title}"</strong>?
                             </p>
-                            <div className="flex gap-2 shrink-0">
+                            <textarea
+                              value={actionRemarks}
+                              onChange={e => setActionRemarks(e.target.value)}
+                              placeholder={`Enter ${pendingAction.type === 'approve' ? 'approval remarks (optional)' : 'rejection remarks (required)'}...`}
+                              className="w-full px-3 py-2 border border-outline-variant rounded-lg text-xs bg-surface resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+                              rows={2}
+                            />
+                            <div className="flex justify-end gap-2">
                               <button
-                                onClick={() => { approveEvent(event._id); setPendingConfirmId(null) }}
-                                className="px-3 py-1 bg-white text-primary text-xs font-bold rounded-lg hover:bg-surface-variant transition-colors"
-                              >
-                                Confirm
-                              </button>
-                              <button
-                                onClick={() => setPendingConfirmId(null)}
-                                className="px-3 py-1 border border-white/30 text-white text-xs font-bold rounded-lg hover:bg-white/10 transition-colors"
+                                onClick={() => setPendingAction(null)}
+                                className="px-3 py-1 border border-outline text-on-surface text-xs font-bold rounded-lg hover:bg-surface-container transition-colors"
                               >
                                 Cancel
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (pendingAction.type === 'reject' && !actionRemarks.trim()) {
+                                    alert('Rejection remarks are required')
+                                    return
+                                  }
+                                  if (pendingAction.type === 'approve') {
+                                    await approveEvent(event._id, actionRemarks)
+                                  } else {
+                                    await rejectEvent(event._id, actionRemarks)
+                                  }
+                                  setPendingAction(null)
+                                }}
+                                className={`px-3 py-1 text-white text-xs font-bold rounded-lg transition-colors ${pendingAction.type === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+                              >
+                                Confirm
                               </button>
                             </div>
                           </div>

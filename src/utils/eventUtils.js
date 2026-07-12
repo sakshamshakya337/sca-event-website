@@ -2,7 +2,7 @@ export const normalizeEventStatus = (status) => {
   const value = status ? String(status).toLowerCase() : 'pending'
 
   if (['approved', 'approve', 'approved'].includes(value)) return 'approved'
-  if (['pending', 'pending approval', 'awaiting approval', 'in review'].includes(value)) return 'pending'
+  if (['pending', 'pending approval', 'awaiting approval', 'in review', 'pending_admin', 'pending_dean', 'pending_hos'].includes(value)) return 'pending'
   if (['rejected', 'reject', 'declined'].includes(value)) return 'rejected'
   if (['completed', 'complete'].includes(value)) return 'completed'
 
@@ -12,6 +12,14 @@ export const normalizeEventStatus = (status) => {
 export const getEventStatusLabel = (status) => {
   const normalized = normalizeEventStatus(status)
 
+  if (normalized === 'pending') {
+    const s = String(status).toLowerCase()
+    if (s === 'pending_admin' || s === 'pending') return 'Pending (Admin)'
+    if (s === 'pending_dean') return 'Pending (Dean)'
+    if (s === 'pending_hos') return 'Pending (HOS)'
+    return 'Pending'
+  }
+
   switch (normalized) {
     case 'approved':
       return 'Approved'
@@ -19,9 +27,8 @@ export const getEventStatusLabel = (status) => {
       return 'Rejected'
     case 'completed':
       return 'Completed'
-    case 'pending':
     default:
-      return 'Pending'
+      return 'Unknown'
   }
 }
 
@@ -57,4 +64,18 @@ export const isEventVisibleToFaculty = (event, user) => {
   )
 
   return creatorId === userId || assignedFacultyIds.includes(userId)
+}
+
+export const formatDateDMY = (dateVal) => {
+  if (!dateVal) return ''
+  try {
+    const d = new Date(dateVal)
+    if (isNaN(d.getTime())) return dateVal
+    const day = String(d.getDate()).padStart(2, '0')
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const year = d.getFullYear()
+    return `${day}-${month}-${year}`
+  } catch {
+    return dateVal
+  }
 }

@@ -22,7 +22,7 @@ export default function ProtectedRoute({ children, role }) {
     return <Navigate to="/change-password" replace />
   }
 
-  if (!user.isVerified) {
+  if (!user.isVerified && !['admin', 'superadmin', 'dean', 'hos'].includes(user.role)) {
     return <Navigate to="/" replace />
   }
 

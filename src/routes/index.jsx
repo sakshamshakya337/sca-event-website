@@ -67,6 +67,12 @@ const GlobalEventDetail        = lazy(() => import('../pages/EventDetail'))
 const SuperadminDashboard = lazy(() => import('../pages/superadmin/Dashboard'))
 const SuperadminProfile   = lazy(() => import('../pages/superadmin/Profile'))
 
+// New Multi-level Approval & Club management routes
+const DeanDashboard     = lazy(() => import('../pages/dean/Dashboard'))
+const HOSDashboard      = lazy(() => import('../pages/hos/Dashboard'))
+const AdminClubs        = lazy(() => import('../pages/admin/Clubs'))
+const CreateClubEvent   = lazy(() => import('../pages/faculty/CreateClubEvent'))
+
 const router = createBrowserRouter([
   // Public
   { path: '/', element: <Landing /> },
@@ -104,20 +110,20 @@ const router = createBrowserRouter([
   // Faculty routes
   { path: '/faculty',           element: <ProtectedRoute role="faculty"><Suspense><FacultyDashboard /></Suspense></ProtectedRoute> },
   { path: '/faculty/events',    element: <ProtectedRoute role="faculty"><Suspense><FacultyMyEvents /></Suspense></ProtectedRoute> },
-  { path: '/faculty/events/create', element: <ProtectedRoute role={['faculty', 'admin', 'superadmin']}><Suspense><FacultyCreateEvent /></Suspense></ProtectedRoute> },
-  { path: '/faculty/events/:id/edit', element: <ProtectedRoute role="faculty"><Suspense><FacultyEditEvent /></Suspense></ProtectedRoute> },
-  { path: '/faculty/events/:id/registrations', element: <ProtectedRoute role={['faculty','admin','superadmin']}><Suspense><EventRegistrations /></Suspense></ProtectedRoute> },
-  { path: '/faculty/events/:id', element: <ProtectedRoute role="faculty"><Suspense><GlobalEventDetail /></Suspense></ProtectedRoute> },
+  { path: '/faculty/events/create', element: <ProtectedRoute role={['faculty', 'admin', 'superadmin', 'dean', 'hos']}><Suspense><FacultyCreateEvent /></Suspense></ProtectedRoute> },
+  { path: '/faculty/events/:id/edit', element: <ProtectedRoute role={['faculty', 'admin', 'superadmin', 'dean', 'hos']}><Suspense><FacultyEditEvent /></Suspense></ProtectedRoute> },
+  { path: '/faculty/events/:id/registrations', element: <ProtectedRoute role={['faculty','admin','superadmin', 'dean', 'hos']}><Suspense><EventRegistrations /></Suspense></ProtectedRoute> },
+  { path: '/faculty/events/:id', element: <ProtectedRoute role={['faculty', 'admin', 'superadmin', 'dean', 'hos']}><Suspense><GlobalEventDetail /></Suspense></ProtectedRoute> },
   { path: '/faculty/tasks',     element: <ProtectedRoute role="faculty"><Suspense><FacultyMyTasks /></Suspense></ProtectedRoute> },
-  { path: '/faculty/profile',   element: <ProtectedRoute role="faculty"><Suspense><FacultyProfile /></Suspense></ProtectedRoute> },
+  { path: '/faculty/profile',   element:   <ProtectedRoute role="faculty"><Suspense><FacultyProfile /></Suspense></ProtectedRoute> },
   { path: '/faculty/notifications', element: <ProtectedRoute role="faculty"><Suspense><FacultyNotifications /></Suspense></ProtectedRoute> },
 
   // Admin routes
   { path: '/admin',             element: <ProtectedRoute role={['admin','superadmin']}><Suspense><AdminDashboard /></Suspense></ProtectedRoute> },
-  { path: '/admin/events',      element: <ProtectedRoute role={['admin','superadmin']}><Suspense><AdminAllEvents /></Suspense></ProtectedRoute> },
-  { path: '/admin/events/:id/edit', element: <ProtectedRoute role={['admin','superadmin']}><Suspense><FacultyEditEvent /></Suspense></ProtectedRoute> },
-  { path: '/admin/events/:id/registrations', element: <ProtectedRoute role={['admin','superadmin']}><Suspense><EventRegistrations /></Suspense></ProtectedRoute> },
-  { path: '/admin/events/:id',  element: <ProtectedRoute role={['admin','superadmin']}><Suspense><GlobalEventDetail /></Suspense></ProtectedRoute> },
+  { path: '/admin/events',      element: <ProtectedRoute role={['admin','superadmin', 'dean', 'hos']}><Suspense><AdminAllEvents /></Suspense></ProtectedRoute> },
+  { path: '/admin/events/:id/edit', element: <ProtectedRoute role={['admin','superadmin', 'dean', 'hos']}><Suspense><FacultyEditEvent /></Suspense></ProtectedRoute> },
+  { path: '/admin/events/:id/registrations', element: <ProtectedRoute role={['admin','superadmin', 'dean', 'hos']}><Suspense><EventRegistrations /></Suspense></ProtectedRoute> },
+  { path: '/admin/events/:id',  element: <ProtectedRoute role={['admin','superadmin', 'dean', 'hos']}><Suspense><GlobalEventDetail /></Suspense></ProtectedRoute> },
   { path: '/admin/users',       element: <ProtectedRoute role={['admin','superadmin']}><Suspense><AdminManageUsers /></Suspense></ProtectedRoute> },
   { path: '/admin/verify',      element: <ProtectedRoute role={['admin','superadmin']}><Suspense><AdminVerifyUsers /></Suspense></ProtectedRoute> },
   { path: '/admin/verify/:id',  element: <ProtectedRoute role={['admin','superadmin']}><Suspense><AdminVerifyUserDetail /></Suspense></ProtectedRoute> },
@@ -130,6 +136,20 @@ const router = createBrowserRouter([
   // Superadmin routes
   { path: '/superadmin',        element: <ProtectedRoute role="superadmin"><Suspense><SuperadminDashboard /></Suspense></ProtectedRoute> },
   { path: '/superadmin/profile', element: <ProtectedRoute role="superadmin"><Suspense><SuperadminProfile /></Suspense></ProtectedRoute> },
+
+  // Dean routes
+  { path: '/dean',              element: <ProtectedRoute role="dean"><Suspense><DeanDashboard /></Suspense></ProtectedRoute> },
+  { path: '/dean/profile',      element: <ProtectedRoute role="dean"><Suspense><AdminProfile /></Suspense></ProtectedRoute> },
+  { path: '/dean/notifications', element: <ProtectedRoute role="dean"><Suspense><AdminNotifications /></Suspense></ProtectedRoute> },
+
+  // HOS routes
+  { path: '/hos',               element: <ProtectedRoute role="hos"><Suspense><HOSDashboard /></Suspense></ProtectedRoute> },
+  { path: '/hos/profile',       element: <ProtectedRoute role="hos"><Suspense><AdminProfile /></Suspense></ProtectedRoute> },
+  { path: '/hos/notifications', element: <ProtectedRoute role="hos"><Suspense><AdminNotifications /></Suspense></ProtectedRoute> },
+
+  // Club administration routes
+  { path: '/admin/clubs',       element: <ProtectedRoute role={['admin','superadmin']}><Suspense><AdminClubs /></Suspense></ProtectedRoute> },
+  { path: '/faculty/events/create-club', element: <ProtectedRoute role="faculty_coordinator"><Suspense><CreateClubEvent /></Suspense></ProtectedRoute> },
 ])
 
 export default function AppRoutes() {

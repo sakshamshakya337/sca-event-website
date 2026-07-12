@@ -11,6 +11,7 @@ import useAuthStore from '../../store/authStore'
 import {
   getEventStatusLabel, getEventCreatorName,
   normalizeEventStatus, isEventVisibleToFaculty,
+  formatDateDMY,
 } from '../../utils/eventUtils'
 
 // ── Stat card ──────────────────────────────────────────────────────────────
@@ -139,7 +140,7 @@ export default function FacultyDashboard() {
                     ) : myEvents.map(event => (
                       <tr key={event._id} className="hover:bg-surface-container transition-colors">
                         <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium text-primary max-w-[140px] truncate">{event.title}</td>
-                        <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap">{event.startDate}</td>
+                        <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap">{formatDateDMY(event.startDate)}</td>
                         <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface-variant max-w-[120px] truncate">{event.venue}</td>
                         <td className="px-3 sm:px-4 py-2.5"><StatusBadge status={event.status} /></td>
                       </tr>
@@ -201,7 +202,7 @@ export default function FacultyDashboard() {
                           </td>
                           {/* Date */}
                           <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap">
-                            {event.startDate}
+                            {formatDateDMY(event.startDate)}
                           </td>
                           {/* Venue — hidden on small screens */}
                           <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm text-on-surface-variant hidden md:table-cell">
@@ -289,7 +290,7 @@ export default function FacultyDashboard() {
             <div className="px-5 sm:px-6 py-4 sm:py-5 space-y-2.5 max-h-[60vh] overflow-y-auto">
               {[
                 { label: 'Organizer', value: getEventCreatorName(selectedEvent.createdBy) },
-                { label: 'Date',      value: selectedEvent.startDate ? `${selectedEvent.startDate}${selectedEvent.endDate && selectedEvent.endDate !== selectedEvent.startDate ? ` to ${selectedEvent.endDate}` : ''}` : '—' },
+                { label: 'Date',      value: selectedEvent.startDate ? `${formatDateDMY(selectedEvent.startDate)}${selectedEvent.endDate && selectedEvent.endDate !== selectedEvent.startDate ? ` to ${formatDateDMY(selectedEvent.endDate)}` : ''}` : '—' },
                 { label: 'Time',      value: selectedEvent.time },
                 { label: 'Venue',     value: selectedEvent.venue },
                 { label: 'Category',  value: selectedEvent.category },

@@ -28,7 +28,17 @@ export default function ForcePassword() {
       const { user: updatedUser, token } = res.data.data
       login(updatedUser, token)
       toast.success('Password updated successfully!')
-      const map = { student: '/student', faculty: '/faculty', admin: '/admin', superadmin: '/superadmin' }
+      const map = {
+        student:             '/student',
+        club_president:      '/student',
+        club_vice_president: '/student',
+        faculty:             '/faculty',
+        faculty_coordinator: '/faculty',
+        admin:               '/admin',
+        dean:                '/dean',
+        hos:                 '/hos',
+        superadmin:          '/superadmin',
+      }
       navigate(map[updatedUser.role] || '/student')
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update password')

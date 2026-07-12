@@ -18,11 +18,19 @@ export default function PublicOnlyRoute({ children }) {
     if (user.mustChangePassword) {
       return <Navigate to="/change-password" replace />
     }
-    if (user.isVerified) {
-      if (isStudent) return <Navigate to="/student" replace />
-      if (isFaculty) return <Navigate to="/faculty" replace />
-      if (isAdmin) return <Navigate to="/admin" replace />
-      if (isSuperadmin) return <Navigate to="/superadmin" replace />
+    if (user.isVerified || ['admin', 'superadmin', 'dean', 'hos'].includes(user.role)) {
+      const dashboardMap = {
+        student:             '/student',
+        club_president:      '/student',
+        club_vice_president: '/student',
+        faculty:             '/faculty',
+        faculty_coordinator: '/faculty',
+        admin:               '/admin',
+        dean:                '/dean',
+        hos:                 '/hos',
+        superadmin:          '/superadmin',
+      }
+      return <Navigate to={dashboardMap[user.role] || '/student'} replace />
     }
   }
 

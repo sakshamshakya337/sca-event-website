@@ -48,7 +48,7 @@ export default function Calendar({ events = [], onEventClick }) {
 
   const getEventsForDay = (day) => {
     const target = `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
-    return events.filter(e => normalizeDate(e.date) === target)
+    return events.filter(e => normalizeDate(e.startDate || e.date) === target)
   }
 
   const today = new Date().toDateString()

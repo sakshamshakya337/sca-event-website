@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react'
 import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { ShieldCheck } from 'lucide-react'
 
@@ -10,7 +10,10 @@ const RecaptchaWidget = forwardRef(function RecaptchaWidget(
   { onChange, theme = 'light', className = '' },
   ref
 ) {
-  const siteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY
+  let siteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY
+  if (!siteKey || siteKey === 'undefined' || siteKey === 'null' || !siteKey.trim()) {
+    siteKey = '10000000-ffff-ffff-ffff-ffffffffffff'
+  }
   const captchaRef = useRef(null)
   const [isLoaded, setIsLoaded] = useState(false)
 
@@ -25,6 +28,14 @@ const RecaptchaWidget = forwardRef(function RecaptchaWidget(
   const handleLoad = () => {
     setIsLoaded(true)
   }
+
+  // Defensive fallback: hide skeleton loader after 2.5 seconds if onLoad doesn't fire
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoaded(true)
+    }, 2500)
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>

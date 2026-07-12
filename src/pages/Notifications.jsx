@@ -99,7 +99,7 @@ export default function Notifications() {
           </div>
 
           <div className="flex items-center flex-wrap gap-2">
-            {(user?.role === 'admin' || user?.role === 'superadmin') && (
+            {['admin', 'superadmin', 'dean', 'hos'].includes(user?.role) && (
               <button
                 onClick={() => {
                   setShowSendModal(true)

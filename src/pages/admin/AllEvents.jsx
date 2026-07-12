@@ -165,7 +165,7 @@ export default function AllEvents() {
                         <Eye size={13} /> View
                       </button>
 
-                      {status === 'pending' && (
+                      {(event.status === 'pending' || event.status === 'pending_admin') && (
                         <>
                           <button
                             onClick={() => approveEvent(event._id)}

@@ -1,4 +1,6 @@
 import rateLimit from 'express-rate-limit'
+import jwt from 'jsonwebtoken'
+import User from '../models/User.js'
 
 const baseOptions = {
   standardHeaders: true,  // Return rate limit info in RateLimit-* headers
@@ -11,11 +13,36 @@ const baseOptions = {
   }
 }
 
+const checkSkip = async (req) => {
+  try {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    if (!token) return false;
+    
+    const secret = process.env.JWT_SECRET;
+    if (!secret) return false;
+
+    const decoded = jwt.verify(token, secret);
+    if (!decoded || !decoded.id) return false;
+    
+    const user = await User.findById(decoded.id).select('role').lean();
+    if (user && ['admin', 'superadmin', 'dean', 'hos'].includes(user.role)) {
+      return true; // Skip rate limiting for these roles
+    }
+  } catch (error) {
+    return false;
+  }
+  return false;
+};
+
 // General API — 100 requests per 15 minutes per IP
 export const generalLimiter = rateLimit({
   ...baseOptions,
   windowMs: 15 * 60 * 1000,
   max: 200,
+  skip: checkSkip,
   message: { success: false, message: 'Too many requests. Please try again later.' },
 })
 
@@ -49,5 +76,6 @@ export const uploadLimiter = rateLimit({
   ...baseOptions,
   windowMs: 30 * 60 * 1000,
   max: 10,
+  skip: checkSkip,
   message: { success: false, message: 'Upload limit reached. Please try again later.' },
 })

@@ -21,6 +21,13 @@ import verificationRoutes from './routes/verification.routes.js'
 import galleryRoutes from './routes/gallery.routes.js'
 import notificationRoutes from './routes/notification.routes.js'
 
+// Import new event approval and club handlers
+import approveHandler from './api/events/approve.js'
+import pendingHandler from './api/events/pending.js'
+import publicHandler from './api/events/public.js'
+import clubIndexHandler from './api/clubs/index.js'
+import clubMembersHandler from './api/clubs/members.js'
+
 const app = express()
 
 // Make req.query writable and configurable so that mongo-sanitize or custom handlers can modify it safely
@@ -108,6 +115,22 @@ app.use('/api', generalLimiter)
 // Routes
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
+// New Multi-Stage approval and club routes
+app.post('/api/events/approve', (req, res, next) => approveHandler(req, res).catch(next))
+app.get('/api/events/pending', (req, res, next) => pendingHandler(req, res).catch(next))
+app.get('/api/events/public', (req, res, next) => publicHandler(req, res).catch(next))
+
+app.use('/api/clubs', (req, res, next) => {
+  if (req.method === 'OPTIONS') return res.status(200).end()
+  if (req.path === '/members') {
+    clubMembersHandler(req, res).catch(next)
+  } else if (req.path === '/' || req.path === '') {
+    clubIndexHandler(req, res).catch(next)
+  } else {
+    next()
+  }
+})
+
 app.use('/api/events', eventRoutes)
 app.use('/api/todos', todoRoutes)
 app.use('/api/tasks', taskRoutes)

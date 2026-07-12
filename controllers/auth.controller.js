@@ -29,7 +29,17 @@ const generateToken = (userId) => {
 const loginSchema = Joi.object({
   email: Joi.string().trim().max(254).required(),
   password: Joi.string().min(6).max(128).required(),
-  role: Joi.string().valid('student', 'faculty', 'admin', 'superadmin').optional(),
+  role: Joi.string().valid(
+    'student',
+    'club_president',
+    'club_vice_president',
+    'faculty',
+    'faculty_coordinator',
+    'admin',
+    'dean',
+    'hos',
+    'superadmin'
+  ).optional(),
 })
 
 const signupSchema = Joi.object({
@@ -187,7 +197,7 @@ export const login = async (req, res, next) => {
       throw new ApiError(429, `Account locked due to too many failed attempts. Try again in ${minutesLeft} minute(s).`)
     }
 
-    if (user.role !== 'admin' && user.role !== 'superadmin' && !user.isVerified) {
+    if (!['admin', 'superadmin', 'dean', 'hos'].includes(user.role) && !user.isVerified) {
       throw new ApiError(403, 'Account not verified yet. Please wait for admin approval.')
     }
 

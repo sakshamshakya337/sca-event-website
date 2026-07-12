@@ -1,3 +1,4 @@
+// src/pages/faculty/CreateClubEvent.jsx
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
@@ -9,17 +10,7 @@ import api from '../../config/axios'
 import useAuthStore from '../../store/authStore'
 import toast from 'react-hot-toast'
 
-// ── Reusable toggle ──────────────────────────────────────────────────────────
-function Toggle({ checked, onChange, colorOn = 'peer-checked:bg-secondary' }) {
-  return (
-    <label className="relative inline-flex items-center cursor-pointer shrink-0">
-      <input type="checkbox" className="sr-only peer" checked={checked} onChange={onChange} />
-      <div className={`w-11 h-6 bg-outline-variant rounded-full peer ${colorOn} peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all`} />
-    </label>
-  )
-}
-
-export default function CreateEvent() {
+export default function CreateClubEvent() {
   const navigate        = useNavigate()
   const { user }        = useAuthStore()
   const galleryInputRef = useRef(null)
@@ -65,7 +56,7 @@ export default function CreateEvent() {
     fetch_()
   }, [])
 
-  // ── Gallery helpers ──────────────────────────────────────────────────────
+  // Handle gallery add
   const handleGalleryAdd = (e) => {
     const slots = 6 - galleryFiles.length
     if (slots <= 0) { toast.error('Maximum 6 gallery images allowed.'); return }
@@ -77,7 +68,7 @@ export default function CreateEvent() {
   const removeGalleryFile = (idx) =>
     setGalleryFiles(prev => prev.filter((_, i) => i !== idx))
 
-  // ── Submit ───────────────────────────────────────────────────────────────
+  // Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -101,16 +92,20 @@ export default function CreateEvent() {
       if (formData.assignedFaculty.length > 0)
         payload.append('assignedFaculty', JSON.stringify(formData.assignedFaculty))
       if (imageFile) payload.append('image', imageFile)
-      
+
+      // Club specific fields
+      payload.append('eventType', 'club')
+      payload.append('clubId', user?.clubId || '')
+
       // Add external image URLs
       const validUrls = externalImageUrls.filter(url => url.trim().length > 0).slice(0, 2)
       payload.append('externalImageUrls', JSON.stringify(validUrls))
 
       await api.post('/events', payload)
-      toast.success('Event created! Pending admin approval.')
-      navigate(['admin', 'superadmin'].includes(user?.role) ? '/admin' : '/faculty')
+      toast.success('Club event created! Pending admin approval.')
+      navigate('/faculty')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create event')
+      toast.error(err.response?.data?.message || 'Failed to create club event')
     } finally {
       setLoading(false)
     }
@@ -122,6 +117,14 @@ export default function CreateEvent() {
       ? [...formData.assignedFaculty, id]
       : formData.assignedFaculty.filter(x => x !== id))
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setImageFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
+  }
+
   return (
     <PageWrapper>
       <div className="max-w-[760px] mx-auto">
@@ -129,9 +132,9 @@ export default function CreateEvent() {
 
           {/* Header */}
           <div className="px-6 sm:px-8 py-5 sm:py-6 border-b border-outline-variant bg-surface-container-low">
-            <h2 className="text-lg sm:text-xl font-bold text-primary">Create New Event</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-primary">Create New Club Event</h2>
             <p className="text-sm text-on-surface-variant mt-1">
-              Fill in the event details. It will go to admin for approval before appearing publicly.
+              Create a designated event for your club. It will go through the multi-stage approval chain.
             </p>
           </div>
 
@@ -140,7 +143,7 @@ export default function CreateEvent() {
             {/* Title */}
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-on-surface block">Event Title *</label>
-              <input className={inp} placeholder="Enter formal event name" type="text"
+              <input className={inp} placeholder="Enter club event name" type="text"
                 value={formData.title} onChange={e => set('title', e.target.value)} required />
             </div>
 
@@ -158,12 +161,13 @@ export default function CreateEvent() {
                 <label className="text-sm font-semibold text-on-surface block">Expected Audience</label>
                 <div className="relative">
                   <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
-                  <input className={`${inp} pl-11`} type="number" placeholder="e.g. 100"
+                  <input className={`${inp} pl-11`} type="number" placeholder="e.g. 150"
                     value={formData.expectedAudience} onChange={e => set('expectedAudience', e.target.value)} />
                 </div>
               </div>
             </div>
 
+            {/* Dates & Time row */}
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-on-surface flex items-center gap-2"><CalendarRange size={16} className="text-secondary" /> Start Date *</label>
@@ -198,52 +202,31 @@ export default function CreateEvent() {
                 </div>
               </div>
             </div>
+
             {/* Venue */}
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-on-surface block">Venue *</label>
               <div className="relative">
                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
-                <input className={`${inp} pl-11`} placeholder="Enter precise location"
+                <input className={`${inp} pl-11`} placeholder="e.g. Block 34, Room 102" type="text"
                   value={formData.venue} onChange={e => set('venue', e.target.value)} required />
               </div>
             </div>
 
             {/* Description */}
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-on-surface block">Description / Blog Content</label>
-              <p className="text-xs text-on-surface-variant">This will appear on the public event detail page. Each new line becomes a paragraph.</p>
-              <textarea
-                className="w-full px-4 py-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none resize-none transition-all"
-                rows={6}
-                placeholder="Write a detailed description of the event…"
-                value={formData.description}
-                onChange={e => set('description', e.target.value)}
-              />
+              <label className="text-sm font-semibold text-on-surface block">Description</label>
+              <textarea className="w-full min-h-[120px] p-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all resize-y"
+                placeholder="Details about the club event..." value={formData.description} onChange={e => set('description', e.target.value)} />
             </div>
 
-            {/* Registration link */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-on-surface block">External Registration Link (optional)</label>
-              <input className={inp} placeholder="https://example.com/register" type="url"
-                value={formData.registerLink} onChange={e => set('registerLink', e.target.value)} />
-            </div>
-
-            {/* Banner image */}
+            {/* Image Banner */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-on-surface block">Banner Image (optional)</label>
-              <p className="text-xs text-on-surface-variant">Recommended: 1200×630 px (16:9 ratio). Shown on event cards and detail page.</p>
-              <input
-                type="file" accept="image/*"
-                className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary file:font-semibold hover:file:bg-primary/20"
-                onChange={e => {
-                  const f = e.target.files?.[0]
-                  setImageFile(f || null)
-                  setImagePreview(f ? URL.createObjectURL(f) : null)
-                }}
-              />
+              <label className="text-sm font-semibold text-on-surface block">Event Banner Image</label>
+              <input type="file" accept="image/*" onChange={handleImageChange} className="block w-full text-sm text-on-surface-variant file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-secondary/10 file:text-secondary hover:file:bg-secondary/20" />
               {imagePreview && (
-                <div className="rounded-xl overflow-hidden border border-outline-variant mt-2">
-                  <img src={imagePreview} alt="Banner preview" className="w-full max-h-48 object-cover" />
+                <div className="mt-3 relative w-full h-40 bg-surface-container rounded-lg overflow-hidden border border-outline-variant">
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               )}
             </div>
@@ -282,110 +265,16 @@ export default function CreateEvent() {
               </div>
             </div>
 
-            {/* ── Toggles ──────────────────────────────────────────────────── */}
-            <div className="space-y-3">
-
-              {/* Mark as Important */}
-              <div className="flex items-center justify-between gap-4 p-4 bg-secondary/5 rounded-xl border border-secondary/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-secondary/20 flex items-center justify-center text-secondary shrink-0">
-                    <Star size={18} fill="currentColor" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-primary">Mark as Important</p>
-                    <p className="text-xs text-on-surface-variant">Flag this event for priority display</p>
-                  </div>
-                </div>
-                <Toggle checked={formData.isImportant} onChange={e => set('isImportant', e.target.checked)} />
-              </div>
-
-              {/* Registration Not Required */}
-              <div className="flex items-center justify-between gap-4 p-4 bg-error/5 rounded-xl border border-error/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-error/20 flex items-center justify-center text-error shrink-0">
-                    <Link2Off size={18} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-primary">Registration Not Required</p>
-                    <p className="text-xs text-on-surface-variant">Hides all registration options from the public page</p>
-                  </div>
-                </div>
-                <Toggle
-                  checked={formData.registrationNotRequired}
-                  onChange={e => set('registrationNotRequired', e.target.checked)}
-                  colorOn="peer-checked:bg-error"
-                />
-              </div>
-
-              {/* Open Registrations */}
-              <div className="flex items-center justify-between gap-4 p-4 bg-green-50 rounded-xl border border-green-200">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-green-700 shrink-0">
-                    <UserCheck size={18} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-primary">Open Registrations at Launch</p>
-                    <p className="text-xs text-on-surface-variant">
-                      If on, "Register Now" button shows once the event is approved.
-                      You can also toggle this anytime from Edit Event.
-                    </p>
-                  </div>
-                </div>
-                <Toggle
-                  checked={formData.registrationOpen}
-                  onChange={e => set('registrationOpen', e.target.checked)}
-                  colorOn="peer-checked:bg-green-600"
-                />
-              </div>
-            </div>
-
-            {/* Assign Faculty */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-on-surface block">Assign Co-Faculty (Optional)</label>
-              <p className="text-xs text-on-surface-variant">Selected faculty can also manage and edit this event.</p>
-              <div className="max-h-48 overflow-y-auto border border-outline-variant rounded-lg divide-y divide-outline-variant">
-                {loadingFaculty ? (
-                  <p className="text-sm text-on-surface-variant p-4">Loading faculty…</p>
-                ) : facultyList.length === 0 ? (
-                  <p className="text-sm text-on-surface-variant p-4">No faculty found</p>
-                ) : facultyList.map(f => (
-                  <label key={f._id} className="flex items-center gap-3 p-3 hover:bg-surface-container-high cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 text-secondary rounded border-outline focus:ring-secondary"
-                      checked={formData.assignedFaculty.includes(f._id)}
-                      onChange={e => toggleFaculty(f._id, e.target.checked)}
-                    />
-                    <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold shrink-0">
-                      {f.firstName?.[0]}{f.lastName?.[0]}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-on-surface">{f.firstName} {f.lastName}</p>
-                      <p className="text-xs text-on-surface-variant">{f.employeeId || 'N/A'}</p>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-outline-variant">
-              <button
-                type="button"
-                onClick={() => navigate(['admin','superadmin'].includes(user?.role) ? '/admin' : '/faculty')}
-                className="w-full sm:w-auto px-8 h-11 border border-outline-variant text-on-surface-variant text-sm font-semibold rounded-lg hover:bg-surface-container transition-colors"
-              >
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
+              <button type="button" onClick={() => navigate('/faculty')} className="h-12 px-6 border border-outline text-on-surface-variant rounded-btn text-sm font-semibold hover:bg-surface-container transition-all">
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full sm:w-auto px-8 h-11 bg-primary text-white text-sm font-bold rounded-lg hover:shadow-lg hover:shadow-primary/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60"
-              >
-                {loading ? 'Creating…' : 'Create Event'}
-                {!loading && <ChevronRight size={16} />}
+              <button type="submit" disabled={loading} className="h-12 px-8 bg-[#E87722] text-white font-bold rounded-btn text-sm hover:bg-[#d0661b] transition-all disabled:opacity-50">
+                {loading ? 'Creating...' : 'Create Event'}
               </button>
             </div>
+
           </form>
         </div>
       </div>

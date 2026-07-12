@@ -95,17 +95,17 @@ const useEventStore = create((set, get) => ({
   },
   
   // Admin approval
-  approveEvent: async (id) => {
+  approveEvent: async (id, remarks = '') => {
     set({ isLoading: true, error: null })
     try {
-      const res = await api.put(`/events/${id}/approve`)
+      const res = await api.post('/events/approve', { eventId: id, action: 'approve', remarks })
       set((state) => ({
-        events: state.events.map(event => event._id === id ? res.data.data : event),
+        events: state.events.map(event => event._id === id ? { ...event, status: res.data.data.status } : event),
         isLoading: false
       }))
       useNotificationsStore.getState().addNotification({
         title: 'Event Approved',
-        message: `"${res.data.data.title}" has been approved successfully.`,
+        message: `Event has been approved and moved to next stage.`,
         type: 'success',
       })
       return res.data.data
@@ -116,17 +116,17 @@ const useEventStore = create((set, get) => ({
     }
   },
 
-  rejectEvent: async (id) => {
+  rejectEvent: async (id, remarks = '') => {
     set({ isLoading: true, error: null })
     try {
-      const res = await api.put(`/events/${id}/reject`)
+      const res = await api.post('/events/approve', { eventId: id, action: 'reject', remarks })
       set((state) => ({
-        events: state.events.map(event => event._id === id ? res.data.data : event),
+        events: state.events.map(event => event._id === id ? { ...event, status: res.data.data.status } : event),
         isLoading: false
       }))
       useNotificationsStore.getState().addNotification({
         title: 'Event Rejected',
-        message: `"${res.data.data.title}" has been rejected.`,
+        message: `Event has been rejected.`,
         type: 'warning',
       })
       return res.data.data

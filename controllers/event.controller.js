@@ -198,8 +198,8 @@ export const getEventById = async (req, res, next) => {
       : null
 
     const isAuthorized = 
-      // Admin/superadmin can see all
-      ['admin', 'superadmin'].includes(req.user.role) ||
+      // Admin/superadmin/dean/hos can see all
+      ['admin', 'superadmin', 'dean', 'hos'].includes(req.user.role) ||
       // Creator can see it
       creatorId === userId ||
       // Assigned faculty can see it
@@ -221,7 +221,7 @@ export const getEventById = async (req, res, next) => {
 export const createEvent = async (req, res, next) => {
   try {
     const {
-      title, type, startDate, endDate, time, venue, expectedAudience,
+      title, type, startDate, endDate, time, startTime, endTime, venue, expectedAudience,
       description, registerLink, assignedStudents = [], externalImageUrls = []
     } = req.body
 
@@ -260,11 +260,13 @@ export const createEvent = async (req, res, next) => {
     }
 
     const eventData = {
-      title, type, startDate, endDate, time, venue,
+      title, type, startDate, endDate, time, startTime, endTime, venue,
       expectedAudience: parsedAudience,
       description, registerLink,
       registrationNotRequired, registrationOpen, isImportant,
-      status: 'pending',
+      status: 'pending_admin',
+      eventType: req.body.eventType || 'regular',
+      clubId: req.body.clubId || null,
       createdBy: req.user.id,
       assignedFaculty, assignedStudents,
       gallery: [], // Initialize empty to prevent undefined issues
@@ -331,7 +333,7 @@ export const updateEvent = async (req, res, next) => {
       throw new ApiError(403, 'Not authorized to update this event')
     }
 
-    const { title, type, startDate, endDate, time, venue, expectedAudience, description, registerLink, assignedFaculty, assignedStudents, externalImageUrls } = req.body
+    const { title, type, startDate, endDate, time, startTime, endTime, venue, expectedAudience, description, registerLink, assignedFaculty, assignedStudents, externalImageUrls } = req.body
     const isImportant           = req.body.isImportant           === 'true' || req.body.isImportant           === true
     const registrationNotRequired = req.body.registrationNotRequired === 'true' || req.body.registrationNotRequired === true
     const registrationOpen      = req.body.registrationOpen      === 'true' || req.body.registrationOpen      === true
@@ -342,6 +344,8 @@ export const updateEvent = async (req, res, next) => {
     if (startDate)                event.startDate         = startDate
     if (endDate)                  event.endDate           = endDate
     if (time !== undefined)       event.time              = time
+    if (startTime !== undefined)  event.startTime         = startTime
+    if (endTime !== undefined)    event.endTime           = endTime
     if (venue)                    event.venue             = venue
     if (parsedAudience !== undefined) event.expectedAudience = parsedAudience
     if (description !== undefined)    event.description   = description
@@ -373,7 +377,7 @@ export const updateEvent = async (req, res, next) => {
 
     // Non-admin editing an approved event → revert to pending for re-approval
     if (!['admin', 'superadmin'].includes(req.user.role) && event.status === 'approved') {
-      event.status     = 'pending'
+      event.status     = 'pending_admin'
       event.approvedBy = undefined
       event.approvedAt = undefined
     }
@@ -585,7 +589,7 @@ export const getEventStats = async (req, res, next) => {
     }
 
     const totalEvents = await Event.countDocuments(statsFilter)
-    const pendingEvents = await Event.countDocuments({ ...statsFilter, status: 'pending' })
+    const pendingEvents = await Event.countDocuments({ ...statsFilter, status: { $in: ['pending_admin', 'pending_dean', 'pending_hos'] } })
     const approvedEvents = await Event.countDocuments({ ...statsFilter, status: 'approved' })
     const completedEvents = await Event.countDocuments({ ...statsFilter, status: 'completed' })
 
