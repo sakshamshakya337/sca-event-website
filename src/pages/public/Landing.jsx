@@ -371,7 +371,7 @@ function VideoSection() {
           )}
         </div>
 
-        Three feature chips below video
+        
         <div className="max-w-4xl mx-auto mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: ShieldCheck, label: 'Role-Based Access', desc: 'Admin, Faculty, Student' },
