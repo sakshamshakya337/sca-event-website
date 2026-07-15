@@ -552,17 +552,18 @@ export default function Landing() {
                 <Link
                   key={event._id}
                   to={`/events/${event.slug || event._id}`}
+                  className="group flex flex-col"
                 >
                   <article
                     className="overflow-hidden rounded-card border border-outline-variant
-                               shadow-sm hover:shadow-card transition-shadow bg-surface-card cursor-pointer"
+                               shadow-sm group-hover:shadow-card transition-all duration-300 bg-surface-card cursor-pointer flex flex-col flex-1"
                   >
-                    <div className="overflow-hidden bg-surface-container-low">
+                    <div className="overflow-hidden bg-surface-container-low h-48 relative">
                       {event.imageUrl ? (
-                        <img src={event.imageUrl} alt={event.title} className="w-full h-auto" />
+                        <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
-                        <div className="flex items-center justify-center text-center
-                                      text-on-surface-variant px-4 py-10">
+                        <div className="flex items-center justify-center text-center w-full h-full
+                                      text-on-surface-variant px-4 py-10 group-hover:scale-105 transition-transform duration-500">
                           <div>
                             <p className="font-semibold text-sm">No image uploaded</p>
                             <p className="text-xs mt-1">This event was approved without a banner image.</p>
@@ -570,39 +571,44 @@ export default function Landing() {
                         </div>
                       )}
                     </div>
-                    <div className="p-5 space-y-3">
-                      <div className="flex items-center justify-between gap-4">
+                    <div className="p-5 flex flex-col flex-1">
+                      <div className="flex items-center justify-between gap-4 mb-3">
                         <span className="inline-flex rounded-full bg-primary-fixed
                                        text-on-primary-fixed px-3 py-1 text-xs font-semibold">
                           {event.type || 'Event'}
                         </span>
-                        <span className="text-xs text-on-surface-variant">
+                        <span className="text-xs text-on-surface-variant font-medium">
                           {formatDate(event.startDate)}{event.endDate && event.endDate !== event.startDate ? ` - ${formatDate(event.endDate)}` : ''}
                         </span>
                       </div>
-                      <div className="space-y-1.5">
-                        <h3 className="text-base sm:text-lg font-bold text-on-surface">{event.title}</h3>
-                        <p className="text-on-surface-variant line-clamp-3 text-sm">
-                          {event.description || 'No description provided.'}
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-xs text-on-surface-variant">
+                      <h3 className="text-base sm:text-lg font-bold text-on-surface mb-1.5 group-hover:text-primary transition-colors line-clamp-1">{event.title}</h3>
+                      <p className="text-on-surface-variant line-clamp-2 text-sm flex-1 mb-4">
+                        {event.description || 'No description provided.'}
+                      </p>
+                      <div className="mt-auto">
+                        <p className="text-xs text-on-surface-variant mb-4">
                           <span className="font-semibold text-on-surface">Venue:</span>{' '}
                           {event.venue}
                         </p>
-                        {event.registerLink && !event.registrationNotRequired && (
-                          <a
-                            href={event.registerLink}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center justify-center rounded-full
-                                     bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary
-                                     hover:opacity-90 transition-colors"
-                          >
-                            Register Now
-                          </a>
-                        )}
+                        <div className="flex justify-between items-center pt-4 border-t border-outline-variant/50">
+                          <span className="text-primary flex items-center group-hover:translate-x-1 transition-transform text-sm font-bold">
+                            View Details <ChevronRight size={16} className="ml-1" />
+                          </span>
+                          {event.registerLink && !event.registrationNotRequired && (
+                            <object>
+                              <a
+                                href={event.registerLink}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center justify-center rounded-full
+                                         bg-primary px-4 py-2 text-xs font-semibold text-on-primary
+                                         hover:opacity-90 transition-colors pointer-events-auto"
+                              >
+                                Register Now
+                              </a>
+                            </object>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </article>
@@ -641,7 +647,11 @@ export default function Landing() {
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {galleries.map(gallery => (
-                <div key={gallery._id} className="bg-surface-card rounded-card border border-outline-variant overflow-hidden flex flex-col shadow-sm hover:shadow-card transition-shadow group">
+                <Link 
+                  key={gallery._id} 
+                  to={`/gallery/${gallery._id}`}
+                  className="bg-surface-card rounded-card border border-outline-variant overflow-hidden flex flex-col shadow-sm hover:shadow-card transition-shadow group"
+                >
                   <div className="h-48 overflow-hidden relative">
                     <img src={gallery.bannerImage} alt={gallery.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     <div className="absolute top-3 right-3 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-md">
@@ -649,15 +659,18 @@ export default function Landing() {
                     </div>
                   </div>
                   <div className="p-5 flex flex-col flex-1">
-                    <h3 className="font-bold text-lg text-on-surface line-clamp-1">{gallery.title}</h3>
+                    <h3 className="font-bold text-lg text-on-surface line-clamp-1 group-hover:text-primary transition-colors">{gallery.title}</h3>
                     <p className="text-on-surface-variant text-sm mt-2 line-clamp-2 flex-1">{gallery.description}</p>
                     <div className="mt-4 pt-4 border-t border-outline-variant flex justify-between items-center">
                       <span className="text-xs text-on-surface-variant font-medium">
                         {gallery.startDate ? `${new Date(gallery.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}${gallery.endDate && gallery.endDate !== gallery.startDate ? ` - ${new Date(gallery.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}` : new Date(gallery.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </span>
+                      <span className="text-primary flex items-center group-hover:translate-x-1 transition-transform text-sm font-bold">
+                        View Details <ChevronRight size={16} className="ml-1" />
+                      </span>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}

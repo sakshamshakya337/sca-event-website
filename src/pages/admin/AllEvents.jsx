@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
-import { Search, CheckCircle2, XCircle, Trash2, MapPin, CalendarDays, Tag, Eye, ImageOff } from 'lucide-react'
+import { Search, CheckCircle2, XCircle, Trash2, MapPin, CalendarDays, Tag, Eye, ImageOff, AlertTriangle } from 'lucide-react'
 import useEventStore from '../../store/eventStore'
 import { getEventStatusLabel, normalizeEventStatus } from '../../utils/eventUtils'
 
@@ -26,6 +26,7 @@ export default function AllEvents() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
+  const [eventToDelete, setEventToDelete] = useState(null)
 
   useEffect(() => {
     fetchEvents()
@@ -183,7 +184,7 @@ export default function AllEvents() {
                       )}
 
                       <button
-                        onClick={() => deleteEvent(event._id)}
+                        onClick={() => setEventToDelete(event._id)}
                         className="p-1.5 rounded-lg text-error hover:bg-red-50 transition-colors border border-outline-variant/50"
                         title="Delete"
                       >
@@ -197,6 +198,42 @@ export default function AllEvents() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {eventToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <AlertTriangle size={20} className="text-error" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-on-surface">Delete Event?</h3>
+                <p className="text-on-surface-variant text-sm mt-1">
+                  Are you sure you want to delete this event? This action cannot be undone and will remove all associated data.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setEventToDelete(null)}
+                className="flex-1 py-2.5 rounded-xl border border-outline-variant font-semibold hover:bg-surface-container transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await deleteEvent(eventToDelete)
+                  setEventToDelete(null)
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-error text-white font-semibold hover:bg-error/90 transition-colors shadow-sm text-sm"
+              >
+                Delete Event
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageWrapper>
   )
 }
