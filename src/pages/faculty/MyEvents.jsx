@@ -23,12 +23,12 @@ const statusConfig = {
 
 export default function MyEvents() {
   const navigate = useNavigate()
-  const { events, fetchEvents } = useEventStore()
+  const { events, fetchMyEvents } = useEventStore()
   const [activeFilter, setActiveFilter] = useState('All')
 
   useEffect(() => {
-    fetchEvents()
-  }, [fetchEvents])
+    fetchMyEvents()
+  }, [fetchMyEvents])
 
   const filteredEvents = events.filter(event => {
     const status = normalizeEventStatus(event.status)

@@ -1,10 +1,11 @@
-﻿import { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import PageWrapper from '../../components/layout/PageWrapper'
 import { CalendarCheck, CheckSquare, CheckCircle2, Clock } from 'lucide-react'
 import useEventStore from '../../store/eventStore'
 import useTaskStore from '../../store/taskStore'
 import { normalizeEventStatus, getEventStatusLabel } from '../../utils/eventUtils'
+import DashboardMessagesPanel from '../../components/dashboard/DashboardMessagesPanel'
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
@@ -64,92 +65,101 @@ export default function StudentDashboard() {
         ))}
       </div>
 
-      {/* ── My Events ── */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-base sm:text-lg font-semibold text-primary">My Events</h3>
-            <p className="text-on-surface-variant text-xs sm:text-sm mt-0.5 hidden sm:block">
-              Events where you are added as a participant.
-            </p>
-          </div>
-          <Link to="/student/events" className="text-secondary font-semibold hover:underline text-xs sm:text-sm">
-            View all →
-          </Link>
-        </div>
-
-        {events.length === 0 ? (
-          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 text-center text-on-surface-variant text-sm">
-            You don't have any assigned events yet.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {events.slice(0, 3).map(event => (
-              <div
-                key={event._id}
-                className="bg-surface-container-lowest rounded-xl border border-outline-variant px-4 py-3 cursor-pointer hover:bg-surface-container-low active:bg-surface-container transition-colors"
-                onClick={() => navigate(`/student/events/${event._id}`)}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="font-semibold text-primary text-sm leading-snug min-w-0 truncate">{event.title}</p>
-                  {statusBadge(event.status)}
-                </div>
-                <p className="text-xs text-on-surface-variant mt-1">{formatDate(event.startDate)}{event.endDate && event.endDate !== event.startDate ? ` - ${formatDate(event.endDate)}` : ''}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <div className="lg:col-span-2 space-y-6">
+          {/* ── My Events ── */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-base sm:text-lg font-semibold text-primary">My Events</h3>
+                <p className="text-on-surface-variant text-xs sm:text-sm mt-0.5 hidden sm:block">
+                  Events where you are added as a participant.
+                </p>
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+              <Link to="/student/events" className="text-secondary font-semibold hover:underline text-xs sm:text-sm">
+                View all →
+              </Link>
+            </div>
 
-      {/* ── My Tasks ── */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-base sm:text-lg font-semibold text-primary">My Tasks</h3>
-            <p className="text-on-surface-variant text-xs sm:text-sm mt-0.5 hidden sm:block">
-              Tasks assigned to you for current events.
-            </p>
-          </div>
-          <Link to="/student/tasks" className="text-secondary font-semibold hover:underline text-xs sm:text-sm">
-            View all →
-          </Link>
-        </div>
-
-        {myTasks.length === 0 ? (
-          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 text-center text-on-surface-variant text-sm">
-            No tasks assigned yet.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {myTasks.slice(0, 4).map(task => (
-              <div
-                key={task._id}
-                className="bg-surface-container-lowest rounded-xl border border-outline-variant px-4 py-3"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <p className={`font-semibold text-sm leading-snug min-w-0 truncate ${
-                    task.isDone ? 'line-through text-on-surface-variant' : 'text-primary'
-                  }`}>
-                    {task.title}
-                  </p>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
-                      task.priority === 'High'   ? 'bg-red-100 text-red-700' :
-                      task.priority === 'Medium' ? 'bg-amber-100 text-amber-700' :
-                                                   'bg-green-100 text-green-700'
-                    }`}>{task.priority}</span>
-                    {task.isDone
-                      ? <CheckCircle2 size={14} className="text-green-600" />
-                      : <Clock size={14} className="text-amber-500" />
-                    }
+            {events.length === 0 ? (
+              <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 text-center text-on-surface-variant text-sm">
+                You don't have any assigned events yet.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {events.slice(0, 3).map(event => (
+                  <div
+                    key={event._id}
+                    className="bg-surface-container-lowest rounded-xl border border-outline-variant px-4 py-3 cursor-pointer hover:bg-surface-container-low active:bg-surface-container transition-colors"
+                    onClick={() => navigate(`/student/events/${event._id}`)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-semibold text-primary text-sm leading-snug min-w-0 truncate">{event.title}</p>
+                      {statusBadge(event.status)}
+                    </div>
+                    <p className="text-xs text-on-surface-variant mt-1">{formatDate(event.startDate)}{event.endDate && event.endDate !== event.startDate ? ` - ${formatDate(event.endDate)}` : ''}</p>
                   </div>
-                </div>
-                <p className="text-xs text-on-surface-variant mt-0.5">{task.event?.title || '—'}</p>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+            )}
+          </section>
+
+          {/* ── My Tasks ── */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-base sm:text-lg font-semibold text-primary">My Tasks</h3>
+                <p className="text-on-surface-variant text-xs sm:text-sm mt-0.5 hidden sm:block">
+                  Tasks assigned to you for current events.
+                </p>
+              </div>
+              <Link to="/student/tasks" className="text-secondary font-semibold hover:underline text-xs sm:text-sm">
+                View all →
+              </Link>
+            </div>
+
+            {myTasks.length === 0 ? (
+              <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 text-center text-on-surface-variant text-sm">
+                No tasks assigned yet.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {myTasks.slice(0, 4).map(task => (
+                  <div
+                    key={task._id}
+                    className="bg-surface-container-lowest rounded-xl border border-outline-variant px-4 py-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className={`font-semibold text-sm leading-snug min-w-0 truncate ${
+                        task.isDone ? 'line-through text-on-surface-variant' : 'text-primary'
+                      }`}>
+                        {task.title}
+                      </p>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+                          task.priority === 'High'   ? 'bg-red-100 text-red-700' :
+                          task.priority === 'Medium' ? 'bg-amber-100 text-amber-700' :
+                                                       'bg-green-100 text-green-700'
+                        }`}>{task.priority}</span>
+                        {task.isDone
+                          ? <CheckCircle2 size={14} className="text-green-600" />
+                          : <Clock size={14} className="text-amber-500" />
+                        }
+                      </div>
+                    </div>
+                    <p className="text-xs text-on-surface-variant mt-0.5">{task.event?.title || '—'}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* ── Notifications Panel ── */}
+        <div className="lg:col-span-1">
+          <DashboardMessagesPanel />
+        </div>
+      </div>
 
     </PageWrapper>
   )

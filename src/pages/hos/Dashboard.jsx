@@ -6,7 +6,9 @@ import axiosInstance from '../../config/axios'
 import PageWrapper from '../../components/layout/PageWrapper'
 import toast from 'react-hot-toast'
 import useEventStore from '../../store/eventStore'
+import { CheckCircle as CheckCircleIcon, XCircle as XCircleIcon, Clock as ClockIcon, CalendarCheck as CalendarCheckIcon } from 'lucide-react'
 import Calendar from '../../components/Calendar'
+import DashboardMessagesPanel from '../../components/dashboard/DashboardMessagesPanel'
 
 export default function HOSDashboard() {
   const [events, setEvents] = useState([])
@@ -74,36 +76,42 @@ export default function HOSDashboard() {
           </div>
         </div>
 
-        {/* ── Calendar / List View ────────────────────────────────────────── */}
-        <section className="space-y-3 mb-8">
+        {/* ── Main Content Grid ────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3">
+            {/* ── Calendar / List View ────────────────────────────────────────── */}
+            <section className="space-y-3 mb-8">
           <div className="flex flex-row items-center justify-between gap-2 flex-wrap">
             <h3 className="flex items-center gap-2 text-sm sm:text-base font-semibold text-primary">
               <CalendarCheck size={16} className="text-secondary shrink-0" />
               Event Calendar & Overview
             </h3>
-            <div className="flex bg-surface-container-low border border-outline-variant rounded-lg p-0.5 shadow-sm">
-              <button
-                onClick={() => setViewMode('calendar')}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${viewMode === 'calendar' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
-              >
-                Calendar
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${viewMode === 'list' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
-              >
-                List
-              </button>
+            <div className="flex items-center bg-surface-container rounded-lg p-0.5 sm:p-1">
+              {['calendar', 'list'].map(mode => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className={`px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-all capitalize ${
+                    viewMode === mode
+                      ? 'bg-white shadow-sm text-primary'
+                      : 'text-on-surface-variant hover:text-primary'
+                  }`}
+                >
+                  {mode === 'calendar' ? 'Calendar' : 'List'}
+                </button>
+              ))}
             </div>
           </div>
           
-          <div className="bg-surface border border-outline-variant rounded-2xl p-3 sm:p-6 shadow-sm">
-            {viewMode === 'calendar' ? (
-              <Calendar events={allEvents} onEventClick={(e) => {
-                setSelectedEvent(e)
-                navigate(`/admin/events/${e._id}`)
-              }} />
-            ) : (
+          {viewMode === 'calendar' && (
+            <Calendar events={allEvents} onEventClick={(e) => {
+              setSelectedEvent(e)
+              navigate(`/admin/events/${e._id}`)
+            }} />
+          )}
+
+          {viewMode === 'list' && (
+            <div className="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[400px] text-left">
                   <thead className="bg-surface-container-low border-b border-outline-variant">
@@ -116,13 +124,13 @@ export default function HOSDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-outline-variant">
-                    {allEvents.length === 0 ? (
-                      <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-on-surface-variant">No events.</td></tr>
-                    ) : allEvents.map(event => (
+                    {events.length === 0 ? (
+                      <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-on-surface-variant">No galleries pending approval.</td></tr>
+                    ) : events.map(event => (
                       <tr key={event._id} className="hover:bg-surface-container transition-colors">
                         <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium text-primary max-w-[140px] truncate">{event.title}</td>
                         <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface-variant whitespace-nowrap">
-                          {new Date(event.startDate || event.date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}
+                          {new Date(event.startDate || event.date || event.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}
                         </td>
                         <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface-variant max-w-[120px] truncate">{event.venue}</td>
                         <td className="px-3 sm:px-4 py-2.5">
@@ -135,8 +143,8 @@ export default function HOSDashboard() {
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </section>
 
         {/* Pending approvals section title */}
@@ -168,6 +176,11 @@ export default function HOSDashboard() {
             ))}
           </div>
         )}
+          </div>
+          <div className="lg:col-span-1 h-full">
+            <DashboardMessagesPanel />
+          </div>
+        </div>
       </div>
     </PageWrapper>
   )

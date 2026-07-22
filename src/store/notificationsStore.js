@@ -2,11 +2,12 @@ import { create } from 'zustand'
 import api from '../config/axios'
 
 const normalizeNotification = (n) => ({
+  ...n,
   id: n._id || n.id,
   title: n.title,
   message: n.message,
   type: n.type || 'info',
-  read: n.read || false,
+  read: n.isRead ?? n.read ?? false,
   time: n.createdAt || n.time || new Date().toISOString(),
 })
 

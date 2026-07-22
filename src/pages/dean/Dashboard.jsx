@@ -7,6 +7,7 @@ import PageWrapper from '../../components/layout/PageWrapper'
 import toast from 'react-hot-toast'
 import useEventStore from '../../store/eventStore'
 import Calendar from '../../components/Calendar'
+import DashboardMessagesPanel from '../../components/dashboard/DashboardMessagesPanel'
 
 export default function DeanDashboard() {
   const [events, setEvents] = useState([])
@@ -63,36 +64,42 @@ export default function DeanDashboard() {
           </div>
         </div>
 
-        {/* ── Calendar / List View ────────────────────────────────────────── */}
-        <section className="space-y-3 mb-8">
+        {/* ── Main Content Grid ────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3">
+            {/* ── Calendar / List View ────────────────────────────────────────── */}
+            <section className="space-y-3 mb-8">
           <div className="flex flex-row items-center justify-between gap-2 flex-wrap">
             <h3 className="flex items-center gap-2 text-sm sm:text-base font-semibold text-primary">
               <CalendarCheck size={16} className="text-secondary shrink-0" />
               Event Calendar & Overview
             </h3>
-            <div className="flex bg-surface-container-low border border-outline-variant rounded-lg p-0.5 shadow-sm">
-              <button
-                onClick={() => setViewMode('calendar')}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${viewMode === 'calendar' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
-              >
-                Calendar
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${viewMode === 'list' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
-              >
-                List
-              </button>
+            <div className="flex items-center bg-surface-container rounded-lg p-0.5 sm:p-1">
+              {['calendar', 'list'].map(mode => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className={`px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-all capitalize ${
+                    viewMode === mode
+                      ? 'bg-white shadow-sm text-primary'
+                      : 'text-on-surface-variant hover:text-primary'
+                  }`}
+                >
+                  {mode === 'calendar' ? 'Calendar' : 'List'}
+                </button>
+              ))}
             </div>
           </div>
           
-          <div className="bg-surface border border-outline-variant rounded-2xl p-3 sm:p-6 shadow-sm">
-            {viewMode === 'calendar' ? (
-              <Calendar events={allEvents} onEventClick={(e) => {
-                setSelectedEvent(e)
-                navigate(`/admin/events/${e._id}`)
-              }} />
-            ) : (
+          {viewMode === 'calendar' && (
+            <Calendar events={allEvents} onEventClick={(e) => {
+              setSelectedEvent(e)
+              navigate(`/admin/events/${e._id}`)
+            }} />
+          )}
+
+          {viewMode === 'list' && (
+            <div className="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[400px] text-left">
                   <thead className="bg-surface-container-low border-b border-outline-variant">
@@ -124,8 +131,8 @@ export default function DeanDashboard() {
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </section>
 
         {/* Pending approvals section title */}
@@ -156,6 +163,11 @@ export default function DeanDashboard() {
             ))}
           </div>
         )}
+          </div>
+          <div className="lg:col-span-1 h-full">
+            <DashboardMessagesPanel />
+          </div>
+        </div>
       </div>
     </PageWrapper>
   )

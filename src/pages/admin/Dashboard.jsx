@@ -10,6 +10,7 @@ import useAdminUserStore from '../../store/adminUserStore'
 import useAdminQueriesStore from '../../store/adminQueriesStore'
 import { Link, useNavigate } from 'react-router-dom'
 import { getEventCreatorName, getEventStatusLabel, normalizeEventStatus, formatDateDMY } from '../../utils/eventUtils'
+import DashboardMessagesPanel from '../../components/dashboard/DashboardMessagesPanel'
 
 // ── Status badge ───────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -96,8 +97,10 @@ export default function Dashboard() {
           <StatCard label="Students"     value={users.filter(u => u.role === 'student').length} accent="bg-sky-400" />
         </div>
 
-        {/* ── Calendar ────────────────────────────────────────────────── */}
-        <section className="space-y-3">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3 space-y-6">
+            {/* ── Calendar ────────────────────────────────────────────────── */}
+            <section className="space-y-3">
           <div className="flex flex-row items-center justify-between gap-2 flex-wrap">
             <h3 className="flex items-center gap-2 text-sm sm:text-base font-semibold text-primary">
               <CalendarCheck size={16} className="text-secondary shrink-0" />
@@ -380,6 +383,11 @@ export default function Dashboard() {
             </table>
           </div>
         </section>
+          </div>
+          <div className="lg:col-span-1 h-full">
+            <DashboardMessagesPanel />
+          </div>
+        </div>
 
       </div>
 

@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle, XCircle, Clock, CalendarCheck, Calendar as CalendarIcon, Plus } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, CalendarCheck, Calendar as CalendarIcon, Plus, Check, X } from 'lucide-react'
 import axiosInstance from '../../config/axios'
 import PageWrapper from '../../components/layout/PageWrapper'
 import toast from 'react-hot-toast'
 import Calendar from '../../components/Calendar'
+import DashboardMessagesPanel from '../../components/dashboard/DashboardMessagesPanel'
+
+import useEventStore from '../../store/eventStore'
 
 export default function HodDashboard() {
+  const { events: allEvents, fetchEvents } = useEventStore()
   const [events, setEvents] = useState([])
   const [galleries, setGalleries] = useState([])
   const [loading, setLoading] = useState(true)
@@ -15,7 +19,8 @@ export default function HodDashboard() {
 
   useEffect(() => {
     fetchPending()
-  }, [])
+    fetchEvents()
+  }, [fetchEvents])
 
   const fetchPending = async () => {
     setLoading(true)
@@ -56,8 +61,10 @@ export default function HodDashboard() {
         </div>
 
         {/* Events vs Galleries Tabs */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 border-b border-outline-variant gap-4">
-          <div className="flex space-x-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 border-b border-outline-variant gap-4">
+              <div className="flex space-x-4">
             <button 
               className={`py-2 px-4 font-semibold ${activeTab === 'events' ? 'border-b-2 border-primary text-primary' : 'text-on-surface-variant'}`}
               onClick={() => setActiveTab('events')}
@@ -94,18 +101,15 @@ export default function HodDashboard() {
           <div className="flex justify-center p-8"><span className="animate-spin text-primary">Loading...</span></div>
         ) : activeTab === 'events' ? (
           viewMode === 'calendar' ? (
-             <div className="bg-surface border border-outline-variant rounded-2xl p-3 sm:p-6 shadow-sm mb-8">
+             <>
                 <h3 className="flex items-center gap-2 text-sm sm:text-base font-semibold text-primary mb-4">
                   <CalendarCheck size={16} className="text-secondary shrink-0" />
                   Pending Events Calendar
                 </h3>
-                <Calendar events={events} onEventClick={(e) => {
-                  // Optionally, we could scroll to the event card, or navigate somewhere.
-                  // For now, setting active tab back to list will show it in list.
-                  setViewMode('list');
-                  toast(`Found ${e.title} in list!`);
+                <Calendar events={allEvents} onEventClick={(e) => {
+                  // navigate(`/admin/events/${e._id}`) // disabled click for now
                 }} />
-             </div>
+             </>
           ) : (
             events.length === 0 ? (
               <div className="text-center py-12 bg-surface-card rounded-xl border border-outline-variant">
@@ -134,6 +138,11 @@ export default function HodDashboard() {
             </div>
           )
         )}
+          </div>
+          <div className="lg:col-span-1 h-full">
+            <DashboardMessagesPanel />
+          </div>
+        </div>
       </div>
     </PageWrapper>
   )

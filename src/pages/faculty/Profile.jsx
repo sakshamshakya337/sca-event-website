@@ -272,22 +272,7 @@ export default function FacultyProfile() {
                     </select>
                   )}
                 </div>
-                {/* System Role – always read-only */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-on-surface-variant">System Role <span className="text-[10px] text-gray-400 font-normal ml-1">(read-only)</span></label>
-                  <div className={`${inputCls} opacity-70 cursor-not-allowed flex items-center gap-2`}>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                      user?.role === 'hod' ? 'bg-amber-100 text-amber-800' :
-                      user?.role === 'admin' || user?.role === 'superadmin' ? 'bg-red-100 text-red-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>{user?.role?.toUpperCase()}</span>
-                    <span className="text-on-surface-variant text-sm">
-                      {user?.role === 'hod' ? 'Head of Department' :
-                       user?.role === 'admin' ? 'Administrator' :
-                       user?.role === 'superadmin' ? 'Super Administrator' : 'Faculty Member'}
-                    </span>
-                  </div>
-                </div>
+
                 <div className="space-y-1.5 sm:col-span-2">
                   <label className="block text-xs font-semibold text-on-surface-variant">Coordinator Role</label>
                   <select className={inputCls} value={formData.coordinatorRole || ''}

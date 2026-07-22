@@ -56,11 +56,13 @@ export const getAllEvents = async (req, res, next) => {
       // Student can only see events they are assigned to
       filter.assignedStudents = req.user.id
     } else if (req.user.role === 'hod') {
-      if (status === 'pending_hod') {
-        const Department = mongoose.model('Department')
-        const depts = await Department.find({ hodIds: req.user.id }).select('_id')
-        filter.departmentId = { $in: depts.map(d => d._id) }
-      }
+      const Department = mongoose.model('Department')
+      const depts = await Department.find({ hodIds: req.user.id }).select('_id')
+      filter.$or = [
+        { departmentId: { $in: depts.map(d => d._id) } },
+        { createdBy: req.user.id },
+        { assignedFaculty: req.user.id }
+      ]
     }
     // Admins and superadmins see all events
 
@@ -204,9 +206,26 @@ export const getEventById = async (req, res, next) => {
       ? (event.createdBy._id ?? event.createdBy).toString()
       : null
 
+    let isHodAuthorized = false
+    if (req.user.role === 'hod') {
+      const Department = mongoose.model('Department')
+      const depts = await Department.find({ hodIds: req.user._id }).select('_id')
+      const deptIds = depts.map(d => d._id.toString())
+      console.log('DEBUG HOD AUTH:')
+      console.log('req.user._id:', req.user._id)
+      console.log('depts found:', deptIds)
+      console.log('event.departmentId:', event.departmentId)
+      if (event.departmentId && deptIds.includes(event.departmentId.toString())) {
+        isHodAuthorized = true
+      }
+      console.log('isHodAuthorized evaluates to:', isHodAuthorized)
+    }
+
     const isAuthorized = 
       // Admin/superadmin/dean/hos can see all
       ['admin', 'superadmin', 'dean', 'hos'].includes(req.user.role) ||
+      // HOD can see if it belongs to their department
+      isHodAuthorized ||
       // Creator can see it
       creatorId === userId ||
       // Assigned faculty can see it

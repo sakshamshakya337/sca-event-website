@@ -172,16 +172,13 @@ export const getGalleries = async (req, res, next) => {
         delete filter.status
         if (req.query.status) {
           filter.status = req.query.status
-          if (req.query.status === 'pending_hod') {
-            const Department = mongoose.model('Department')
-            const depts = await Department.find({ hodIds: req.user._id }).select('_id')
-            filter.departmentId = { $in: depts.map(d => d._id) }
-          } else {
-            filter.facultyId = req.user._id
-          }
-        } else {
-          filter.facultyId = req.user._id
         }
+        const Department = mongoose.model('Department')
+        const depts = await Department.find({ hodIds: req.user._id }).select('_id')
+        filter.$or = [
+          { departmentId: { $in: depts.map(d => d._id) } },
+          { facultyId: req.user._id }
+        ]
       } else if (req.user.role === 'faculty') {
         delete filter.status
         if (req.query.status) filter.status = req.query.status

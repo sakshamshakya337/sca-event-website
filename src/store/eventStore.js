@@ -20,6 +20,18 @@ const useEventStore = create((set, get) => ({
     }
   },
 
+  // Fetch only events related to the current user (created or assigned)
+  fetchMyEvents: async () => {
+    set({ isLoading: true, error: null })
+    try {
+      const res = await api.get('/events/my')
+      set({ events: res.data.data, isLoading: false })
+    } catch (err) {
+      console.error('Failed to fetch my events:', err)
+      set({ error: err.response?.data?.message || 'Failed to fetch my events', isLoading: false })
+    }
+  },
+
   fetchEventById: async (id) => {
     set({ isLoading: true, error: null })
     try {

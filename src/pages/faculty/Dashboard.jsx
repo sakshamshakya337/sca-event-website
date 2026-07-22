@@ -13,6 +13,7 @@ import {
   normalizeEventStatus, isEventVisibleToFaculty,
   formatDateDMY,
 } from '../../utils/eventUtils'
+import DashboardMessagesPanel from '../../components/dashboard/DashboardMessagesPanel'
 
 // ── Stat card ──────────────────────────────────────────────────────────────
 function StatCard({ label, value, icon: Icon, iconBg, iconColor, valueColor }) {
@@ -56,7 +57,7 @@ export default function FacultyDashboard() {
 
   useEffect(() => { fetchEvents() }, [fetchEvents])
 
-  const myEvents = events.filter(e => isEventVisibleToFaculty(e, user))
+  const myEvents = events
   const pending  = myEvents.filter(e => normalizeEventStatus(e.status) === 'pending').length
   const approved = myEvents.filter(e => normalizeEventStatus(e.status) === 'approved').length
   const completed= myEvents.filter(e => normalizeEventStatus(e.status) === 'completed').length
@@ -85,8 +86,10 @@ export default function FacultyDashboard() {
           <StatCard label="Completed"        value={completed}       icon={History}      iconBg="bg-purple-100" iconColor="text-purple-700" valueColor="text-purple-700"   />
         </div>
 
-        {/* ── Calendar section ─────────────────────────────────────────── */}
-        <section className="space-y-3">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3 space-y-6">
+            {/* ── Calendar section ─────────────────────────────────────────── */}
+            <section className="space-y-3">
           {/* Section header — stacks on mobile, row on sm+ */}
           <div className="flex flex-row items-center justify-between gap-2 flex-wrap">
             <h3 className="flex items-center gap-2 text-sm sm:text-lg font-semibold text-primary">
@@ -254,6 +257,11 @@ export default function FacultyDashboard() {
             </div>
           </div>
         </section>
+          </div>
+          <div className="lg:col-span-1 h-full">
+            <DashboardMessagesPanel />
+          </div>
+        </div>
 
       </div>
 
