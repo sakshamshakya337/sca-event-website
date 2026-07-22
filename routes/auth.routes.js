@@ -16,7 +16,7 @@ router.post('/logout', logout)
 router.post('/security-question', protect, setSecurityQuestion)
 router.get('/security-question', protect, async (req, res) => {
   const User = (await import('../models/User.js')).default
-  const user = await User.findById(req.user.id).select('securityQuestion')
+  const user = await User.findById(req.user._id).select('securityQuestion')
   res.json({ success: true, data: { securityQuestion: user?.securityQuestion || null } })
 })
 

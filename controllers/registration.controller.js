@@ -31,7 +31,7 @@ export const registerForEvent = async (req, res, next) => {
   try {
     const event = await getEventByIdOrSlug(req.params.id, 'status registrationOpen registrationNotRequired title')
     if (!event) throw new ApiError(404, 'Event not found')
-    if (event.status !== 'approved') throw new ApiError(400, 'Registrations are not open for this event')
+    if (event.status !== 'published') throw new ApiError(400, 'Registrations are not open for this event')
     if (event.registrationNotRequired) throw new ApiError(400, 'This event does not require registration')
     if (!event.registrationOpen) throw new ApiError(400, 'Registrations are currently closed for this event')
 
@@ -64,7 +64,7 @@ export const getEventRegistrations = async (req, res, next) => {
     if (!event) throw new ApiError(404, 'Event not found')
 
     const userId = req.user.id.toString()
-    const isAdmin = ['admin', 'superadmin'].includes(req.user.role)
+    const isAdmin = ['admin', 'superadmin', 'dean', 'hos', 'hod'].includes(req.user.role)
     const isFaculty = req.user.role === 'faculty'
     const isCreator = event.createdBy?.toString() === userId
     const isAssigned = (event.assignedFaculty || []).some(f => f?.toString() === userId)
@@ -111,9 +111,18 @@ export const toggleRegistration = async (req, res, next) => {
 
     const { open } = req.body  // boolean
     event.registrationOpen = Boolean(open)
+    
+    // Automatically require registration if we are opening it
+    if (event.registrationOpen) {
+      event.registrationNotRequired = false
+    }
+    
     await event.save()
 
-    res.status(200).json(new ApiResponse(200, { registrationOpen: event.registrationOpen }, 'Registration toggled'))
+    res.status(200).json(new ApiResponse(200, { 
+      registrationOpen: event.registrationOpen,
+      registrationNotRequired: event.registrationNotRequired
+    }, 'Registration toggled'))
   } catch (err) {
     next(err)
   }

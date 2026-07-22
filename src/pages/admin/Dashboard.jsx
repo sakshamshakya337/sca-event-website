@@ -57,7 +57,7 @@ function SectionHeader({ icon: Icon, iconColor, title, action }) {
 export default function Dashboard() {
   const navigate = useNavigate()
   const { events, fetchEvents, approveEvent, rejectEvent, setSelectedEvent, selectedEvent } = useEventStore()
-  const { users }   = useAdminUserStore()
+  const { users, fetchUsers }   = useAdminUserStore()
   const { queries, fetchQueries } = useAdminQueriesStore()
 
   const [pendingAction, setPendingAction] = useState(null) // { eventId, type: 'approve' | 'reject' }
@@ -66,6 +66,7 @@ export default function Dashboard() {
 
   useEffect(() => { fetchEvents() }, [fetchEvents])
   useEffect(() => { if (!queries.length) fetchQueries() }, [fetchQueries, queries.length])
+  useEffect(() => { if (!users.length) fetchUsers() }, [fetchUsers, users.length])
 
   const actionablePendingEvents = events.filter(e => e.status === 'pending' || e.status === 'pending_admin')
   const pendingEvents  = events.filter(e => normalizeEventStatus(e.status) === 'pending')

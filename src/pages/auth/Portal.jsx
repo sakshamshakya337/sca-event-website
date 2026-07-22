@@ -4,7 +4,6 @@ import { BadgeCheck, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react
 import useAuthStore from '../../store/authStore'
 import api from '../../config/axios'
 import toast from 'react-hot-toast'
-import useUiStore from '../../store/uiStore'
 import RecaptchaWidget from '../../components/ui/RecaptchaWidget'
 
 export default function Portal() {
@@ -18,8 +17,6 @@ export default function Portal() {
   const [captchaToken, setCaptchaToken] = useState(null)
   const recaptchaRef = useRef(null)
 
-  const { theme } = useUiStore()
-  const isDark = theme === 'dark'
   const navigate = useNavigate()
   const login = useAuthStore(state => state.login)
 
@@ -60,6 +57,7 @@ export default function Portal() {
           admin:               '/admin',
           dean:                '/dean',
           hos:                 '/hos',
+          hod:                 '/faculty',
           superadmin:          '/superadmin',
         }
         navigate(roleNavMap[user.role] || '/student')
@@ -80,21 +78,19 @@ export default function Portal() {
     }
   }
 
-  const bg    = isDark ? 'bg-[#0B1120]'   : 'bg-[#f1f5f9]'
-  const card  = isDark ? 'bg-[#1F2937]'   : 'bg-white'
-  const strip = isDark ? 'bg-[#111827] border-[#374151]' : 'bg-white border-[#E2E8F0]'
-  const text  = isDark ? 'text-slate-100' : 'text-[#022448]'
-  const sub   = isDark ? 'text-slate-400' : 'text-slate-500'
-  const label = isDark ? 'text-slate-300' : 'text-slate-700'
-  const inp   = isDark
-    ? 'border-slate-600 bg-[#111827] text-slate-100 focus:ring-2 focus:ring-[#2563EB] focus:border-transparent'
-    : 'border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-[#2563EB] focus:border-transparent focus:outline-none'
+  const bg    = 'bg-[#f1f5f9]'
+  const card  = 'bg-white'
+  const strip = 'bg-white border-[#E2E8F0]'
+  const text  = 'text-[#022448]'
+  const sub   = 'text-slate-500'
+  const label = 'text-slate-700'
+  const inp   = 'border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-[#2563EB] focus:border-transparent focus:outline-none'
 
   return (
     <div
       className={`min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 font-[Inter] ${bg}`}
       style={{
-        backgroundImage: `radial-gradient(${isDark ? '#374151' : '#1E3A5F'} 1px, transparent 1px)`,
+        backgroundImage: `radial-gradient(#1E3A5F 1px, transparent 1px)`,
         backgroundSize: '24px 24px',
       }}
     >
@@ -106,7 +102,7 @@ export default function Portal() {
           </Link>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
-          <span className={`text-xs sm:text-sm hidden sm:block ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+          <span className={`text-xs sm:text-sm hidden sm:block text-slate-600`}>
             New here?
           </span>
           <Link
@@ -138,7 +134,7 @@ export default function Portal() {
                 Email, registration number, or employee ID
               </label>
               <div className="relative">
-                <BadgeCheck className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-[#74777f]'}`} size={18} />
+                <BadgeCheck className={`absolute left-3 top-1/2 -translate-y-1/2 text-[#74777f]`} size={18} />
                 <input
                   className={`w-full pl-9 pr-4 py-2.5 rounded-lg border text-sm transition-all ${inp}`}
                   placeholder="Email, reg. number, or employee ID"
@@ -156,7 +152,7 @@ export default function Portal() {
             <div className="flex flex-col gap-1.5">
               <label className={`text-xs sm:text-sm font-medium ${label}`}>Password</label>
               <div className="relative">
-                <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-[#74777f]'}`} size={18} />
+                <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 text-[#74777f]`} size={18} />
                 <input
                   className={`w-full pl-9 pr-11 py-2.5 rounded-lg border text-sm transition-all ${inp}`}
                   placeholder="Enter your password"
@@ -169,7 +165,7 @@ export default function Portal() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-[#74777f] hover:text-[#022448]'}`}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors text-[#74777f] hover:text-[#022448]`}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -178,9 +174,7 @@ export default function Portal() {
 
             {/* Error */}
             {error && (
-              <div className={`border-l-4 rounded-lg px-3 py-2.5 text-sm font-medium ${
-                isDark ? 'bg-red-900/20 border-red-800 text-red-400' : 'bg-red-50 border-l-red-500 text-red-700'
-              }`}>
+              <div className={`border-l-4 rounded-lg px-3 py-2.5 text-sm font-medium bg-red-50 border-l-red-500 text-red-700`}>
                 {error}
               </div>
             )}
@@ -189,7 +183,7 @@ export default function Portal() {
             <div className="flex justify-end">
               <Link
                 to="/forgot-password"
-                className={`text-xs font-medium hover:underline ${isDark ? 'text-blue-400' : 'text-primary'}`}
+                className={`text-xs font-medium hover:underline text-primary`}
               >
                 Forgot password?
               </Link>
@@ -199,7 +193,7 @@ export default function Portal() {
             <RecaptchaWidget
               ref={recaptchaRef}
               onChange={setCaptchaToken}
-              theme={isDark ? 'dark' : 'light'}
+              theme="light"
             />
 
             {/* Submit */}
@@ -219,12 +213,12 @@ export default function Portal() {
 
         {/* Footer note */}
         <footer className="text-center px-4">
-          <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'} leading-relaxed`}>
-            <Link to="/forgot-password" className={`font-medium underline ${isDark ? 'text-blue-400' : 'text-[#2563EB]'}`}>
+          <p className={`text-xs text-slate-500 leading-relaxed`}>
+            <Link to="/forgot-password" className={`font-medium underline text-[#2563EB]`}>
               Forgot your password?
             </Link>
             {' '}· Need help? Email{' '}
-            <a href="mailto:sca@lpu.edu.in" className={`font-medium underline ${isDark ? 'text-blue-400' : 'text-[#2563EB]'}`}>
+            <a href="mailto:sca@lpu.edu.in" className={`font-medium underline text-[#2563EB]`}>
               sca@lpu.edu.in
             </a>
           </p>

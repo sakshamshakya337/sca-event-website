@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { User, GraduationCap, Lock, Eye, EyeOff, Info, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react'
 import { useForm } from 'react-hook-form'
@@ -29,11 +29,14 @@ export default function StudentDetails() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-  if (!role || role !== 'student') {
-    resetSignup()
-    navigate('/signup')
-    return null
-  }
+  useEffect(() => {
+    if (!role || role !== 'student') {
+      resetSignup()
+      navigate('/signup')
+    }
+  }, [role, navigate, resetSignup])
+
+  if (!role || role !== 'student') return null;
 
   const {
     register,

@@ -27,7 +27,7 @@ const uploadToCloudinary = async (fileBuffer, folder) => {
 // Submit verification application
 export const submitApplication = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id)
+    const user = await User.findById(req.user._id)
     if (!user) {
       throw new ApiError(404, 'User not found')
     }
@@ -91,7 +91,7 @@ export const submitApplication = async (req, res, next) => {
 // Get my application status
 export const getMyApplication = async (req, res, next) => {
   try {
-    const application = await VerificationApplication.findOne({ user: req.user.id })
+    const application = await VerificationApplication.findOne({ user: req.user._id })
       .sort({ createdAt: -1 })
       .populate('user', 'firstName lastName role')
       .populate('reviewedBy', 'firstName lastName')
@@ -152,7 +152,7 @@ export const approveApplication = async (req, res, next) => {
     const { adminNotes, checklist } = req.body
 
     application.status = 'approved'
-    application.reviewedBy = req.user.id
+    application.reviewedBy = req.user._id
     application.reviewedAt = new Date()
     if (adminNotes) application.adminNotes = adminNotes
     if (checklist) application.checklist = checklist
@@ -195,7 +195,7 @@ export const rejectApplication = async (req, res, next) => {
     const { rejectionReason, adminNotes, checklist } = req.body
 
     application.status = 'rejected'
-    application.reviewedBy = req.user.id
+    application.reviewedBy = req.user._id
     application.reviewedAt = new Date()
     application.rejectionReason = rejectionReason
     if (adminNotes) application.adminNotes = adminNotes

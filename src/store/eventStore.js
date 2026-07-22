@@ -98,7 +98,7 @@ const useEventStore = create((set, get) => ({
   approveEvent: async (id, remarks = '') => {
     set({ isLoading: true, error: null })
     try {
-      const res = await api.post('/events/approve', { eventId: id, action: 'approve', remarks })
+      const res = await api.put(`/events/${id}/approve`, { remarks })
       set((state) => ({
         events: state.events.map(event => event._id === id ? { ...event, status: res.data.data.status } : event),
         isLoading: false
@@ -119,7 +119,7 @@ const useEventStore = create((set, get) => ({
   rejectEvent: async (id, remarks = '') => {
     set({ isLoading: true, error: null })
     try {
-      const res = await api.post('/events/approve', { eventId: id, action: 'reject', remarks })
+      const res = await api.put(`/events/${id}/reject`, { remarks })
       set((state) => ({
         events: state.events.map(event => event._id === id ? { ...event, status: res.data.data.status } : event),
         isLoading: false

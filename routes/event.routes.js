@@ -74,9 +74,9 @@ router.post(
   eventController.createEvent
 )
 
-// Admin approval actions
-router.put('/:id/approve',         authorize('admin', 'superadmin'), eventController.approveEvent)
-router.put('/:id/reject',          authorize('admin', 'superadmin'), eventController.rejectEvent)
+// Admin/HOD approval actions
+router.put('/:id/approve',         authorize('hod', 'admin', 'superadmin'), eventController.approveEvent)
+router.put('/:id/reject',          authorize('hod', 'admin', 'superadmin'), eventController.rejectEvent)
 router.put('/:id/assign-faculty',  authorize('admin', 'superadmin'), eventController.assignFaculty)
 router.put('/:id/assign-students', authorize('admin', 'superadmin', 'faculty'), eventController.assignStudents)
 

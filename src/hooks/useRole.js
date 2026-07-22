@@ -5,7 +5,7 @@ export default function useRole() {
 
   const role = user?.role
   const isStudent = role === 'student'
-  const isFaculty = role === 'faculty'
+  const isFaculty = role === 'faculty' || role === 'hod' || role === 'faculty_coordinator'
   const isAdmin = role === 'admin' || role === 'superadmin'
   const isSuperadmin = role === 'superadmin'
 

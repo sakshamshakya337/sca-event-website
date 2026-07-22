@@ -1,24 +1,12 @@
 import { Toaster } from "react-hot-toast";
 import AppRoutes from "./routes/index.jsx";
-import useUiStore from "./store/uiStore";
-import { useEffect } from "react";
+import AuthInitializer from "./components/AuthInitializer.jsx";
 
 function App() {
-  const { theme, toggleTheme } = useUiStore();
-
-  useEffect(() => {
-    console.log("Current theme:", theme);
-    const root = window.document.documentElement;
-    // NEW — CORRECT ✅
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark"); // light mode = no class at all
-    }
-  }, [theme]);
-
   return (
     <>
+      {/* Fires exactly ONE /auth/me request on app boot — all children read store */}
+      <AuthInitializer />
       <AppRoutes />
       <Toaster position="top-right" />
     </>

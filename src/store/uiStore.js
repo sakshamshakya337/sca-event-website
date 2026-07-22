@@ -8,16 +8,12 @@ const useUiStore = create(
   persist(
     (set) => ({
       sidebarOpen: !isMobile(), // false on mobile, true on desktop
-      theme: 'light',
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
-      toggleTheme: () => set((state) => ({
-        theme: state.theme === 'light' ? 'dark' : 'light',
-      })),
     }),
     {
       name: 'sca-ems-ui',
-      // Only persist theme — sidebarOpen recalculates from screen width each load
-      partialize: (state) => ({ theme: state.theme }),
+      // Only persist sidebarOpen (or nothing if sidebarOpen recalculates on load)
+      partialize: (state) => ({}),
       // Migration: wipe any old persisted state that included sidebarOpen
       version: 2,
       migrate: (persisted) => ({ theme: persisted?.theme || 'light' }),

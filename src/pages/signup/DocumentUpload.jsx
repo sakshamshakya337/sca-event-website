@@ -154,6 +154,13 @@ function ApprovalPending({ userInfo }) {
 export default function DocumentUpload() {
   const navigate = useNavigate()
   const { role, details, setDocuments, resetSignup } = useSignupStore()
+
+  useEffect(() => {
+    if (!role) {
+      navigate('/signup')
+    }
+  }, [role, navigate])
+
   const { login: setAuthState } = useAuthStore()
 
   // ALL hooks must be declared before any conditional return
@@ -234,6 +241,9 @@ export default function DocumentUpload() {
       if (profilePhoto?.preview) URL.revokeObjectURL(profilePhoto.preview)
       setDocuments({ universityId, profilePhoto })
       resetSignup()
+      
+      // Clear auth state so the user isn't logged in when they visit landing page
+      setAuthState(null, null)
 
       // Step 5 — show the approval pending screen (in-page, no redirect)
       setSubmittedUser(user)

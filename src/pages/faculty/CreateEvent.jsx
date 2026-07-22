@@ -131,7 +131,7 @@ export default function CreateEvent() {
           <div className="px-6 sm:px-8 py-5 sm:py-6 border-b border-outline-variant bg-surface-container-low">
             <h2 className="text-lg sm:text-xl font-bold text-primary">Create New Event</h2>
             <p className="text-sm text-on-surface-variant mt-1">
-              Fill in the event details. It will go to admin for approval before appearing publicly.
+              Fill in the event details. It will go to your Department Head (HOD) and then Admin for approval before appearing publicly.
             </p>
           </div>
 

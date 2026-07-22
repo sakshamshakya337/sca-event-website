@@ -100,7 +100,10 @@ export default function Gallery() {
                     </div>
                     <div className="p-6 flex flex-col flex-1">
                       <h3 className="text-xl font-bold text-on-surface mb-2 line-clamp-1 group-hover:text-primary transition-colors">{gallery.title}</h3>
-                      <p className="text-on-surface-variant text-sm line-clamp-2 flex-1">{gallery.description}</p>
+                      <div 
+                        className="text-on-surface-variant text-sm line-clamp-2 flex-1 prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: gallery.content || '' }}
+                      />
                       
                       <div className="flex justify-between items-center mt-4 pt-4 border-t border-outline-variant/50">
                         <span className="text-on-surface-variant/80 font-medium text-sm">

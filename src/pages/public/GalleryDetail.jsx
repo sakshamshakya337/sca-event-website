@@ -85,7 +85,10 @@ export default function GalleryDetail() {
               {/* Header Info */}
               <div className="mb-12">
                 <h1 className="text-4xl md:text-5xl font-bold font-headline-lg text-primary mb-4">{gallery.title}</h1>
-                <p className="text-lg text-on-surface-variant max-w-3xl">{gallery.description}</p>
+                <div 
+                  className="text-lg text-on-surface-variant max-w-3xl prose prose-lg"
+                  dangerouslySetInnerHTML={{ __html: gallery.content || '' }}
+                />
                 <div className="flex items-center gap-4 mt-6 text-sm font-bold text-on-surface-variant bg-surface-container inline-flex px-4 py-2 rounded-lg">
                   <span className="text-on-surface-variant font-medium">
                     {gallery.startDate ? `${new Date(gallery.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}${gallery.endDate && gallery.endDate !== gallery.startDate ? ` - ${new Date(gallery.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}` : new Date(gallery.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}

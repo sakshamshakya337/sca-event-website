@@ -24,9 +24,7 @@ export default function Navbar({ breadcrumb = [] }) {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-  const { theme, toggleTheme, toggleSidebar, sidebarOpen } = useUiStore((state) => ({
-    theme: state.theme,
-    toggleTheme: state.toggleTheme,
+  const { toggleSidebar, sidebarOpen } = useUiStore((state) => ({
     toggleSidebar: state.toggleSidebar,
     sidebarOpen: state.sidebarOpen,
   }))
@@ -91,16 +89,6 @@ export default function Navbar({ breadcrumb = [] }) {
           </button>
         </div>
         
-        <button 
-          onClick={toggleTheme}
-          className="p-2 hover:bg-surface-container rounded-lg cursor-pointer"
-        >
-          {theme === 'dark' ? (
-            <Sun className="w-5 h-5 text-on-surface-variant" />
-          ) : (
-            <Moon className="w-5 h-5 text-on-surface-variant" />
-          )}
-        </button>
         
         {/* Create Event — hidden on mobile for students, shown for admin/faculty */}
         {(user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'faculty') && (

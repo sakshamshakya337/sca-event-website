@@ -29,10 +29,14 @@ export const protect = async (req, res, next) => {
       return next(new ApiError(401, 'Session expired or invalid. Please log in again.'))
     }
 
-    const user = await User.findById(decoded.id)
+    // Use lean() for a plain JS object — faster, no Mongoose overhead
+    const user = await User.findById(decoded.id).lean()
     if (!user) {
       return next(new ApiError(401, 'User no longer exists'))
     }
+    
+    // Polyfill the virtual 'id' getter since .lean() only returns '_id'
+    user.id = user._id.toString()
 
     if (!user.isActive) {
       return next(new ApiError(403, 'Account is deactivated'))
@@ -40,7 +44,7 @@ export const protect = async (req, res, next) => {
 
     // Reject tokens issued before a password change
     if (user.passwordChangedAt) {
-      const changedAt = Math.floor(user.passwordChangedAt.getTime() / 1000)
+      const changedAt = Math.floor(new Date(user.passwordChangedAt).getTime() / 1000)
       if (decoded.iat < changedAt) {
         return next(new ApiError(401, 'Password recently changed. Please log in again.'))
       }
@@ -61,6 +65,39 @@ export const authorize = (...roles) => {
     if (!roles.includes(req.user.role)) {
       return next(new ApiError(403, 'You do not have permission to perform this action'))
     }
+    next()
+  }
+}
+
+export const optionalAuth = async (req, res, next) => {
+  try {
+    let token
+    if (req.headers.authorization?.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1]
+    }
+    if (!token) return next()
+
+    let decoded
+    try {
+      decoded = jwt.verify(token, getJwtSecret())
+    } catch (err) {
+      return next()
+    }
+
+    const user = await User.findById(decoded.id).lean()
+    if (!user) return next()
+    
+    user.id = user._id.toString()
+    if (!user.isActive) return next()
+
+    if (user.passwordChangedAt) {
+      const changedAt = Math.floor(new Date(user.passwordChangedAt).getTime() / 1000)
+      if (decoded.iat < changedAt) return next()
+    }
+
+    req.user = user
+    next()
+  } catch (error) {
     next()
   }
 }

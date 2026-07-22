@@ -1,6 +1,7 @@
-﻿import React, { useState, useEffect } from 'react'
-import { Bell, Contrast, Edit, Upload, ShieldAlert, Mail, Lock, Phone, ShieldCheck, Eye, EyeOff } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Bell, Contrast, Edit, Upload, ShieldAlert, Mail, Lock, Phone, ShieldCheck, Eye, EyeOff, CheckCircle2, ShieldQuestion, Save } from 'lucide-react'
 import PageWrapper from '../../components/layout/PageWrapper'
+import { SECURITY_QUESTIONS } from '../../config/constants'
 
 import useAuthStore from '../../store/authStore'
 import api from '../../config/axios'
@@ -27,6 +28,13 @@ export default function AdminProfile() {
     confirmPassword: ''
   })
   const [loading, setLoading] = useState(false)
+  const [secData, setSecData] = useState({ question: '', answer: '', confirmAnswer: '' })
+  const [secSaved, setSecSaved] = useState(false)
+  const [secLoading, setSecLoading] = useState(false)
+  const [showSecAnswer, setShowSecAnswer] = useState(false)
+  const [isSecSet, setIsSecSet] = useState(false)
+  const [editingSec, setEditingSec] = useState(false)
+  const inputCls = 'w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-2.5 text-body-md focus:ring-2 focus:ring-secondary/20 focus:outline-none'
 
   useEffect(() => {
     if (user) {
@@ -42,6 +50,18 @@ export default function AdminProfile() {
       }
     }
   }, [user])
+
+  // Load existing security question
+  useEffect(() => {
+    api.get('/auth/security-question')
+      .then(res => {
+        if (res.data?.data?.securityQuestion) {
+          setSecData(prev => ({ ...prev, question: res.data.data.securityQuestion }))
+          setIsSecSet(true)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -143,6 +163,23 @@ export default function AdminProfile() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSecuritySubmit = async (e) => {
+    e.preventDefault()
+    if (!secData.question) { alert('Please select a security question.'); return }
+    if (!secData.answer.trim()) { alert('Please enter your answer.'); return }
+    if (secData.answer.trim() !== secData.confirmAnswer.trim()) { alert('Answers do not match.'); return }
+    setSecLoading(true)
+    try {
+      await api.post('/auth/security-question', { question: secData.question, answer: secData.answer.trim() })
+      setSecSaved(true)
+      setIsSecSet(true)
+      setEditingSec(false)
+      setSecData(prev => ({ ...prev, answer: '', confirmAnswer: '' }))
+      setTimeout(() => setSecSaved(false), 3000)
+    } catch (err) { alert(err.response?.data?.message || 'Failed to save security question') }
+    finally { setSecLoading(false) }
   }
 
   const getInitials = () => {
@@ -385,6 +422,111 @@ export default function AdminProfile() {
                   </button>
                 </div>
               </div>
+            </form>
+
+            {/* Security Question */}
+            <form onSubmit={handleSecuritySubmit} className="bg-surface-container-low p-6 rounded-xl border border-outline-variant space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <ShieldQuestion className="text-secondary" size={24} />
+                <h4 className="text-headline-md text-primary font-bold">Security Question</h4>
+                {isSecSet && !editingSec && (
+                  <span className="ml-auto flex items-center gap-1.5 text-green-600 text-xs font-semibold">
+                    <CheckCircle2 size={14} /> Saved
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-on-surface-variant">
+                {isSecSet && !editingSec
+                  ? 'Your security question is saved. Click "Change" to update it.'
+                  : 'Used to verify your identity when you forget your password.'}
+              </p>
+
+              {isSecSet && !editingSec ? (
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <label className="block text-body-sm font-semibold text-on-surface-variant">Security Question</label>
+                    <div className={`${inputCls} opacity-80 cursor-default`}>{secData.question}</div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-body-sm font-semibold text-on-surface-variant">Saved Answer</label>
+                    <div className="relative">
+                      <input
+                        className={`${inputCls} pr-10 cursor-default opacity-80`}
+                        type={showSecAnswer ? 'text' : 'password'}
+                        value="saved-answer-placeholder"
+                        readOnly
+                      />
+                      <button type="button" onClick={() => setShowSecAnswer(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary">
+                        {showSecAnswer ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-on-surface-variant">Answer is stored securely as a hash and cannot be retrieved.</p>
+                  </div>
+                  <button type="button"
+                    onClick={() => { setEditingSec(true); setSecData(prev => ({ ...prev, answer: '', confirmAnswer: '' })); setShowSecAnswer(false) }}
+                    className="px-4 py-1.5 border border-secondary text-secondary rounded-lg text-sm font-semibold hover:bg-secondary/10 transition-all">
+                    Change Security Question
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="block text-body-sm font-semibold text-on-surface-variant">Select a Question</label>
+                    <select className={inputCls} value={secData.question}
+                      onChange={e => setSecData({ ...secData, question: e.target.value })} required>
+                      <option value="">— Choose a security question —</option>
+                      {SECURITY_QUESTIONS.map(q => <option key={q} value={q}>{q}</option>)}
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="block text-body-sm font-semibold text-on-surface-variant">Your Answer</label>
+                      <div className="relative">
+                        <input className={`${inputCls} pr-10`}
+                          type={showSecAnswer ? 'text' : 'password'}
+                          placeholder="Enter your answer"
+                          value={secData.answer}
+                          onChange={e => setSecData({ ...secData, answer: e.target.value })}
+                          autoComplete="off" required />
+                        <button type="button" onClick={() => setShowSecAnswer(v => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary">
+                          {showSecAnswer ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-body-sm font-semibold text-on-surface-variant">Confirm Answer</label>
+                      <div className="relative">
+                        <input className={`${inputCls} pr-10`}
+                          type={showSecAnswer ? 'text' : 'password'}
+                          placeholder="Re-enter your answer"
+                          value={secData.confirmAnswer}
+                          onChange={e => setSecData({ ...secData, confirmAnswer: e.target.value })}
+                          autoComplete="off" required />
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-on-surface-variant">Answer is case-insensitive and stored securely as a hash.</p>
+                  <div className="flex items-center gap-3">
+                    <button type="submit" disabled={secLoading}
+                      className="flex items-center gap-2 px-6 py-2 bg-secondary text-white rounded-lg text-headline-sm hover:bg-secondary/90 active:scale-95 transition-all disabled:opacity-60">
+                      <Save size={15} /> {secLoading ? 'Saving…' : 'Save Question'}
+                    </button>
+                    {editingSec && (
+                      <button type="button" onClick={() => setEditingSec(false)}
+                        className="px-5 py-2 border border-outline-variant text-on-surface-variant rounded-lg text-sm hover:bg-surface-container transition-all">
+                        Cancel
+                      </button>
+                    )}
+                    {secSaved && (
+                      <span className="flex items-center gap-1.5 text-green-600 text-xs font-semibold">
+                        <CheckCircle2 size={14} /> Saved!
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </form>
 
             <div className="pt-8 border-t border-outline-variant flex flex-col md:flex-row justify-between gap-4">

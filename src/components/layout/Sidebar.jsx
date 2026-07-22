@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
-import { LayoutDashboard, Calendar, CheckSquare, Users, ShieldCheck, Mail, Settings, HelpCircle, LogOut, Menu, Bell, Image } from 'lucide-react'
+import { LayoutDashboard, Calendar, CheckSquare, Users, ShieldCheck, Mail, Settings, HelpCircle, LogOut, Menu, Bell, Image, Building2 } from 'lucide-react'
 import useAuthStore from '../../store/authStore'
 import useUiStore from '../../store/uiStore'
 import { useNavigate } from 'react-router-dom'
@@ -17,12 +17,14 @@ const roleNavItems = {
     { path: '/faculty', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/faculty/events', label: 'My Events', icon: Calendar },
     { path: '/faculty/tasks', label: 'My Tasks', icon: CheckSquare },
+    { path: '/faculty/gallery', label: 'My Galleries', icon: Image },
     { path: '/faculty/notifications', label: 'Notifications', icon: Bell },
   ],
   admin: [
     { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/admin/events', label: 'All Events', icon: Calendar },
     { path: '/admin/users', label: 'Manage Users', icon: Users },
+    { path: '/admin/departments', label: 'Departments', icon: Building2 },
     { path: '/admin/verify', label: 'Verify Users', icon: ShieldCheck },
     { path: '/admin/queries', label: 'Contact Queries', icon: Mail },
     { path: '/admin/gallery', label: 'Gallery', icon: Image },
@@ -32,6 +34,7 @@ const roleNavItems = {
     { path: '/superadmin', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/admin/events', label: 'All Events', icon: Calendar },
     { path: '/admin/users', label: 'Manage Users', icon: Users },
+    { path: '/admin/departments', label: 'Departments', icon: Building2 },
     { path: '/admin/verify', label: 'Verify Users', icon: ShieldCheck },
     { path: '/admin/queries', label: 'Contact Queries', icon: Mail },
     { path: '/admin/gallery', label: 'Gallery', icon: Image },
@@ -46,6 +49,14 @@ const roleNavItems = {
     { path: '/hos', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/admin/events', label: 'All Events', icon: Calendar },
     { path: '/hos/notifications', label: 'Notifications', icon: Bell },
+  ],
+  hod: [
+    { path: '/faculty', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/faculty/approvals', label: 'HOD Approvals', icon: ShieldCheck },
+    { path: '/faculty/events', label: 'My Events', icon: Calendar },
+    { path: '/faculty/tasks', label: 'My Tasks', icon: CheckSquare },
+    { path: '/faculty/gallery', label: 'My Galleries', icon: Image },
+    { path: '/faculty/notifications', label: 'Notifications', icon: Bell },
   ],
 }
 
@@ -71,6 +82,7 @@ export default function Sidebar() {
     if (!user) return ''
     if (user.role === 'student') return `Student • ${user.registrationNumber || 'N/A'}`
     if (user.role === 'faculty') return `Faculty • ${user.employeeId || 'N/A'}`
+    if (user.role === 'hod') return `HOD • ${user.employeeId || 'N/A'}`
     return user.role.charAt(0).toUpperCase() + user.role.slice(1)
   }
 

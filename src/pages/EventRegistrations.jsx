@@ -106,11 +106,11 @@ export default function EventRegistrations() {
   const filtered = registrations.filter(r => {
     const q = search.toLowerCase()
     return (
-      r.registrationNumber?.toLowerCase().includes(q) ||
-      r.name?.toLowerCase().includes(q)              ||
-      r.email?.toLowerCase().includes(q)             ||
-      r.course?.toLowerCase().includes(q)            ||
-      r.section?.toLowerCase().includes(q)
+      String(r.registrationNumber || '').toLowerCase().includes(q) ||
+      String(r.name || '').toLowerCase().includes(q) ||
+      String(r.email || '').toLowerCase().includes(q) ||
+      String(r.course || '').toLowerCase().includes(q) ||
+      String(r.section || '').toLowerCase().includes(q)
     )
   })
 

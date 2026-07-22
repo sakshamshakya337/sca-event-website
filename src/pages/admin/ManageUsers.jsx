@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import PageWrapper from '../../components/layout/PageWrapper'
-import { Search, Filter, Edit, Trash2, Download, User, UserPlus, X, ChevronDown, Copy } from 'lucide-react'
+import { Search, Filter, Edit, Trash2, Download, User, UserPlus, X, ChevronDown, Copy, Award, UserMinus } from 'lucide-react'
 import useAdminUserStore from '../../store/adminUserStore'
+import { toast } from 'react-hot-toast'
 
 function generatePassword() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
@@ -12,7 +13,10 @@ function generatePassword() {
   return password
 }
 
+import api from '../../config/axios'
+
 export default function ManageUsers() {
+  const [departments, setDepartments] = useState([])
   const [activeTab, setActiveTab] = useState('All')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [formData, setFormData] = useState({
@@ -28,16 +32,26 @@ export default function ManageUsers() {
     semester: '',
     section: '',
     employeeId: '',
-    department: '',
+    departmentId: '',
     designation: ''
   })
   const [tempPassword, setTempPassword] = useState('')
   const [mustChangePassword, setMustChangePassword] = useState(true)
-  const { users, fetchUsers, addUser, deleteUser, loading } = useAdminUserStore()
+  const { users, fetchUsers, addUser, deleteUser, promoteToHod, demoteToFaculty, loading } = useAdminUserStore()
 
   useEffect(() => {
     fetchUsers()
+    fetchDepartments()
   }, [fetchUsers])
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await api.get('/departments')
+      setDepartments(response.data.data)
+    } catch (error) {
+      console.error('Failed to load departments', error)
+    }
+  }
 
   const handleAddUser = async () => {
     try {
@@ -57,7 +71,7 @@ export default function ManageUsers() {
         semester: '',
         section: '',
         employeeId: '',
-        department: '',
+        departmentId: '',
         designation: ''
       })
     } catch (err) {
@@ -175,6 +189,38 @@ export default function ManageUsers() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
+                        {user.role === 'faculty' && (
+                          <button 
+                            onClick={async () => {
+                              try {
+                                await promoteToHod(user._id)
+                                toast.success(`${user.firstName} promoted to HOD successfully`)
+                              } catch (e) {
+                                toast.error(e.message)
+                              }
+                            }}
+                            title="Promote to HOD"
+                            className="p-2 text-on-surface-variant hover:text-green-600 transition-colors rounded-lg hover:bg-green-50"
+                          >
+                            <Award size={18} />
+                          </button>
+                        )}
+                        {user.role === 'hod' && (
+                          <button 
+                            onClick={async () => {
+                              try {
+                                await demoteToFaculty(user._id)
+                                toast.success(`${user.firstName} demoted to Faculty successfully`)
+                              } catch (e) {
+                                toast.error(e.message)
+                              }
+                            }}
+                            title="Demote to Faculty"
+                            className="p-2 text-on-surface-variant hover:text-orange-600 transition-colors rounded-lg hover:bg-orange-50"
+                          >
+                            <UserMinus size={18} />
+                          </button>
+                        )}
                         <button className="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container">
                           <Edit size={18} />
                         </button>
@@ -296,14 +342,16 @@ export default function ManageUsers() {
                     <div className="space-y-2">
                       <label className="block text-headline-sm text-primary">Department</label>
                       <select
-                        value={formData.department}
-                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                        value={formData.departmentId}
+                        onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
                         className="w-full px-4 py-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md appearance-none focus:ring-2 focus:ring-secondary/20 outline-none"
                       >
                         <option value="">Select Department</option>
-                        <option value="Computer Science">Computer Science</option>
-                        <option value="Information Technology">Information Technology</option>
-                        <option value="Artificial Intelligence">Artificial Intelligence</option>
+                        {departments.map((dept) => (
+                          <option key={dept._id} value={dept._id}>
+                            {dept.departmentName} ({dept.departmentCode})
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div className="space-y-2">

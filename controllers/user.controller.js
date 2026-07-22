@@ -7,6 +7,7 @@ import cloudinary from '../config/cloudinary.js'
 import multer from 'multer'
 import { sendMail } from '../utils/mailer.js'
 import { credentialsTemplate } from '../utils/emailTemplates.js'
+import Department from '../models/Department.js'
 
 const storage = multer.memoryStorage()
 const upload = multer({
@@ -151,7 +152,7 @@ export const createUser = async (req, res, next) => {
     const {
       role, firstName, lastName, personalEmail, officialEmail, phone,
       registrationNumber, program, degree, semester, section,
-      employeeId, department, designation, coordinatorRole
+      employeeId, departmentId, department, designation, coordinatorRole
     } = value
 
     const orConditions = [{ personalEmail: personalEmail.toLowerCase() }]
@@ -186,7 +187,18 @@ export const createUser = async (req, res, next) => {
       userData.section = section || ''
     } else if (role === 'faculty') {
       userData.employeeId = employeeId?.toUpperCase()
-      userData.department = department || ''
+      
+      if (departmentId) {
+        const dept = await Department.findById(departmentId)
+        if (dept) {
+          userData.departmentId = dept._id
+          userData.departmentCode = dept.departmentCode
+          userData.department = dept.departmentName
+        }
+      } else if (department) {
+        userData.department = department
+      }
+      
       userData.designation = designation || ''
       userData.coordinatorRole = coordinatorRole || ''
     }
@@ -233,7 +245,7 @@ export const updateProfile = async (req, res, next) => {
     // Whitelist only allowed fields per role — never trust raw req.body keys
     const commonFields = ['firstName', 'lastName', 'personalEmail', 'phone']
     const studentFields = ['program', 'degree', 'semester', 'section']
-    const facultyFields = ['department', 'designation', 'coordinatorRole']
+    const facultyFields = ['departmentId', 'department', 'designation', 'coordinatorRole']
 
     const allowedFields = [
       ...commonFields,
@@ -263,6 +275,7 @@ export const updateProfile = async (req, res, next) => {
       semester:      Joi.string().trim().max(20).optional().allow(''),
       section:       Joi.string().trim().max(20).optional().allow(''),
       // Faculty fields
+      departmentId:  Joi.string().trim().optional().allow(null, ''),
       department:    Joi.string().trim().max(100).optional().allow(''),
       designation:   Joi.string().trim().max(100).optional().allow(''),
       coordinatorRole: Joi.string().trim().max(100).optional().allow(''),
@@ -288,8 +301,23 @@ export const updateProfile = async (req, res, next) => {
     }
 
     // Apply faculty/admin fields
-    if (['faculty', 'admin', 'superadmin'].includes(user.role)) {
-      if (value.department !== undefined)  user.department  = value.department
+    if (['faculty', 'hod', 'admin', 'superadmin'].includes(user.role)) {
+      if (value.departmentId) {
+        const dept = await Department.findById(value.departmentId)
+        if (dept) {
+          user.departmentId = dept._id
+          user.departmentCode = dept.departmentCode
+          user.department = dept.departmentName
+          if (dept.hodIds && dept.hodIds.length > 0) {
+            user.hodId = dept.hodIds[0]
+          } else {
+            user.hodId = null
+          }
+        }
+      } else if (value.department !== undefined && !value.departmentId) {
+        user.department = value.department
+      }
+      
       if (value.designation !== undefined) user.designation = value.designation
       if (value.coordinatorRole !== undefined) user.coordinatorRole = value.coordinatorRole
     }
@@ -361,6 +389,7 @@ export const updateUser = async (req, res, next) => {
       semester,
       section,
       employeeId,
+      departmentId,
       department,
       designation
     } = req.body
@@ -378,9 +407,25 @@ export const updateUser = async (req, res, next) => {
       if (degree) user.degree = degree
       if (semester) user.semester = semester
       if (section) user.section = section
-    } else if (user.role === 'faculty') {
+    } else if (['faculty', 'hod'].includes(user.role)) {
       if (employeeId) user.employeeId = employeeId.toUpperCase()
-      if (department) user.department = department
+      
+      if (departmentId) {
+        const dept = await Department.findById(departmentId)
+        if (dept) {
+          user.departmentId = dept._id
+          user.departmentCode = dept.departmentCode
+          user.department = dept.departmentName
+          if (dept.hodIds && dept.hodIds.length > 0) {
+            user.hodId = dept.hodIds[0]
+          } else {
+            user.hodId = null
+          }
+        }
+      } else if (department !== undefined) {
+        user.department = department
+      }
+      
       if (designation) user.designation = designation
     }
 
@@ -426,6 +471,65 @@ export const getUserStats = async (req, res, next) => {
     const totalStudents = await User.countDocuments({ role: 'student' })
 
     res.status(200).json(new ApiResponse(200, { totalUsers, totalFaculty, totalStudents }, 'Stats fetched successfully'))
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Promote Faculty to HOD
+export const promoteToHod = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id)
+    if (!user) throw new ApiError(404, 'User not found')
+    
+    if (user.role !== 'faculty') {
+      throw new ApiError(400, 'Only faculty members can be promoted to HOD.')
+    }
+    
+    if (!user.departmentId) {
+      throw new ApiError(400, 'Please assign at least one department before promoting this faculty member to HOD.')
+    }
+    
+    // Update role only — academic designation is preserved
+    // UI derives 'HOD' display from user.role, not designation field
+    user.role = 'hod'
+    await user.save()
+    
+    // Update Department hodIds
+    await Department.findByIdAndUpdate(
+      user.departmentId,
+      { $addToSet: { hodIds: user._id } }
+    )
+    
+    res.status(200).json(new ApiResponse(200, user, 'Faculty promoted to HOD successfully'))
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Demote HOD to Faculty
+export const demoteToFaculty = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id)
+    if (!user) throw new ApiError(404, 'User not found')
+    
+    if (user.role !== 'hod') {
+      throw new ApiError(400, 'User is not currently an HOD.')
+    }
+    
+    // Update role only — academic designation is preserved
+    user.role = 'faculty'
+    await user.save()
+    
+    // Update Department hodIds
+    if (user.departmentId) {
+      await Department.findByIdAndUpdate(
+        user.departmentId,
+        { $pull: { hodIds: user._id } }
+      )
+    }
+    
+    res.status(200).json(new ApiResponse(200, user, 'HOD demoted to Faculty successfully'))
   } catch (error) {
     next(error)
   }

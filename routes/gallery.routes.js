@@ -5,19 +5,25 @@ import {
   getGalleryById,
   updateGallery,
   deleteGallery,
-  uploadGalleryFields
+  uploadGalleryFields,
+  approveGallery,
+  rejectGallery
 } from '../controllers/gallery.controller.js'
-import { protect, authorize } from '../middleware/auth.middleware.js'
+import { protect, authorize, optionalAuth } from '../middleware/auth.middleware.js'
 
 const router = express.Router()
 
 router.route('/')
-  .get(getGalleries)
-  .post(protect, authorize('admin', 'superadmin'), uploadGalleryFields, createGallery)
+  .get(optionalAuth, getGalleries)
+  .post(protect, authorize('faculty', 'admin', 'superadmin'), uploadGalleryFields, createGallery)
 
 router.route('/:id')
   .get(getGalleryById)
-  .put(protect, authorize('admin', 'superadmin'), uploadGalleryFields, updateGallery)
-  .delete(protect, authorize('admin', 'superadmin'), deleteGallery)
+  .put(protect, authorize('faculty', 'admin', 'superadmin'), uploadGalleryFields, updateGallery)
+  .delete(protect, authorize('faculty', 'admin', 'superadmin'), deleteGallery)
+
+// Approval actions
+router.put('/:id/approve', protect, authorize('hod', 'hos', 'superadmin'), approveGallery)
+router.put('/:id/reject', protect, authorize('hod', 'hos', 'superadmin'), rejectGallery)
 
 export default router

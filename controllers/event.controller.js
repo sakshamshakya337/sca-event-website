@@ -4,6 +4,7 @@ import ApiError from '../utils/ApiError.js'
 import cloudinary from '../config/cloudinary.js'
 import { handleEventUpload } from '../config/multer.js'
 import mongoose from 'mongoose'
+import Department from '../models/Department.js'
 
 // Helper to find event by either ID or slug
 const findEventByIdOrSlug = async (identifier) => {
@@ -54,6 +55,12 @@ export const getAllEvents = async (req, res, next) => {
     } else if (req.user.role === 'student') {
       // Student can only see events they are assigned to
       filter.assignedStudents = req.user.id
+    } else if (req.user.role === 'hod') {
+      if (status === 'pending_hod') {
+        const Department = mongoose.model('Department')
+        const depts = await Department.find({ hodIds: req.user.id }).select('_id')
+        filter.departmentId = { $in: depts.map(d => d._id) }
+      }
     }
     // Admins and superadmins see all events
 
@@ -78,7 +85,7 @@ export const getApprovedEvents = async (req, res, next) => {
     today.setHours(0, 0, 0, 0)
 
     const events = await Event.find({ 
-      status: 'approved',
+      status: 'published',
       startDate: { $gte: today } // Only events on or after today
     })
       .sort({ startDate: 1, createdAt: -1 }) // Sort by upcoming date first, then latest created
@@ -95,7 +102,7 @@ export const getApprovedEvents = async (req, res, next) => {
 export const getAllPublicEvents = async (req, res, next) => {
   try {
     const events = await Event.find({ 
-      status: { $in: ['approved', 'completed'] }
+      status: { $in: ['published', 'completed'] }
     })
       .sort({ startDate: -1, createdAt: -1 }) // Sort by latest date first
       .select('title type startDate endDate time venue description imageUrl registerLink registrationNotRequired registrationOpen gallery externalImageUrls isImportant status slug')
@@ -113,7 +120,7 @@ export const getPublicEventById = async (req, res, next) => {
     const identifier = req.params.id
     const event = await findEventByIdOrSlug(identifier)
 
-    if (!event || !['approved', 'completed'].includes(event.status)) {
+    if (!event || !['published', 'completed'].includes(event.status)) {
       throw new ApiError(404, 'Event not found')
     }
 
@@ -259,12 +266,43 @@ export const createEvent = async (req, res, next) => {
       } catch { parsedExternalUrls = [] }
     }
 
+    // Fetch user to get department and hodId
+    const User = mongoose.model('User')
+    const userDoc = await User.findById(req.user.id).populate('departmentId')
+    
+    let initialStatus = 'draft' // or pending_admin if admin created it
+    let currentApprover = null
+    let departmentId = null
+    let departmentCode = ''
+
+    if (['admin', 'superadmin'].includes(req.user.role)) {
+      initialStatus = 'published'
+    } else if (req.user.role === 'faculty') {
+      if (!userDoc.departmentId) {
+        return next(new ApiError(400, 'You must be assigned to a department to create an event.'))
+      }
+      
+      departmentId = userDoc.departmentId._id
+      departmentCode = userDoc.departmentId.departmentCode
+      
+      if (!userDoc.departmentId.hodIds || userDoc.departmentId.hodIds.length === 0) {
+        return next(new ApiError(400, 'Your department does not have an assigned HOD. Please contact Admin.'))
+      }
+      
+      initialStatus = 'pending_hod'
+      // currentApprover is not strictly needed since any HOD can approve
+      currentApprover = null
+    }
+
     const eventData = {
       title, type, startDate, endDate, time, startTime, endTime, venue,
       expectedAudience: parsedAudience,
       description, registerLink,
       registrationNotRequired, registrationOpen, isImportant,
-      status: 'pending_admin',
+      status: initialStatus,
+      departmentId,
+      departmentCode,
+      currentApprover,
       eventType: req.body.eventType || 'regular',
       clubId: req.body.clubId || null,
       createdBy: req.user.id,
@@ -314,6 +352,31 @@ export const createEvent = async (req, res, next) => {
     console.log('Created event:', event)
     await event.populate('createdBy', 'firstName lastName')
     await event.populate('assignedFaculty', 'firstName lastName')
+
+    // Notify HOD if pending_hod
+    if (event.status === 'pending_hod' && event.currentApprover) {
+      try {
+        const hod = await User.findById(event.currentApprover)
+        if (hod) {
+          const hodEmail = hod.officialEmail || hod.personalEmail
+          if (hodEmail) {
+            const { sendApprovalStageEmail } = await import('../lib/emailService.js')
+            sendApprovalStageEmail({
+              to: hodEmail,
+              recipientName: `${hod.firstName} ${hod.lastName}`,
+              eventTitle: event.title,
+              eventDate: event.date || event.startDate,
+              submittedBy: `${event.createdBy?.firstName} ${event.createdBy?.lastName}`,
+              stage: 'Head of Department',
+              approvedByStage: 'Faculty',
+              approvalLink: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/hod`
+            }).catch(err => console.error('Email error:', err))
+          }
+        }
+      } catch (err) {
+        console.error('Failed to notify HOD:', err)
+      }
+    }
 
     res.status(201).json(new ApiResponse(201, event, 'Event created successfully'))
   } catch (error) {
@@ -375,11 +438,41 @@ export const updateEvent = async (req, res, next) => {
       ? parsedExternalUrls 
       : (event.externalImageUrls || [])
 
-    // Non-admin editing an approved event → revert to pending for re-approval
-    if (!['admin', 'superadmin'].includes(req.user.role) && event.status === 'approved') {
-      event.status     = 'pending_admin'
+    // Non-admin editing a published/pending event → revert to pending for re-approval
+    if (!['admin', 'superadmin'].includes(req.user.role) && ['published', 'pending_admin'].includes(event.status)) {
+      const User = mongoose.model('User')
+      const userDoc = await User.findById(req.user.id)
+      
+      event.status = 'pending_hod'
+      event.currentApprover = undefined
+      event.isPublished = false
       event.approvedBy = undefined
       event.approvedAt = undefined
+
+      // Notify HOD about re-approval
+      if (userDoc.hodId) {
+        try {
+          const hod = await User.findById(userDoc.hodId)
+          if (hod) {
+            const hodEmail = hod.officialEmail || hod.personalEmail
+            if (hodEmail) {
+              const { sendApprovalStageEmail } = await import('../lib/emailService.js')
+              sendApprovalStageEmail({
+                to: hodEmail,
+                recipientName: `${hod.firstName} ${hod.lastName}`,
+                eventTitle: event.title || 'Updated Event',
+                eventDate: event.date || event.startDate || new Date(),
+                submittedBy: `${userDoc.firstName} ${userDoc.lastName}`,
+                stage: 'Head of Department',
+                approvedByStage: 'Faculty (Update)',
+                approvalLink: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/hod`
+              }).catch(err => console.error('Email error:', err))
+            }
+          }
+        } catch (err) {
+          console.error('Failed to notify HOD on update:', err)
+        }
+      }
     }
 
     // Banner image
@@ -456,7 +549,7 @@ export const updateEvent = async (req, res, next) => {
   }
 }
 
-// Approve event (admin only) — accepts ID or slug
+// Approve event (HOD -> Admin -> Published)
 export const approveEvent = async (req, res, next) => {
   try {
     const identifier = req.params.id
@@ -465,46 +558,120 @@ export const approveEvent = async (req, res, next) => {
       throw new ApiError(404, 'Event not found')
     }
 
-    event.status = 'approved'
-    event.approvedBy = req.user.id
-    event.approvedAt = new Date()
+    const { remarks } = req.body
+    const userRole = req.user.role
 
-    await event.save()
-    await event.populate('createdBy', 'firstName lastName officialEmail personalEmail')
-    await event.populate('approvedBy', 'firstName lastName')
-    await event.populate('assignedFaculty', 'firstName lastName')
-    await event.populate('assignedStudents', 'firstName lastName')
-
-    // Send email notification to creator
-    if (event.createdBy) {
-      const recipientEmail = event.createdBy.officialEmail || event.createdBy.personalEmail
-      if (recipientEmail) {
-        const { sendMail } = await import('../utils/mailer.js')
-        const { eventApprovedTemplate } = await import('../utils/emailTemplates.js')
-        
-        const facultyName = `${event.createdBy.firstName} ${event.createdBy.lastName}`
-        const htmlContent = eventApprovedTemplate({
-          facultyName,
-          eventTitle: event.title,
-          slug: event.slug
-        })
-
-        // Send mail asynchronously in the background so it doesn't slow down the response
-        sendMail({
-          to: recipientEmail,
-          subject: `🎉 Event Approved: ${event.title}`,
-          html: htmlContent
-        }).catch(err => console.error('Failed to send event approval email:', err))
+    // HOD Approval Stage
+    if (event.status === 'pending_hod') {
+      let isAuthorized = false;
+      if (['superadmin', 'admin'].includes(userRole)) {
+        isAuthorized = true;
+      } else if (userRole === 'hod' && event.departmentId) {
+        const Department = mongoose.model('Department')
+        const dept = await Department.findById(event.departmentId)
+        if (dept && dept.hodIds && dept.hodIds.map(id => id.toString()).includes(req.user.id.toString())) {
+          isAuthorized = true;
+        }
       }
+      
+      if (!isAuthorized) {
+        throw new ApiError(403, 'Not authorized to approve at this stage. You must be an assigned HOD for this department.')
+      }
+      
+      event.status = 'pending_admin'
+      event.currentApprover = null // Now waiting for any admin
+      event.approvalChain.push({
+        stage: 'hod',
+        action: 'approved',
+        actionBy: req.user.id,
+        actionByName: `${req.user.firstName} ${req.user.lastName}`,
+        actionByRole: req.user.role,
+        remarks: remarks || ''
+      })
+      
+      await event.save()
+      
+      // Notify Admin
+      try {
+        const User = mongoose.model('User')
+        const admins = await User.find({ role: { $in: ['admin', 'superadmin'] } })
+        if (admins.length > 0) {
+          const { sendApprovalStageEmail } = await import('../lib/emailService.js')
+          await event.populate('createdBy', 'firstName lastName')
+          for (const admin of admins) {
+            const adminEmail = admin.officialEmail || admin.personalEmail
+            if (adminEmail) {
+              sendApprovalStageEmail({
+                to: adminEmail,
+                recipientName: `${admin.firstName} ${admin.lastName}`,
+                eventTitle: event.title,
+                eventDate: event.date || event.startDate,
+                submittedBy: `${event.createdBy?.firstName} ${event.createdBy?.lastName}`,
+                stage: 'Admin',
+                approvedByStage: 'HOD',
+                approvalLink: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/admin`
+              }).catch(err => console.error('Email error:', err))
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to notify admins:', err)
+      }
+
+      return res.status(200).json(new ApiResponse(200, event, 'Event approved by HOD successfully'))
+    }
+    
+    // Admin Approval Stage
+    if (event.status === 'pending_admin') {
+      if (!['admin', 'superadmin'].includes(userRole)) {
+        throw new ApiError(403, 'Not authorized to approve at this stage')
+      }
+
+      event.status = 'published'
+      event.isPublished = true
+      // NOTE: registrationOpen remains untouched, controlled independently.
+      
+      event.approvedBy = req.user.id
+      event.approvedAt = new Date()
+      event.currentApprover = null
+      
+      event.approvalChain.push({
+        stage: 'admin',
+        action: 'approved',
+        actionBy: req.user.id,
+        actionByName: `${req.user.firstName} ${req.user.lastName}`,
+        actionByRole: req.user.role,
+        remarks: remarks || ''
+      })
+
+      await event.save()
+      await event.populate('createdBy', 'firstName lastName officialEmail personalEmail')
+      
+      // Send notification to creator
+      if (event.createdBy) {
+        const recipientEmail = event.createdBy.officialEmail || event.createdBy.personalEmail
+        if (recipientEmail) {
+          const { sendFinalApprovalEmail } = await import('../lib/emailService.js')
+          sendFinalApprovalEmail({
+            to: recipientEmail,
+            recipientName: `${event.createdBy.firstName} ${event.createdBy.lastName}`,
+            eventTitle: event.title,
+            eventDate: event.date,
+            publicUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/events/${event.slug}`
+          }).catch(err => console.error('Email error:', err))
+        }
+      }
+
+      return res.status(200).json(new ApiResponse(200, event, 'Event published successfully'))
     }
 
-    res.status(200).json(new ApiResponse(200, event, 'Event approved successfully'))
+    throw new ApiError(400, 'Event is not pending approval')
   } catch (error) {
     next(error)
   }
 }
 
-// Reject event (admin only) — accepts ID or slug
+// Reject event
 export const rejectEvent = async (req, res, next) => {
   try {
     const identifier = req.params.id
@@ -514,38 +681,85 @@ export const rejectEvent = async (req, res, next) => {
     }
 
     const { reason } = req.body
+    const userRole = req.user.role
+    
+    let stage = ''
+    if (event.status === 'pending_hod') stage = 'hod'
+    else if (event.status === 'pending_admin') stage = 'admin'
+    else throw new ApiError(400, 'Event is not in a pending state')
+
+    // Auth check
+    if (stage === 'hod') {
+      let isAuthorized = false;
+      if (['superadmin', 'admin'].includes(userRole)) {
+        isAuthorized = true;
+      } else if (userRole === 'hod' && event.departmentId) {
+        const Department = mongoose.model('Department')
+        const dept = await Department.findById(event.departmentId)
+        if (dept && dept.hodIds && dept.hodIds.map(id => id.toString()).includes(req.user.id.toString())) {
+          isAuthorized = true;
+        }
+      }
+      if (!isAuthorized) {
+        throw new ApiError(403, 'Not authorized')
+      }
+    }
+    if (stage === 'admin' && !['admin', 'superadmin'].includes(userRole)) {
+      throw new ApiError(403, 'Not authorized')
+    }
+
     event.status = 'rejected'
     event.rejectedReason = reason
+    event.currentApprover = null
+    
+    event.approvalChain.push({
+      stage,
+      action: 'rejected',
+      actionBy: req.user.id,
+      actionByName: `${req.user.firstName} ${req.user.lastName}`,
+      actionByRole: req.user.role,
+      remarks: reason || ''
+    })
 
     await event.save()
     await event.populate('createdBy', 'firstName lastName officialEmail personalEmail')
-    await event.populate('assignedFaculty', 'firstName lastName')
-    await event.populate('assignedStudents', 'firstName lastName')
 
-    // Send email notification to creator
+    // Send notification
     if (event.createdBy) {
       const recipientEmail = event.createdBy.officialEmail || event.createdBy.personalEmail
       if (recipientEmail) {
-        const { sendMail } = await import('../utils/mailer.js')
-        const { eventRejectedTemplate } = await import('../utils/emailTemplates.js')
-        
-        const facultyName = `${event.createdBy.firstName} ${event.createdBy.lastName}`
-        const htmlContent = eventRejectedTemplate({
-          facultyName,
-          eventTitle: event.title,
-          reason
-        })
-
-        // Send mail asynchronously in the background so it doesn't slow down the response
-        sendMail({
+        const { sendRejectionStageEmail } = await import('../lib/emailService.js')
+        sendRejectionStageEmail({
           to: recipientEmail,
-          subject: `⚠️ Event Proposal Update: ${event.title}`,
-          html: htmlContent
-        }).catch(err => console.error('Failed to send event rejection email:', err))
+          recipientName: `${event.createdBy.firstName} ${event.createdBy.lastName}`,
+          eventTitle: event.title,
+          rejectedBy: stage,
+          remarks: reason
+        }).catch(err => console.error('Email error:', err))
       }
     }
 
     res.status(200).json(new ApiResponse(200, event, 'Event rejected successfully'))
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Toggle Registration (Admin only)
+export const toggleRegistration = async (req, res, next) => {
+  try {
+    if (!['admin', 'superadmin'].includes(req.user.role)) {
+      throw new ApiError(403, 'Only admins can toggle registration')
+    }
+    
+    const identifier = req.params.id
+    const event = await findEventByIdOrSlug(identifier)
+    if (!event) throw new ApiError(404, 'Event not found')
+    
+    event.registrationOpen = !event.registrationOpen
+    await event.save()
+    
+    res.status(200).json(new ApiResponse(200, event, `Registration is now ${event.registrationOpen ? 'open' : 'closed'}`))
   } catch (error) {
     next(error)
   }
@@ -589,8 +803,8 @@ export const getEventStats = async (req, res, next) => {
     }
 
     const totalEvents = await Event.countDocuments(statsFilter)
-    const pendingEvents = await Event.countDocuments({ ...statsFilter, status: { $in: ['pending_admin', 'pending_dean', 'pending_hos'] } })
-    const approvedEvents = await Event.countDocuments({ ...statsFilter, status: 'approved' })
+    const pendingEvents = await Event.countDocuments({ ...statsFilter, status: { $in: ['pending_hod', 'pending_admin'] } })
+    const approvedEvents = await Event.countDocuments({ ...statsFilter, status: 'published' })
     const completedEvents = await Event.countDocuments({ ...statsFilter, status: 'completed' })
 
     res.status(200).json(new ApiResponse(200, { totalEvents, pendingEvents, approvedEvents, completedEvents }, 'Stats fetched successfully'))

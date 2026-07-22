@@ -268,11 +268,6 @@ export default function PublicLayout({ children }) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Ensure dark mode is always disabled
-  useEffect(() => {
-    document.documentElement.classList.remove('dark')
-  }, [])
-
   return (
     <div className="bg-background text-on-background font-sans min-h-screen flex flex-col">
       <PublicNavbar scrolled={scrolled} />

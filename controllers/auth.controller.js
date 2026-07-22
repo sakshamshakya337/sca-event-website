@@ -21,8 +21,8 @@ const MAX_LOGIN_ATTEMPTS = 5
 const LOCK_DURATION_MS = 15 * 60 * 1000 // 15 minutes
 
 // ── Token ─────────────────────────────────────────────────────────────────────
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, getJwtSecret(), { expiresIn: '7d' })
+const generateToken = (userId, role) => {
+  return jwt.sign({ id: userId, role }, getJwtSecret(), { expiresIn: '7d' })
 }
 
 // ── Validation Schemas ────────────────────────────────────────────────────────
@@ -142,7 +142,7 @@ export const signup = async (req, res, next) => {
     }
 
     const user = await User.create(userData)
-    const token = generateToken(user._id)
+    const token = generateToken(user._id, user.role)
 
     const userResponse = user.toObject()
     delete userResponse.password
@@ -223,7 +223,7 @@ export const login = async (req, res, next) => {
     user.lockUntil = undefined
     await user.save()
 
-    const token = generateToken(user._id)
+    const token = generateToken(user._id, user.role)
     const userResponse = user.toObject()
     delete userResponse.password
 
@@ -241,7 +241,7 @@ export const changePassword = async (req, res, next) => {
     }
 
     const { newPassword } = value
-    const user = await User.findById(req.user.id).select('+password')
+    const user = await User.findById(req.user._id).select('+password')
     if (!user) throw new ApiError(404, 'User not found')
 
     user.password = newPassword
@@ -249,7 +249,7 @@ export const changePassword = async (req, res, next) => {
     user.passwordChangedAt = new Date()
     await user.save()
 
-    const token = generateToken(user._id)
+    const token = generateToken(user._id, user.role)
     const userResponse = user.toObject()
     delete userResponse.password
 
@@ -261,9 +261,8 @@ export const changePassword = async (req, res, next) => {
 
 export const getCurrentUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id)
-    if (!user) throw new ApiError(404, 'User not found')
-    res.status(200).json(new ApiResponse(200, user, 'User fetched successfully'))
+    // req.user is already fully loaded by the protect middleware — no extra DB query needed
+    res.status(200).json(new ApiResponse(200, req.user, 'User fetched successfully'))
   } catch (error) {
     next(error)
   }
@@ -273,14 +272,14 @@ export const deleteOwnAccount = async (req, res, next) => {
   try {
     // Only allow deletion of accounts that have NOT yet been verified
     // (i.e. freshly created during signup flow that failed mid-way)
-    const user = await User.findById(req.user.id)
+    const user = await User.findById(req.user._id)
     if (!user) throw new ApiError(404, 'User not found')
 
     if (user.isVerified) {
       throw new ApiError(403, 'Cannot delete a verified account via this endpoint.')
     }
 
-    await User.findByIdAndDelete(req.user.id)
+    await User.findByIdAndDelete(req.user._id)
     res.status(200).json(new ApiResponse(200, null, 'Account deleted.'))
   } catch (error) {
     next(error)
@@ -494,7 +493,7 @@ export const setSecurityQuestion = async (req, res, next) => {
     const { error, value } = schema.validate(req.body, { stripUnknown: true })
     if (error) throw new ApiError(400, error.details[0].message)
 
-    const user = await User.findById(req.user.id)
+    const user = await User.findById(req.user._id)
     if (!user) throw new ApiError(404, 'User not found')
 
     user.securityQuestion = value.question.trim()

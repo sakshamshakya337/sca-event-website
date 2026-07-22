@@ -7,13 +7,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: [
       'student',
-      'club_president',      // NEW — student who leads a club
-      'club_vice_president', // NEW — student VP of a club
+      'club_president',      // student who leads a club
+      'club_vice_president', // student VP of a club
       'faculty',
-      'faculty_coordinator', // NEW — faculty who coordinates a club
+      'faculty_coordinator', // faculty who coordinates a club
+      'hod',                 // Department Head
       'admin',
-      'dean',                // NEW — School Dean (Dr. Rishi Chopra)
-      'hos',                 // NEW — Head of School
+      'dean',                // School Dean
+      'hos',                 // Head of School
       'superadmin',
     ],
     required: true
@@ -43,7 +44,10 @@ const userSchema = new mongoose.Schema({
 
   // Faculty-only fields
   employeeId: { type: String, trim: true, uppercase: true, sparse: true },
+  departmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Department', default: null },
   department: String,
+  departmentCode: { type: String, trim: true, uppercase: true }, // e.g., CSE, ME
+  hodId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   designation: { type: String, default: '' },
   coordinatorRole: { type: String, trim: true },
   clubId: { type: mongoose.Schema.Types.ObjectId, ref: 'Club', default: null },

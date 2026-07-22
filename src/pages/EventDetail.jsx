@@ -12,6 +12,7 @@ import useTaskStore from '../store/taskStore'
 import useAuthStore from '../store/authStore'
 import api from '../config/axios'
 import toast from 'react-hot-toast'
+import { normalizeEventStatus } from '../utils/eventUtils'
 
 export default function EventDetail() {
   const { id } = useParams()
@@ -261,6 +262,17 @@ export default function EventDetail() {
     }
   }
 
+  // ── Registration Toggle (Admin) ──────────────────────────────────────────
+  const handleToggleRegistration = async () => {
+    try {
+      await api.patch(`/events/${id}/registration-toggle`, { open: !event.registrationOpen })
+      await fetchEventById(id)
+      toast.success('Registration status updated')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update registration status')
+    }
+  }
+
   // ── Task handlers ──────────────────────────────────────────────────────────
   const handleAddTask = async (e) => {
     e.preventDefault()
@@ -309,7 +321,7 @@ export default function EventDetail() {
             <ChevronLeft size={20} /> Back
           </button>
           <div className="flex items-center gap-2 flex-wrap">
-            {canManage && event?.status === 'approved' && (
+            {canManage && normalizeEventStatus(event?.status) === 'approved' && (
               <button
                 onClick={() => navigate(isAdmin ? `/admin/events/${id}/registrations` : `/faculty/events/${id}/registrations`)}
                 className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1.5 shadow-sm"
@@ -351,7 +363,7 @@ export default function EventDetail() {
             <div className="flex flex-col items-end gap-2 shrink-0">
               {event.isImportant && <Star className="text-amber-500" size={20} fill="currentColor" />}
               <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${
-                event.status === 'approved' ? 'bg-green-100 text-green-700' :
+                normalizeEventStatus(event.status) === 'approved' ? 'bg-green-100 text-green-700' :
                 event.status === 'pending' ? 'bg-amber-100 text-amber-700' :
                 event.status === 'rejected' ? 'bg-red-100 text-red-700' :
                 'bg-purple-100 text-purple-700'
@@ -377,6 +389,24 @@ export default function EventDetail() {
             </div>
           )}
 
+          {/* Admin Controls */}
+          {isAdmin && (
+            <div className="mt-5 pt-5 border-t border-outline-variant space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={event.registrationOpen}
+                  onChange={handleToggleRegistration}
+                  className="w-5 h-5 accent-primary rounded"
+                />
+                <div>
+                  <span className="text-sm font-medium text-on-surface block">Registrations Open</span>
+                  <span className="text-xs text-on-surface-variant">Toggle whether students can currently register for this event.</span>
+                </div>
+              </label>
+            </div>
+          )}
+
           {/* Complete event checkbox (for admin/faculty) */}
           {canManage && event.status !== 'completed' && (
             <div className="mt-5 pt-5 border-t border-outline-variant">
@@ -384,7 +414,7 @@ export default function EventDetail() {
                 <input
                   type="checkbox"
                   onChange={handleCompleteEvent}
-                  className="w-5 h-5 accent-primary"
+                  className="w-5 h-5 accent-primary rounded"
                 />
                 <span className="text-sm font-medium text-on-surface">Mark event as completed</span>
               </label>

@@ -1,6 +1,5 @@
 import rateLimit from 'express-rate-limit'
 import jwt from 'jsonwebtoken'
-import User from '../models/User.js'
 
 const baseOptions = {
   standardHeaders: true,  // Return rate limit info in RateLimit-* headers
@@ -13,29 +12,32 @@ const baseOptions = {
   }
 }
 
-const checkSkip = async (req) => {
-  try {
-    let token;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
-      token = req.headers.authorization.split(' ')[1];
-    }
-    if (!token) return false;
-    
-    const secret = process.env.JWT_SECRET;
-    if (!secret) return false;
-
-    const decoded = jwt.verify(token, secret);
-    if (!decoded || !decoded.id) return false;
-    
-    const user = await User.findById(decoded.id).select('role').lean();
-    if (user && ['admin', 'superadmin', 'dean', 'hos'].includes(user.role)) {
-      return true; // Skip rate limiting for these roles
-    }
-  } catch (error) {
-    return false;
+const checkSkip = (req) => {
+  // Disable rate limiting for development/localhost
+  if (process.env.NODE_ENV !== 'production') {
+    return true
   }
-  return false;
-};
+
+  try {
+    let token
+    if (req.headers.authorization?.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1]
+    }
+    if (!token) return false
+
+    const secret = process.env.JWT_SECRET
+    if (!secret) return false
+
+    // Read role from JWT payload — no DB query needed
+    const decoded = jwt.verify(token, secret)
+    if (decoded?.role && ['admin', 'superadmin', 'dean', 'hos'].includes(decoded.role)) {
+      return true
+    }
+  } catch {
+    return false
+  }
+  return false
+}
 
 // General API — 100 requests per 15 minutes per IP
 export const generalLimiter = rateLimit({
@@ -51,6 +53,7 @@ export const authLimiter = rateLimit({
   ...baseOptions,
   windowMs: 15 * 60 * 1000,
   max: 10,
+  skip: checkSkip,
   skipSuccessfulRequests: true, // Don't count successful logins
   message: { success: false, message: 'Too many login attempts. Please wait 15 minutes.' },
 })
@@ -60,6 +63,7 @@ export const signupLimiter = rateLimit({
   ...baseOptions,
   windowMs: 60 * 60 * 1000,
   max: 5,
+  skip: checkSkip,
   message: { success: false, message: 'Too many signup attempts from this IP.' },
 })
 
@@ -68,6 +72,7 @@ export const contactLimiter = rateLimit({
   ...baseOptions,
   windowMs: 60 * 60 * 1000,
   max: 3,
+  skip: checkSkip,
   message: { success: false, message: 'Too many contact submissions. Please wait an hour.' },
 })
 

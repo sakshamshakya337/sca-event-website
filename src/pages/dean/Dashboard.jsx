@@ -16,30 +16,12 @@ export default function DeanDashboard() {
   const [viewMode, setViewMode] = useState('calendar')
 
   useEffect(() => {
-    fetchPending()
     fetchEvents()
+    setLoading(false)
   }, [fetchEvents])
 
-  const fetchPending = async () => {
-    try {
-      const res = await axiosInstance.get('/events/pending')
-      setEvents(res.data.data)
-    } catch (err) {
-      toast.error('Failed to load pending events')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleAction = async (eventId, action, remarks = '') => {
-    try {
-      await axiosInstance.post('/events/approve', { eventId, action, remarks })
-      toast.success(`Event ${action}d successfully`)
-      fetchPending()
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Action failed')
-    }
-  }
+  // Dean currently serves as an overview since HOS/Admin handle main approvals
+  const pendingEvents = allEvents.filter(e => e.status === 'pending_admin' || e.status === 'pending_hos')
 
   return (
     <PageWrapper>
@@ -49,7 +31,7 @@ export default function DeanDashboard() {
           <div>
             <h1 className="text-2xl font-bold text-on-surface">Dean Dashboard</h1>
             <p className="text-on-surface-variant mt-1">
-              Events pending your approval before forwarding to Head of School
+              Overview of events and club activities across the school
             </p>
           </div>
           <button
@@ -64,14 +46,14 @@ export default function DeanDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-surface-card rounded-card border border-outline-variant p-5">
-            <div className="text-3xl font-bold text-[#E87722]">{events.length}</div>
-            <div className="text-sm text-on-surface-variant mt-1">Awaiting Your Review</div>
+            <div className="text-3xl font-bold text-[#E87722]">{pendingEvents.length}</div>
+            <div className="text-sm text-on-surface-variant mt-1">Events Pending Approval</div>
           </div>
           <div className="bg-surface-card rounded-card border border-outline-variant p-5">
             <div className="text-3xl font-bold text-green-600">
-              {events.filter(e => e.adminApproval?.status === 'approved').length}
+              {allEvents.filter(e => e.status === 'published').length}
             </div>
-            <div className="text-sm text-on-surface-variant mt-1">Admin Approved</div>
+            <div className="text-sm text-on-surface-variant mt-1">Live Events</div>
           </div>
           <div className="bg-surface-card rounded-card border border-outline-variant p-5">
             <div className="text-3xl font-bold text-blue-600">
@@ -148,7 +130,7 @@ export default function DeanDashboard() {
 
         {/* Pending approvals section title */}
         <div className="mb-4">
-          <h2 className="text-lg font-bold text-on-surface">Awaiting Your Approval</h2>
+          <h2 className="text-lg font-bold text-on-surface">Pending Events</h2>
         </div>
 
         {/* Events List */}
@@ -158,19 +140,18 @@ export default function DeanDashboard() {
               <div key={i} className="h-24 bg-surface-container animate-pulse rounded-card" />
             ))}
           </div>
-        ) : events.length === 0 ? (
+        ) : pendingEvents.length === 0 ? (
           <div className="bg-surface-card rounded-card border border-outline-variant p-16 text-center">
             <CheckCircle size={48} className="text-green-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-on-surface">All caught up!</h3>
-            <p className="text-on-surface-variant mt-2">No events pending your approval.</p>
+            <p className="text-on-surface-variant mt-2">No events are currently pending approval.</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {events.map(event => (
+            {pendingEvents.map(event => (
               <ApprovalEventCard
                 key={event._id}
                 event={event}
-                onAction={handleAction}
               />
             ))}
           </div>
@@ -180,29 +161,9 @@ export default function DeanDashboard() {
   )
 }
 
-// ── Approval Event Card ────────────────────────────────────────────────────────
-function ApprovalEventCard({ event, onAction }) {
-  const [showForm, setShowForm] = useState(null) // null | 'approve' | 'reject'
-  const [remarks, setRemarks] = useState('')
-  const [processing, setProcessing] = useState(false)
-
-  const handleApprove = async () => {
-    setProcessing(true)
-    await onAction(event._id, 'approve', remarks)
-    setProcessing(false)
-    setShowForm(null)
-  }
-
-  const handleReject = async () => {
-    if (!remarks.trim()) {
-      alert('Please provide rejection remarks')
-      return
-    }
-    setProcessing(true)
-    await onAction(event._id, 'reject', remarks)
-    setProcessing(false)
-    setShowForm(null)
-  }
+// ── ReadOnly Event Card ────────────────────────────────────────────────────────
+function ApprovalEventCard({ event }) {
+  const navigate = useNavigate()
 
   return (
     <div className="bg-surface-card rounded-card border border-outline-variant p-6">
@@ -222,7 +183,7 @@ function ApprovalEventCard({ event, onAction }) {
           <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-on-surface-variant">
             <span className="flex items-center gap-1">
               <CalendarIcon size={14} />
-              {new Date(event.date).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
+              {new Date(event.startDate || event.date).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
             </span>
             <span>📍 {event.venue}</span>
             <span>👤 {event.createdBy?.firstName} {event.createdBy?.lastName}</span>
@@ -232,86 +193,25 @@ function ApprovalEventCard({ event, onAction }) {
           <div className="flex flex-wrap items-center gap-2 mt-3">
             <StageChip label="Faculty" done />
             <div className="w-8 h-px bg-green-400 hidden sm:block" />
-            <StageChip label="Admin" done />
-            <div className="w-8 h-px bg-[#E87722] hidden sm:block" />
-            <StageChip label="Dean" active />
+            <StageChip label="HOD" done={event.status === 'pending_admin' || event.status === 'published'} active={event.status === 'pending_hod'} />
             <div className="w-8 h-px bg-slate-200 hidden sm:block" />
-            <StageChip label="HOS" />
+            <StageChip label="Admin" done={event.status === 'published'} active={event.status === 'pending_admin'} />
+            <div className="w-8 h-px bg-slate-200 hidden sm:block" />
+            <StageChip label="Published" done={event.status === 'published'} />
           </div>
         </div>
 
         {/* Action buttons */}
         <div className="flex items-center gap-2 shrink-0 self-end md:self-start">
-          {!showForm ? (
-            <>
-              <button
-                onClick={() => { setShowForm('reject'); setRemarks('') }}
-                disabled={processing}
-                className="flex items-center gap-1.5 px-4 py-2 border border-red-300 text-red-600 rounded-btn text-sm font-medium hover:bg-red-50 disabled:opacity-50 transition-colors"
-              >
-                <XCircle size={16} />
-                Reject
-              </button>
-              <button
-                onClick={() => { setShowForm('approve'); setRemarks('') }}
-                disabled={processing}
-                className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-btn text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors"
-              >
-                <CheckCircle size={16} />
-                Approve → HOS
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => setShowForm(null)}
-              className="text-sm text-on-surface-variant hover:text-on-surface"
-            >
-              Cancel
-            </button>
-          )}
+          <button
+            onClick={() => navigate(`/admin/events/${event._id}`)}
+            className="flex items-center gap-1.5 px-4 py-2 bg-surface-container text-on-surface rounded-btn text-sm font-semibold hover:bg-outline-variant transition-colors"
+          >
+            <ChevronRight size={16} />
+            View Event
+          </button>
         </div>
       </div>
-
-      {/* Remarks Form */}
-      {showForm && (
-        <div className="mt-4 pt-4 border-t border-outline-variant">
-          <label className="block text-sm font-medium text-on-surface mb-2">
-            {showForm === 'approve' ? 'Approval Remarks (Optional)' : 'Rejection Remarks'} <span className={showForm === 'reject' ? 'text-red-500' : 'text-slate-400'}>{showForm === 'reject' ? '*' : '(optional)'}</span>
-          </label>
-          <textarea
-            value={remarks}
-            onChange={e => setRemarks(e.target.value)}
-            rows={3}
-            placeholder={showForm === 'approve' ? 'Enter approval comments (e.g. Approved under guidelines)...' : 'Provide clear reason for rejection...'}
-            className="w-full px-3 py-2 border border-outline-variant rounded-lg text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-          />
-          <div className="flex gap-2 mt-2 justify-end">
-            <button
-              onClick={() => setShowForm(null)}
-              className="px-4 py-2 text-sm text-on-surface-variant border border-outline-variant rounded-btn hover:bg-surface-container"
-            >
-              Cancel
-            </button>
-            {showForm === 'approve' ? (
-              <button
-                onClick={handleApprove}
-                disabled={processing}
-                className="px-4 py-2 text-sm font-semibold bg-green-600 text-white rounded-btn hover:bg-green-700 disabled:opacity-50"
-              >
-                {processing ? 'Approving...' : 'Confirm Approval'}
-              </button>
-            ) : (
-              <button
-                onClick={handleReject}
-                disabled={processing || !remarks.trim()}
-                className="px-4 py-2 text-sm font-semibold bg-red-600 text-white rounded-btn hover:bg-red-700 disabled:opacity-50"
-              >
-                {processing ? 'Rejecting...' : 'Confirm Rejection'}
-              </button>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

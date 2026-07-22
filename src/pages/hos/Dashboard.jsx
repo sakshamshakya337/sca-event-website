@@ -22,19 +22,19 @@ export default function HOSDashboard() {
 
   const fetchPending = async () => {
     try {
-      const res = await axiosInstance.get('/events/pending')
-      setEvents(res.data.data)
+      const res = await axiosInstance.get('/galleries?status=pending_hos')
+      setEvents(res.data.data?.galleries || res.data.data || [])
     } catch (err) {
-      toast.error('Failed to load pending events')
+      toast.error('Failed to load pending gallery reports')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleAction = async (eventId, action, remarks = '') => {
+  const handleAction = async (galleryId, action, remarks = '') => {
     try {
-      await axiosInstance.post('/events/approve', { eventId, action, remarks })
-      toast.success(`Event ${action}d successfully`)
+      await axiosInstance.put(`/galleries/${galleryId}/${action}`, { remarks, reason: remarks })
+      toast.success(`Gallery ${action}d successfully`)
       fetchPending()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Action failed')
@@ -49,35 +49,28 @@ export default function HOSDashboard() {
           <div>
             <h1 className="text-2xl font-bold text-on-surface">Head of School Dashboard</h1>
             <p className="text-on-surface-variant mt-1">
-              Events pending your final approval to go live
+              Gallery Reports pending your final approval to be published
             </p>
           </div>
           <button
-            onClick={() => navigate('/faculty/events/create')}
+            onClick={() => navigate('/faculty/gallery')}
             className="flex items-center gap-2 bg-[#E87722] text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#E87722]/90 shadow-sm transition-all self-start sm:self-auto shrink-0"
           >
             <Plus size={16} />
-            Create New Event
+            Manage Galleries
           </button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="bg-surface-card rounded-card border border-outline-variant p-5">
             <div className="text-3xl font-bold text-[#E87722]">{events.length}</div>
             <div className="text-sm text-on-surface-variant mt-1">Awaiting Your Review</div>
           </div>
           <div className="bg-surface-card rounded-card border border-outline-variant p-5">
             <div className="text-3xl font-bold text-green-600">
-              {events.filter(e => e.deanApproval?.status === 'approved').length}
+              {allEvents.length}
             </div>
-            <div className="text-sm text-on-surface-variant mt-1">Dean Approved</div>
-          </div>
-          <div className="bg-surface-card rounded-card border border-outline-variant p-5">
-            <div className="text-3xl font-bold text-blue-600">
-              {events.filter(e => e.eventType === 'club').length}
-            </div>
-            <div className="text-sm text-on-surface-variant mt-1">Club Events</div>
+            <div className="text-sm text-on-surface-variant mt-1">Total Events</div>
           </div>
         </div>
 
@@ -162,7 +155,7 @@ export default function HOSDashboard() {
           <div className="bg-surface-card rounded-card border border-outline-variant p-16 text-center">
             <CheckCircle size={48} className="text-green-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-on-surface">All caught up!</h3>
-            <p className="text-on-surface-variant mt-2">No events pending your approval.</p>
+            <p className="text-on-surface-variant mt-2">No galleries pending your approval.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -222,21 +215,20 @@ function ApprovalEventCard({ event, onAction }) {
           <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-on-surface-variant">
             <span className="flex items-center gap-1">
               <CalendarIcon size={14} />
-              {new Date(event.date).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
+              {new Date(event.startDate).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
             </span>
-            <span>📍 {event.venue}</span>
-            <span>👤 {event.createdBy?.firstName} {event.createdBy?.lastName}</span>
+            <span>👤 {event.faculty?.firstName} {event.faculty?.lastName}</span>
           </div>
 
           {/* Approval chain progress */}
           <div className="flex flex-wrap items-center gap-2 mt-3">
             <StageChip label="Faculty" done />
             <div className="w-8 h-px bg-green-400 hidden sm:block" />
-            <StageChip label="Admin" done />
-            <div className="w-8 h-px bg-green-400 hidden sm:block" />
-            <StageChip label="Dean" done />
+            <StageChip label="HOD" done />
             <div className="w-8 h-px bg-[#E87722] hidden sm:block" />
             <StageChip label="HOS" active />
+            <div className="w-8 h-px bg-slate-200 hidden sm:block" />
+            <StageChip label="Published" />
           </div>
         </div>
 

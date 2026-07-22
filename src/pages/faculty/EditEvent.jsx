@@ -8,7 +8,7 @@ import PageWrapper from '../../components/layout/PageWrapper'
 import api from '../../config/axios'
 import toast from 'react-hot-toast'
 import useAuthStore from '../../store/authStore'
-
+import { normalizeEventStatus } from '../../utils/eventUtils'
 // ── Toggle switch ────────────────────────────────────────────────────────────
 function Toggle({ checked, onChange, colorOn = 'bg-secondary' }) {
   return (
@@ -171,7 +171,7 @@ export default function EditEvent() {
     )
   }
 
-  const isApproved     = eventData.status === 'approved'
+  const isApproved     = normalizeEventStatus(eventData.status) === 'approved'
   const canViewRegs    = ['admin', 'superadmin', 'faculty'].includes(user?.role)
   const base           = ['admin', 'superadmin'].includes(user?.role) ? '/admin' : '/faculty'
   const existingGallery = (eventData.gallery || []).filter(g => !removeIds.includes(g.publicId))

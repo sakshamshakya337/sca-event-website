@@ -60,58 +60,6 @@
     --color-inverse-primary: #FFB68B;
   }
 
-  .dark {
-    /* Dark mode colors - Academic Elite theme variant */
-    --color-background: #141210;
-    --color-on-background: #E8E1DC;
-    --color-surface: #141210;
-    --color-surface-bright: #1E1B18;
-    --color-surface-card: #1E1B18;
-    --color-surface-sidebar: #262320;
-    --color-surface-dim: #33302D;
-    --color-surface-container: #262320;
-    --color-surface-container-lowest: #0D0B0A;
-    --color-surface-container-low: #1E1B18;
-    --color-surface-container-high: #33302D;
-    --color-surface-container-highest: #3E3B38;
-    --color-surface-variant: #4F463D;
-    --color-surface-tint: #FFB68B;
-    --color-primary: #FFB68B;
-    --color-primary-fixed: #FFDBC8;
-    --color-primary-fixed-dim: #FFB68B;
-    --color-primary-container: #E87722;
-    --color-secondary: #ADC8F4;
-    --color-secondary-fixed: #D5E3FF;
-    --color-secondary-fixed-dim: #ADC8F4;
-    --color-secondary-container: #455F86;
-    --color-tertiary: #ADC8F5;
-    --color-tertiary-fixed: #D5E3FF;
-    --color-tertiary-fixed-dim: #ADC8F5;
-    --color-tertiary-container: #455F87;
-    --color-error: #FFB4A9;
-    --color-error-container: #93000A;
-    --color-outline: #9A8C80;
-    --color-outline-variant: #4F463D;
-    --color-on-primary: #512500;
-    --color-on-primary-fixed: #321300;
-    --color-on-primary-fixed-variant: #743400;
-    --color-on-primary-container: #FFDBC8;
-    --color-on-secondary: #163354;
-    --color-on-secondary-fixed: #001C3B;
-    --color-on-secondary-fixed-variant: #2D486D;
-    --color-on-secondary-container: #D5E3FF;
-    --color-on-tertiary: #163354;
-    --color-on-tertiary-fixed: #001C3B;
-    --color-on-tertiary-fixed-variant: #2D486D;
-    --color-on-tertiary-container: #D5E3FF;
-    --color-on-error: #690005;
-    --color-on-error-container: #FFDAD6;
-    --color-on-surface: #E8E1DC;
-    --color-on-surface-variant: #CCC0B6;
-    --color-inverse-surface: #E8E1DC;
-    --color-inverse-on-surface: #33302D;
-    --color-inverse-primary: #994700;
-  }
 
   body {
     @apply font-sans antialiased;

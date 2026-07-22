@@ -47,10 +47,9 @@ const eventSchema = new mongoose.Schema({
     type: String,
     enum: [
       'draft',              // saved but not submitted
-      'pending_admin',      // submitted by faculty/coordinator, waiting for Admin
-      'pending_dean',       // Admin approved, waiting for Dean
-      'pending_hos',        // Dean approved, waiting for HOS
-      'approved',           // HOS approved — EVENT IS LIVE, registration opens
+      'pending_hod',        // waiting for HOD approval
+      'pending_admin',      // waiting for Admin approval
+      'published',          // Approved by admin — EVENT IS LIVE on public portal
       'rejected',           // rejected at any stage
       'completed',          // event has happened
       'cancelled',          // cancelled after approval
@@ -71,7 +70,7 @@ const eventSchema = new mongoose.Schema({
   // Approval chain audit trail — every approval/rejection recorded
   approvalChain: [
     {
-      stage:      { type: String, enum: ['admin', 'dean', 'hos'] },
+      stage:      { type: String, enum: ['hod', 'admin'] },
       action:     { type: String, enum: ['approved', 'rejected'] },
       actionBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       actionByName: { type: String },
@@ -81,34 +80,18 @@ const eventSchema = new mongoose.Schema({
     }
   ],
 
-  // Stage-specific approval tracking
-  adminApproval: {
-    status:     { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    approvedAt: { type: Date, default: null },
-    remarks:    { type: String, default: '' },
-  },
-  deanApproval: {
-    status:     { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    approvedAt: { type: Date, default: null },
-    remarks:    { type: String, default: '' },
-  },
-  hosApproval: {
-    status:     { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    approvedAt: { type: Date, default: null },
-    remarks:    { type: String, default: '' },
-  },
+  // New HOD workflow mapping
+  departmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Department', default: null },
+  departmentCode: { type: String, trim: true, uppercase: true },
+  currentApprover: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
 
-  // Registration — only opens after HOS approves
-  registrationEnabled: { type: Boolean, default: false },
+  // Registration fields
   registrationFee:     { type: Number, default: 0 },       // 0 = free
   registrationDeadline: { type: Date, default: null },
   maxParticipants:     { type: Number, default: null },
 
-  // Public visibility — only true after HOS approves
-  isPublic: { type: Boolean, default: false },
+  // Public visibility — true when Admin approves (replaces old isPublic)
+  isPublished: { type: Boolean, default: false },
 
   createdBy:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   approvedBy:     { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -158,7 +141,7 @@ eventSchema.pre('save', async function(next) {
 
 eventSchema.index({ status: 1, startDate: 1 })
 eventSchema.index({ createdBy: 1 })
-eventSchema.index({ status: 1, isPublic: 1 })
+eventSchema.index({ status: 1, isPublished: 1 })
 eventSchema.index({ clubId: 1 })
 eventSchema.index({ createdBy: 1, status: 1 })
 

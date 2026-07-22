@@ -3,6 +3,7 @@ import PageWrapper from '../../components/layout/PageWrapper'
 import { Plus, Image as ImageIcon, Trash2, X, UploadCloud } from 'lucide-react'
 import api from '../../config/axios'
 import toast from 'react-hot-toast'
+import TiptapEditor from '../../components/TiptapEditor'
 
 export default function GalleryManagement() {
   const [galleries, setGalleries] = useState([])
@@ -15,7 +16,7 @@ export default function GalleryManagement() {
 
   // Form State
   const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
+  const [content, setContent] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [bannerFile, setBannerFile] = useState(null)
@@ -29,7 +30,7 @@ export default function GalleryManagement() {
   const fetchGalleries = async () => {
     setIsLoading(true)
     try {
-      const res = await api.get(`/galleries?page=${currentPage}&limit=9`)
+      const res = await api.get(`/galleries?all=true&page=${currentPage}&limit=9`)
       setGalleries(res.data.data.galleries)
       setTotalPages(res.data.data.pagination.pages)
     } catch (error) {
@@ -70,7 +71,7 @@ export default function GalleryManagement() {
 
   const resetForm = () => {
     setTitle('')
-    setDescription('')
+    setContent('')
     setStartDate('')
     setEndDate('')
     setBannerFile(null)
@@ -83,7 +84,7 @@ export default function GalleryManagement() {
   const handleEdit = (gallery) => {
     setEditingGalleryId(gallery._id)
     setTitle(gallery.title)
-    setDescription(gallery.description)
+    setContent(gallery.content || '')
     setStartDate(gallery.startDate ? new Date(gallery.startDate).toISOString().split('T')[0] : '')
     setEndDate(gallery.endDate ? new Date(gallery.endDate).toISOString().split('T')[0] : '')
     setBannerPreview(gallery.bannerImage)
@@ -98,7 +99,7 @@ export default function GalleryManagement() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!title || !description || !startDate || !endDate || (!bannerFile && !bannerPreview)) {
+    if (!title || !content || !startDate || !endDate || (!bannerFile && !bannerPreview)) {
       toast.error('Please fill all required fields and ensure a banner image is present')
       return
     }
@@ -107,7 +108,7 @@ export default function GalleryManagement() {
     try {
       const formData = new FormData()
       formData.append('title', title)
-      formData.append('description', description)
+      formData.append('content', content)
       formData.append('startDate', startDate)
       formData.append('endDate', endDate)
       if (bannerFile) {
@@ -193,13 +194,29 @@ export default function GalleryManagement() {
                 <div key={gallery._id} className="bg-surface rounded-2xl border border-outline-variant overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow group">
                   <div className="h-48 overflow-hidden relative">
                     <img src={gallery.bannerImage} alt={gallery.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute top-3 right-3 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-md">
-                      {gallery.images?.length || 0} Images
+                    <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
+                      <div className="bg-black/60 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-md">
+                        {gallery.images?.length || 0} Images
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-xs font-bold backdrop-blur-md ${
+                        gallery.status === 'published' ? 'bg-green-500/90 text-white' :
+                        gallery.status === 'rejected' ? 'bg-red-500/90 text-white' :
+                        gallery.status?.startsWith('pending') ? 'bg-amber-500/90 text-white' :
+                        'bg-gray-500/90 text-white'
+                      }`}>
+                        {gallery.status === 'published' ? 'Published' :
+                         gallery.status === 'pending_hod' ? 'Pending HOD' :
+                         gallery.status === 'pending_hos' ? 'Pending HOS' :
+                         gallery.status === 'rejected' ? 'Rejected' : 'Draft'}
+                      </div>
                     </div>
                   </div>
                   <div className="p-5 flex flex-col flex-1">
                     <h3 className="font-bold text-lg text-on-surface line-clamp-1">{gallery.title}</h3>
-                    <p className="text-on-surface-variant text-sm mt-2 line-clamp-2 flex-1">{gallery.description}</p>
+                    <div 
+                      className="text-on-surface-variant text-sm mt-2 line-clamp-2 flex-1 prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: gallery.content || '' }}
+                    />
                     <div className="mt-4 pt-4 border-t border-outline-variant flex justify-between items-center">
                       <span className="text-xs text-on-surface-variant font-medium">
                         {gallery.startDate ? `${new Date(gallery.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}${gallery.endDate && gallery.endDate !== gallery.startDate ? ` - ${new Date(gallery.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}` : new Date(gallery.createdAt).toLocaleDateString()}
@@ -283,17 +300,11 @@ export default function GalleryManagement() {
                   
                   <div>
                     <div className="flex justify-between mb-1">
-                      <label className="block text-sm font-bold text-on-surface">Description *</label>
-                      <span className="text-xs text-on-surface-variant">{description.length}/500</span>
+                      <label className="block text-sm font-bold text-on-surface">Content *</label>
                     </div>
-                    <textarea 
-                      required
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      maxLength={500}
-                      rows={3}
-                      className="w-full p-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all resize-none"
-                      placeholder="Write up to 500 characters describing this gallery..."
+                    <TiptapEditor 
+                      content={content} 
+                      onChange={setContent} 
                     />
                   </div>
 

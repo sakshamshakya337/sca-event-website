@@ -1,8 +1,8 @@
 export const normalizeEventStatus = (status) => {
   const value = status ? String(status).toLowerCase() : 'pending'
 
-  if (['approved', 'approve', 'approved'].includes(value)) return 'approved'
-  if (['pending', 'pending approval', 'awaiting approval', 'in review', 'pending_admin', 'pending_dean', 'pending_hos'].includes(value)) return 'pending'
+  if (['approved', 'approve', 'published'].includes(value)) return 'approved'
+  if (['pending', 'pending approval', 'awaiting approval', 'in review', 'pending_admin', 'pending_dean', 'pending_hos', 'pending_hod'].includes(value)) return 'pending'
   if (['rejected', 'reject', 'declined'].includes(value)) return 'rejected'
   if (['completed', 'complete'].includes(value)) return 'completed'
 
@@ -17,6 +17,7 @@ export const getEventStatusLabel = (status) => {
     if (s === 'pending_admin' || s === 'pending') return 'Pending (Admin)'
     if (s === 'pending_dean') return 'Pending (Dean)'
     if (s === 'pending_hos') return 'Pending (HOS)'
+    if (s === 'pending_hod') return 'Pending (HOD)'
     return 'Pending'
   }
 

@@ -25,6 +25,7 @@ export default function PublicOnlyRoute({ children }) {
         club_vice_president: '/student',
         faculty:             '/faculty',
         faculty_coordinator: '/faculty',
+        hod:                 '/faculty', // HOD main dashboard is the faculty portal, they use the sidebar to access HOD features
         admin:               '/admin',
         dean:                '/dean',
         hos:                 '/hos',

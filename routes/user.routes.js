@@ -22,6 +22,8 @@ router.post('/', authorize('admin', 'superadmin'), userController.createUser)
 
 // ── Dynamic :id routes (MUST be after all named routes) ──────────────────────
 router.get('/:id', authorize('admin', 'superadmin'), userController.getUserById)
+router.put('/:id/promote-hod', authorize('admin', 'superadmin'), userController.promoteToHod)
+router.put('/:id/demote-hod', authorize('admin', 'superadmin'), userController.demoteToFaculty)
 router.put('/:id', authorize('admin', 'superadmin'), userController.updateUser)
 router.delete('/:id', authorize('admin', 'superadmin'), userController.deleteUser)
 

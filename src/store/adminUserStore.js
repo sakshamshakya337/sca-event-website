@@ -39,6 +39,30 @@ const useAdminUserStore = create((set, get) => ({
     }
   },
 
+  promoteToHod: async (id) => {
+    try {
+      const res = await api.put(`/users/${id}/promote-hod`)
+      set((state) => ({
+        users: state.users.map(user => user._id === id ? res.data.data : user),
+      }))
+      return res.data
+    } catch (err) {
+      throw new Error(err.response?.data?.message || 'Failed to promote to HOD')
+    }
+  },
+
+  demoteToFaculty: async (id) => {
+    try {
+      const res = await api.put(`/users/${id}/demote-hod`)
+      set((state) => ({
+        users: state.users.map(user => user._id === id ? res.data.data : user),
+      }))
+      return res.data
+    } catch (err) {
+      throw new Error(err.response?.data?.message || 'Failed to demote to Faculty')
+    }
+  },
+
   deleteUser: async (id) => {
     try {
       await api.delete(`/users/${id}`)

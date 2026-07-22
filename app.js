@@ -20,6 +20,7 @@ import contactRoutes from './routes/contact.routes.js'
 import verificationRoutes from './routes/verification.routes.js'
 import galleryRoutes from './routes/gallery.routes.js'
 import notificationRoutes from './routes/notification.routes.js'
+import departmentRoutes from './routes/department.routes.js'
 
 // Import new event approval and club handlers
 import approveHandler from './api/events/approve.js'
@@ -138,6 +139,7 @@ app.use('/api/contact', contactRoutes)
 app.use('/api/verification', verificationRoutes)
 app.use('/api/galleries', galleryRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/departments', departmentRoutes)
 
 // Test SMTP connection to Gmail on port 465
 app.get('/test-smtp', (req, res) => {
