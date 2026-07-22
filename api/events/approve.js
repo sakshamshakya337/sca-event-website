@@ -65,21 +65,21 @@ export default async function handler(req, res) {
       })
 
       if (action === 'approve') {
-        event.status = 'pending_dean'
+        event.status = 'published'
+        event.isPublished = true
+        event.registrationEnabled = true
+        event.registrationOpen = true // Optional, depending on event logic but safe to set
         
         // 1. Notify Faculty (Creator) via email
         try {
           const creatorEmail = event.createdBy.personalEmail || event.createdBy.officialEmail
           if (creatorEmail) {
-            await sendApprovalStageEmail({
+            await sendFinalApprovalEmail({
               to: creatorEmail,
               recipientName: event.createdBy.firstName,
               eventTitle: event.title,
               eventDate: event.startDate || event.date,
-              submittedBy: `${event.createdBy.firstName} ${event.createdBy.lastName}`,
-              stage: 'Dean',
-              approvalLink: `${process.env.FRONTEND_URL}/events`,
-              approvedByStage: 'Administrator (Approved & Forwarded to Dean)',
+              publicUrl: `${process.env.FRONTEND_URL}/events`,
             })
           }
         } catch (emailErr) {
@@ -90,40 +90,10 @@ export default async function handler(req, res) {
         await createNotification({
           recipient: event.createdBy._id,
           sender: approver._id,
-          title: 'Event Approved by Admin',
-          message: `Your event "${event.title}" has been approved by the Administrator and forwarded to the Dean for review.`,
+          title: 'Event Fully Approved & LIVE!',
+          message: `Congratulations! Your event "${event.title}" has been fully approved by the Administrator and is now LIVE.`,
           type: 'success'
         })
-
-        // 3. Notify Dean via email
-        const dean = await User.findOne({ role: 'dean', isActive: true })
-          .select('firstName personalEmail officialEmail')
-        if (dean) {
-          try {
-            const deanEmail = dean.personalEmail || dean.officialEmail
-            await sendApprovalStageEmail({
-              to: deanEmail,
-              recipientName: dean.firstName,
-              eventTitle: event.title,
-              eventDate: event.startDate || event.date,
-              submittedBy: `${event.createdBy.firstName} ${event.createdBy.lastName}`,
-              stage: 'Dean',
-              approvalLink: `${process.env.FRONTEND_URL}/dean`,
-              approvedByStage: 'Administrator',
-            })
-          } catch (emailErr) {
-            console.error('Dean email notification failed:', emailErr)
-          }
-
-          // 4. Notify Dean via in-app notification
-          await createNotification({
-            recipient: dean._id,
-            sender: approver._id,
-            title: 'New Event Awaiting Approval',
-            message: `Event "${event.title}" is pending your approval.`,
-            type: 'info'
-          })
-        }
       } else {
         event.status = 'rejected'
         // Notify faculty of rejection via email
@@ -150,192 +120,6 @@ export default async function handler(req, res) {
         })
       }
     }
-
-    // ── DEAN stage ───────────────────────────────────────────────────────────
-    else if (role === 'dean') {
-      if (event.status !== 'pending_dean') {
-        throw new ApiError(400, `Event is not pending Dean approval. Current: ${event.status}`)
-      }
-
-      event.deanApproval = {
-        status:     action === 'approve' ? 'approved' : 'rejected',
-        approvedBy: approver._id,
-        approvedAt: new Date(),
-        remarks,
-      }
-      event.approvalChain.push({
-        stage:        'dean',
-        action:       action === 'approve' ? 'approved' : 'rejected',
-        actionBy:     approver._id,
-        actionByName: `${approver.firstName} ${approver.lastName}`,
-        actionByRole: 'dean',
-        remarks,
-      })
-
-      if (action === 'approve') {
-        event.status = 'pending_hos'
-
-        // 1. Notify Faculty (Creator) via email
-        try {
-          const creatorEmail = event.createdBy.personalEmail || event.createdBy.officialEmail
-          if (creatorEmail) {
-            await sendApprovalStageEmail({
-              to: creatorEmail,
-              recipientName: event.createdBy.firstName,
-              eventTitle: event.title,
-              eventDate: event.startDate || event.date,
-              submittedBy: `${event.createdBy.firstName} ${event.createdBy.lastName}`,
-              stage: 'Head of School',
-              approvalLink: `${process.env.FRONTEND_URL}/events`,
-              approvedByStage: 'Dean (Approved & Forwarded to HOS)',
-            })
-          }
-        } catch (emailErr) {
-          console.error('Creator notification email failed:', emailErr)
-        }
-
-        // 2. Notify Faculty (Creator) via in-app notification
-        await createNotification({
-          recipient: event.createdBy._id,
-          sender: approver._id,
-          title: 'Event Approved by Dean',
-          message: `Your event "${event.title}" has been approved by the Dean and forwarded to the Head of School for final review.`,
-          type: 'success'
-        })
-
-        // 3. Notify HOS via email
-        const hos = await User.findOne({ role: 'hos', isActive: true })
-          .select('firstName personalEmail officialEmail')
-        if (hos) {
-          try {
-            const hosEmail = hos.personalEmail || hos.officialEmail
-            await sendApprovalStageEmail({
-              to: hosEmail,
-              recipientName: hos.firstName,
-              eventTitle: event.title,
-              eventDate: event.startDate || event.date,
-              submittedBy: `${event.createdBy.firstName} ${event.createdBy.lastName}`,
-              stage: 'Head of School',
-              approvalLink: `${process.env.FRONTEND_URL}/hos`,
-              approvedByStage: 'School Dean',
-            })
-          } catch (emailErr) {
-            console.error('HOS email notification failed:', emailErr)
-          }
-
-          // 4. Notify HOS via in-app notification
-          await createNotification({
-            recipient: hos._id,
-            sender: approver._id,
-            title: 'New Event Awaiting Final Approval',
-            message: `Event "${event.title}" is pending your final approval.`,
-            type: 'info'
-          })
-        }
-      } else {
-        event.status = 'rejected'
-        // Notify faculty of rejection via email
-        try {
-          const creatorEmail = event.createdBy.personalEmail || event.createdBy.officialEmail
-          await sendRejectionStageEmail({
-            to: creatorEmail,
-            recipientName: event.createdBy.firstName,
-            eventTitle: event.title,
-            rejectedBy: 'School Dean',
-            remarks,
-          })
-        } catch (emailErr) {
-          console.error('Rejection email notification failed:', emailErr)
-        }
-
-        // Notify faculty of rejection via in-app notification
-        await createNotification({
-          recipient: event.createdBy._id,
-          sender: approver._id,
-          title: 'Event Rejected by Dean',
-          message: `Your event "${event.title}" has been rejected by the Dean. Remarks: ${remarks}`,
-          type: 'error'
-        })
-      }
-    }
-
-    // ── HOS stage ────────────────────────────────────────────────────────────
-    else if (role === 'hos') {
-      if (event.status !== 'pending_hos') {
-        throw new ApiError(400, `Event is not pending HOS approval. Current: ${event.status}`)
-      }
-
-      event.hosApproval = {
-        status:     action === 'approve' ? 'approved' : 'rejected',
-        approvedBy: approver._id,
-        approvedAt: new Date(),
-        remarks,
-      }
-      event.approvalChain.push({
-        stage:        'hos',
-        action:       action === 'approve' ? 'approved' : 'rejected',
-        actionBy:     approver._id,
-        actionByName: `${approver.firstName} ${approver.lastName}`,
-        actionByRole: 'hos',
-        remarks,
-      })
-
-      if (action === 'approve') {
-        // ── FINAL APPROVAL — event goes LIVE ──────────────────────────────
-        event.status = 'approved'
-        event.isPublic = true
-        event.registrationEnabled = true
-        event.registrationOpen = true // Open registration
-        
-        // Notify faculty/coordinator via email
-        try {
-          const creatorEmail = event.createdBy.personalEmail || event.createdBy.officialEmail
-          await sendFinalApprovalEmail({
-            to: creatorEmail,
-            recipientName: event.createdBy.firstName,
-            eventTitle: event.title,
-            eventDate: event.startDate || event.date,
-            publicUrl: `${process.env.FRONTEND_URL}/events`,
-          })
-        } catch (emailErr) {
-          console.error('Final approval email failed:', emailErr)
-        }
-
-        // Notify faculty/coordinator via in-app notification
-        await createNotification({
-          recipient: event.createdBy._id,
-          sender: approver._id,
-          title: 'Event Fully Approved & LIVE!',
-          message: `Congratulations! Your event "${event.title}" has been fully approved by the Head of School and is now LIVE.`,
-          type: 'success'
-        })
-      } else {
-        event.status = 'rejected'
-        // Notify faculty of rejection via email
-        try {
-          const creatorEmail = event.createdBy.personalEmail || event.createdBy.officialEmail
-          await sendRejectionStageEmail({
-            to: creatorEmail,
-            recipientName: event.createdBy.firstName,
-            eventTitle: event.title,
-            rejectedBy: 'Head of School',
-            remarks,
-          })
-        } catch (emailErr) {
-          console.error('Rejection email failed:', emailErr)
-        }
-
-        // Notify faculty of rejection via in-app notification
-        await createNotification({
-          recipient: event.createdBy._id,
-          sender: approver._id,
-          title: 'Event Rejected by Head of School',
-          message: `Your event "${event.title}" has been rejected by the Head of School. Remarks: ${remarks}`,
-          type: 'error'
-        })
-      }
-    }
-
     else {
       throw new ApiError(403, `Role '${role}' cannot approve events`)
     }

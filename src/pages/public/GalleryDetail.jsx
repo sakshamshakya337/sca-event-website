@@ -83,13 +83,10 @@ export default function GalleryDetail() {
           ) : (
             <>
               {/* Header Info */}
-              <div className="mb-12">
+              <div className="mb-8 text-center max-w-4xl mx-auto">
                 <h1 className="text-4xl md:text-5xl font-bold font-headline-lg text-primary mb-4">{gallery.title}</h1>
-                <div 
-                  className="text-lg text-on-surface-variant max-w-3xl prose prose-lg"
-                  dangerouslySetInnerHTML={{ __html: gallery.content || '' }}
-                />
-                <div className="flex items-center gap-4 mt-6 text-sm font-bold text-on-surface-variant bg-surface-container inline-flex px-4 py-2 rounded-lg">
+                
+                <div className="flex items-center justify-center gap-4 mb-8 text-sm font-bold text-on-surface-variant bg-surface-container inline-flex px-4 py-2 rounded-lg mx-auto">
                   <span className="text-on-surface-variant font-medium">
                     {gallery.startDate ? `${new Date(gallery.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}${gallery.endDate && gallery.endDate !== gallery.startDate ? ` - ${new Date(gallery.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}` : new Date(gallery.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
@@ -98,23 +95,31 @@ export default function GalleryDetail() {
                 </div>
               </div>
 
-              {/* Masonry-style or standard grid for images */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {/* Images Grid - Moved to top & Centered */}
+              <div className="mb-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto justify-items-center">
                 {allImages.map((src, index) => (
                   <div 
                     key={index} 
-                    className="relative group rounded-xl overflow-hidden cursor-zoom-in aspect-[4/3] bg-surface-container-lowest border border-outline-variant/50"
+                    className="relative group rounded-2xl overflow-hidden cursor-zoom-in aspect-[4/3] w-full bg-surface-container-lowest border border-outline-variant shadow-md hover:shadow-xl transition-all duration-300"
                     onClick={() => setSelectedImageIndex(index)}
                   >
                     <img 
                       src={src} 
                       alt={`${gallery.title} - Image ${index + 1}`}
                       loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
                   </div>
                 ))}
+              </div>
+
+              {/* Blog Content - Centered */}
+              <div className="max-w-4xl mx-auto bg-surface p-8 md:p-12 rounded-[2rem] border border-outline-variant shadow-lg mb-12">
+                <div 
+                  className="text-lg md:text-xl leading-relaxed text-on-surface-variant prose prose-lg prose-headings:text-primary prose-a:text-primary max-w-none text-center mx-auto"
+                  dangerouslySetInnerHTML={{ __html: gallery.content || '' }}
+                />
               </div>
             </>
           )}

@@ -5,6 +5,16 @@ import mongoose from 'mongoose'
 import cloudinary from '../config/cloudinary.js'
 import { handleEventUpload } from '../config/multer.js'
 import Department from '../models/Department.js'
+import Notification from '../models/Notification.js'
+
+// Helper function to create in-app notifications
+const createNotification = async ({ recipient, sender, title, message, type = 'info' }) => {
+  try {
+    await Notification.create({ recipient, sender, title, message, type })
+  } catch (err) {
+    console.error('Failed to create in-app notification:', err)
+  }
+}
 
 export { handleEventUpload as uploadGalleryFields }
 
@@ -332,6 +342,28 @@ export const approveGallery = async (req, res, next) => {
               }).catch(err => console.error('Email error:', err))
             }
           }
+          
+          // In-app notifications to HOS
+          for (const hos of hosList) {
+            await createNotification({
+              recipient: hos._id,
+              sender: req.user.id,
+              title: 'New Gallery Awaiting Final Approval',
+              message: `Gallery "${gallery.title}" is pending your final approval.`,
+              type: 'info'
+            })
+          }
+          
+          // Notify creator that it passed HOD
+          if (gallery.createdBy) {
+            await createNotification({
+              recipient: gallery.createdBy._id,
+              sender: req.user.id,
+              title: 'Gallery Approved by HOD',
+              message: `Your gallery "${gallery.title}" has been approved by the HOD and forwarded to the Head of School for final review.`,
+              type: 'success'
+            })
+          }
         }
       } catch (err) {
         console.error('Failed to notify HOS:', err)
@@ -368,6 +400,15 @@ export const approveGallery = async (req, res, next) => {
               publicUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/gallery/${gallery._id}`
             }).catch(err => console.error('Email error:', err))
           }
+          
+          // Notify creator via in-app notification
+          await createNotification({
+            recipient: gallery.createdBy._id,
+            sender: req.user.id,
+            title: 'Gallery Fully Approved & LIVE!',
+            message: `Congratulations! Your gallery "${gallery.title}" has been fully approved by the Head of School and is now LIVE.`,
+            type: 'success'
+          })
         }
       } catch (err) {
         console.error('Failed to notify creator:', err)
