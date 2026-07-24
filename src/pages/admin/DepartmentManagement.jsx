@@ -159,7 +159,7 @@ export default function DepartmentManagement() {
 
         <div className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[800px] text-left border-collapse whitespace-nowrap">
               <thead className="bg-surface-container-high border-b border-outline-variant">
                 <tr>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Department Name</th>
