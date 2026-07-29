@@ -80,8 +80,8 @@ export default function CustomInstallPrompt() {
         <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3">
           <CheckCircle2 className="text-green-600" size={24} />
         </div>
-        <h3 className="text-lg font-bold text-[#022448]">SCA Portal Installed</h3>
-        <p className="text-sm text-[#43474e] mt-1">Thank you for installing SCA Portal. Enjoy a faster and more reliable experience.</p>
+        <h3 className="text-lg font-bold text-[#022448]">SCA EMS Installed</h3>
+        <p className="text-sm text-[#43474e] mt-1">Thank you for installing SCA EMS. Enjoy a faster and more reliable experience.</p>
       </div>
     );
   }
@@ -97,7 +97,7 @@ export default function CustomInstallPrompt() {
       <div className="flex items-start gap-4 mb-4">
         <img src="/pwa-192x192.png" alt="App Icon" className="w-14 h-14 rounded-xl shadow-sm border border-[#e4e9ed]" />
         <div>
-          <h3 className="text-lg font-bold text-[#022448]">Install SCA Portal</h3>
+          <h3 className="text-lg font-bold text-[#022448]">Install SCA EMS</h3>
           <p className="text-xs text-[#43474e] mt-0.5 leading-relaxed">Access the portal directly from your home screen for a faster, distraction-free experience.</p>
         </div>
       </div>

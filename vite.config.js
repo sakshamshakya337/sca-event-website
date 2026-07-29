@@ -14,8 +14,8 @@ export default defineConfig({
       },
       includeAssets: ['favicon-16x16.png', 'favicon-32x32.png', 'sca.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
-        name: 'SCA Portal',
-        short_name: 'SCA',
+        name: 'SCA EMS',
+        short_name: 'SCA EMS',
         description: 'School of Computer Applications Departmental Portal',
         theme_color: '#ffffff',
         background_color: '#ffffff',
