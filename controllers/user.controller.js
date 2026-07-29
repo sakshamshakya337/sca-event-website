@@ -87,7 +87,7 @@ export const getStudents = async (req, res, next) => {
 export const getFaculty = async (req, res, next) => {
   try {
     const { search } = req.query
-    const filter = { role: 'faculty', isVerified: true, isActive: true }
+    const filter = { role: { $in: ['faculty', 'hod'] }, isVerified: true, isActive: true }
 
     if (search) {
       const regex = new RegExp(search, 'i')

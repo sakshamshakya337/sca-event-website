@@ -60,9 +60,13 @@
     --color-inverse-primary: #FFB68B;
   }
 
+  /* PONYTAIL(lite): Removed dark mode as per client request. If needed later, restore .dark selector with appropriate color tokens. */
+
 
   body {
-    @apply font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     background-color: var(--color-background);
     color: var(--color-on-surface);
   }

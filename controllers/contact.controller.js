@@ -4,6 +4,7 @@ import ApiError from '../utils/ApiError.js'
 import Joi from 'joi'
 import { sendMail } from '../utils/mailer.js'
 import { contactQueryReplyTemplate } from '../utils/emailTemplates.js'
+import { verifyTurnstile } from '../utils/turnstile.js'
 
 const contactSchema = Joi.object({
   name: Joi.string().trim().min(2).max(100).required(),
@@ -13,6 +14,7 @@ const contactSchema = Joi.object({
   category: Joi.string().valid('Event Query', 'Technical Issue', 'Registration Dispute', 'Feedback', 'Other').optional(),
   role: Joi.string().valid('student', 'faculty', 'admin', 'other').optional(),
   universityId: Joi.string().trim().max(30).optional().allow(''),
+  turnstileToken: Joi.string().required(),
 })
 
 // Submit contact query (public)
@@ -24,7 +26,14 @@ export const submitQuery = async (req, res, next) => {
       throw new ApiError(400, messages)
     }
 
-    const query = await ContactQuery.create(value)
+    const { turnstileToken, ...queryData } = value
+
+    const captcha = await verifyTurnstile(turnstileToken, req.ip)
+    if (!captcha.success) {
+      throw new ApiError(400, 'Captcha verification failed. Please try again.')
+    }
+
+    const query = await ContactQuery.create(queryData)
     res.status(201).json(new ApiResponse(201, query, 'Query submitted successfully'))
   } catch (error) {
     next(error)

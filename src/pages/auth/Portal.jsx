@@ -4,7 +4,7 @@ import { BadgeCheck, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react
 import useAuthStore from '../../store/authStore'
 import api from '../../config/axios'
 import toast from 'react-hot-toast'
-import RecaptchaWidget from '../../components/ui/RecaptchaWidget'
+import TurnstileWidget from '../../components/security/TurnstileWidget'
 
 export default function Portal() {
   const [email, setEmail] = useState('')
@@ -38,7 +38,7 @@ export default function Portal() {
 
     setLoading(true)
     try {
-      const res = await api.post('/auth/login', { email: trimmedEmail, password })
+      const res = await api.post('/auth/login', { email: trimmedEmail, password, turnstileToken: captchaToken })
       const { user, token } = res.data.data
       setAttempts(0)
       setLockedUntil(null)
@@ -189,8 +189,8 @@ export default function Portal() {
               </Link>
             </div>
 
-            {/* hCaptcha */}
-            <RecaptchaWidget
+            {/* Turnstile */}
+            <TurnstileWidget
               ref={recaptchaRef}
               onChange={setCaptchaToken}
               theme="light"

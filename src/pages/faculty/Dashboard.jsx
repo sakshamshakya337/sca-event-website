@@ -14,6 +14,7 @@ import {
   formatDateDMY,
 } from '../../utils/eventUtils'
 import DashboardMessagesPanel from '../../components/dashboard/DashboardMessagesPanel'
+import { EmptyState } from '../../components/ui/EmptyState'
 
 // ── Stat card ──────────────────────────────────────────────────────────────
 function StatCard({ label, value, icon: Icon, iconBg, iconColor, valueColor }) {
@@ -136,8 +137,8 @@ export default function FacultyDashboard() {
                   <tbody className="divide-y divide-outline-variant">
                     {myEvents.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="px-4 py-8 text-center text-sm text-on-surface-variant">
-                          No events yet.
+                        <td colSpan={4} className="px-4 py-8">
+                          <EmptyState title="No Events" description="You have no events yet." icon={CalendarIcon} />
                         </td>
                       </tr>
                     ) : myEvents.map(event => (
@@ -175,8 +176,8 @@ export default function FacultyDashboard() {
                 <tbody className="divide-y divide-outline-variant">
                   {myEvents.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-5 py-10 text-center text-sm text-on-surface-variant">
-                        No events found. Create your first event!
+                      <td colSpan={6} className="px-5 py-10">
+                        <EmptyState title="No Events Found" description="Create your first event!" icon={CalendarIcon} />
                       </td>
                     </tr>
                   ) : myEvents.map(event => {

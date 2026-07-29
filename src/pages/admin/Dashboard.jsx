@@ -11,6 +11,7 @@ import useAdminQueriesStore from '../../store/adminQueriesStore'
 import { Link, useNavigate } from 'react-router-dom'
 import { getEventCreatorName, getEventStatusLabel, normalizeEventStatus, formatDateDMY } from '../../utils/eventUtils'
 import DashboardMessagesPanel from '../../components/dashboard/DashboardMessagesPanel'
+import { EmptyState } from '../../components/ui/EmptyState'
 
 // ── Status badge ───────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -142,7 +143,9 @@ export default function Dashboard() {
                   </thead>
                   <tbody className="divide-y divide-outline-variant">
                     {events.length === 0 ? (
-                      <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-on-surface-variant">No events.</td></tr>
+                      <tr><td colSpan={4} className="px-4 py-8">
+                        <EmptyState title="No Events" description="There are no events to display." icon={CalendarCheck} />
+                      </td></tr>
                     ) : events.map(event => (
                       <tr key={event._id} className="hover:bg-surface-container transition-colors">
                         <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium text-primary max-w-[140px] truncate">{event.title}</td>
@@ -186,8 +189,8 @@ export default function Dashboard() {
                 {/* Pending rows */}
                 {actionablePendingEvents.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-5 py-8 text-center text-sm text-on-surface-variant">
-                      No events to review.
+                    <td colSpan={5} className="px-5 py-8">
+                      <EmptyState title="All Caught Up" description="No events require your review right now." icon={CheckCircle2} />
                     </td>
                   </tr>
                 )}
@@ -338,8 +341,8 @@ export default function Dashboard() {
               <tbody className="divide-y divide-outline-variant">
                 {recentQueries.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-8 text-center text-sm text-on-surface-variant">
-                      No queries yet.
+                    <td colSpan={5} className="px-5 py-8">
+                      <EmptyState title="No Queries" description="There are no recent contact queries." icon={Mail} />
                     </td>
                   </tr>
                 ) : recentQueries.map(query => (

@@ -126,6 +126,17 @@ export default async function handler(req, res) {
 
     await event.save()
 
+    try {
+      import('../../config/socket.js').then(({ getIO }) => {
+        getIO().to(event.createdBy._id.toString()).emit('eventUpdated', { eventId: event._id, status: event.status });
+        if (event.status === 'published') {
+          getIO().emit('eventPublished', { eventId: event._id });
+        }
+      }).catch(e => console.error('Socket import failed:', e));
+    } catch (e) {
+      console.error('Socket emit failed:', e);
+    }
+
     return res.status(200).json(
       new ApiResponse(200, { status: event.status }, `Event ${action}d successfully`)
     )

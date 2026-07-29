@@ -8,6 +8,8 @@ dns.setDefaultResultOrder("ipv4first");
 import app from './app.js'
 import connectDB from './config/db.js'
 import { verifyMailer } from './config/mailer.js'
+import http from 'http'
+import { initSocket } from './config/socket.js'
 
 const PORT = process.env.PORT || 3000
 
@@ -17,7 +19,10 @@ const startServer = async () => {
     console.error('❌ MongoDB Connection setup failed:', error.message)
   })
 
-  app.listen(PORT, async () => {
+  const server = http.createServer(app);
+  initSocket(server);
+
+  server.listen(PORT, async () => {
     console.log(`🚀 Server running on port ${PORT}`)
     console.log(`🌍 Environment: ${process.env.NODE_ENV}`)
     console.log(`📧 Gmail user: ${process.env.GMAIL_USER || '❌ NOT SET'}`)

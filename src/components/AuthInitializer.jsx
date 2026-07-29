@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import useAuthStore from '../store/authStore'
 import api from '../config/axios'
+import { connectSocket, disconnectSocket } from '../config/socket'
 
 /**
  * AuthInitializer — mounted ONCE at the root of the app.
@@ -11,6 +12,16 @@ import api from '../config/axios'
 export default function AuthInitializer() {
   const { token, setUser, setIsLoading, logout } = useAuthStore()
   const fetchedRef = useRef(false)
+
+  // Connect or disconnect socket based on token presence
+  useEffect(() => {
+    if (token) {
+      connectSocket(token);
+    } else {
+      disconnectSocket();
+    }
+    return () => disconnectSocket();
+  }, [token]);
 
   useEffect(() => {
     // Guard: only fetch once per app session, even in React Strict Mode double-invoke

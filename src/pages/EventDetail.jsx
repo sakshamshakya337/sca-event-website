@@ -34,6 +34,10 @@ export default function EventDetail() {
   // Task form state
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [taskTitle, setTaskTitle] = useState('')
+  const [taskRole, setTaskRole] = useState(
+    user?.role === 'admin' || user?.role === 'superadmin' ? 'hod' :
+    user?.role === 'hod' ? 'faculty' : 'student'
+  )
   const [taskAssignedTo, setTaskAssignedTo] = useState('')
   const [taskPriority, setTaskPriority] = useState('Medium')
   const [taskDueDate, setTaskDueDate] = useState('')
@@ -67,8 +71,10 @@ export default function EventDetail() {
   const [removingFacultyId, setRemovingFacultyId] = useState(null)
 
   const event = selectedEvent || events.find(e => e._id === id)
-  const canManage = user?.role === 'faculty' || user?.role === 'admin' || user?.role === 'superadmin'
+  const canManage = user?.role === 'faculty' || user?.role === 'hod' || user?.role === 'admin' || user?.role === 'superadmin'
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin'
+  const isHod = user?.role === 'hod'
+  const isFaculty = user?.role === 'faculty'
 
   useEffect(() => {
     if (!id) return
@@ -574,9 +580,19 @@ export default function EventDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-on-surface mb-1">
-                      Assign to {isAdmin ? 'Faculty' : 'Student'}
+                      Assignee Role
                     </label>
-                    {!isAdmin && (
+                    <select className={inputCls} value={taskRole} onChange={e => { setTaskRole(e.target.value); setTaskAssignedTo(''); }}>
+                      {isAdmin && <option value="hod">HOD</option>}
+                      {(isAdmin || isHod) && <option value="faculty">Faculty</option>}
+                      {(isAdmin || isHod || isFaculty) && <option value="student">Student</option>}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-on-surface mb-1">
+                      Assign to {taskRole.charAt(0).toUpperCase() + taskRole.slice(1)}
+                    </label>
+                    {taskRole === 'student' && (
                       <div className="relative mb-2">
                         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
                         <input
@@ -589,19 +605,16 @@ export default function EventDetail() {
                       </div>
                     )}
                     <select className={inputCls} value={taskAssignedTo} onChange={e => setTaskAssignedTo(e.target.value)} required>
-                      <option value="">Select {isAdmin ? 'faculty member' : 'student'}…</option>
-                      {isAdmin
-                        ? allFaculty.map(f => (
-                            <option key={f._id} value={f._id}>
-                              {f.firstName} {f.lastName}{f.employeeId ? ` [${f.employeeId}]` : ''}{f.department ? ` — ${f.department}` : ''}
-                            </option>
-                          ))
-                        : (studentSearchQuery ? studentSearchResults : students).map(s => (
-                            <option key={s._id} value={s._id}>
-                              {s.firstName} {s.lastName} ({s.registrationNumber || s.officialEmail})
-                            </option>
-                          ))
-                      }
+                      <option value="">Select {taskRole}…</option>
+                      {taskRole === 'hod' && allFaculty.filter(f => f.role === 'hod').map(f => (
+                        <option key={f._id} value={f._id}>{f.firstName} {f.lastName} {f.department ? `— ${f.department}` : ''}</option>
+                      ))}
+                      {taskRole === 'faculty' && allFaculty.filter(f => f.role === 'faculty').map(f => (
+                        <option key={f._id} value={f._id}>{f.firstName} {f.lastName} {f.department ? `— ${f.department}` : ''}</option>
+                      ))}
+                      {taskRole === 'student' && (studentSearchQuery ? studentSearchResults : students).map(s => (
+                        <option key={s._id} value={s._id}>{s.firstName} {s.lastName} ({s.registrationNumber || s.officialEmail})</option>
+                      ))}
                     </select>
                   </div>
                   <div>

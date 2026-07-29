@@ -1,26 +1,24 @@
 import { forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react'
-import HCaptcha from '@hcaptcha/react-hcaptcha'
+import { Turnstile } from '@marsidev/react-turnstile'
 import { ShieldCheck } from 'lucide-react'
 
 /**
- * Reusable hCaptcha widget — with optimized skeleton loading to prevent layout shifts
- * and speed up perceived load time.
+ * Reusable Cloudflare Turnstile widget — with optimized skeleton loading to prevent layout shifts.
  */
-const RecaptchaWidget = forwardRef(function RecaptchaWidget(
+const TurnstileWidget = forwardRef(function TurnstileWidget(
   { onChange, theme = 'light', className = '' },
   ref
 ) {
-  let siteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY
-  if (!siteKey || siteKey === 'undefined' || siteKey === 'null' || !siteKey.trim()) {
-    siteKey = '10000000-ffff-ffff-ffff-ffffffffffff'
-  }
+  // Use the Site Key provided for this project
+  const siteKey = '0x4AAAAAAEA0RPHUDuE2Zjcr'
+  
   const captchaRef = useRef(null)
   const [isLoaded, setIsLoaded] = useState(false)
 
-  // Expose a .reset() method identical to the old reCAPTCHA ref API
+  // Expose a .reset() method to match old widget behavior
   useImperativeHandle(ref, () => ({
     reset: () => {
-      captchaRef.current?.resetCaptcha()
+      captchaRef.current?.reset()
       onChange(null)
     },
   }))
@@ -47,32 +45,36 @@ const RecaptchaWidget = forwardRef(function RecaptchaWidget(
         </span>
       </div>
 
-      <div className="relative min-h-[78px] w-[302px]">
+      <div className="relative min-h-[65px] w-[300px]">
         {/* Skeleton Loader placeholder */}
         {!isLoaded && (
           <div className="absolute inset-0 flex items-center justify-between px-4 border border-[#e1e2ec] rounded bg-[#f9fafc] animate-pulse z-10">
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded border-2 border-dashed border-[#74777f] animate-spin"></div>
+              <div className="w-5 h-5 rounded border-2 border-dashed border-[#74777f] animate-spin"></div>
               <div className="flex flex-col gap-1">
-                <div className="h-3 w-28 bg-[#e1e2ec] rounded"></div>
-                <div className="h-2 w-16 bg-[#e1e2ec] rounded"></div>
+                <div className="h-2 w-24 bg-[#e1e2ec] rounded"></div>
+                <div className="h-1.5 w-14 bg-[#e1e2ec] rounded"></div>
               </div>
             </div>
             <div className="flex flex-col items-center gap-1">
-              <div className="w-7 h-7 bg-[#e1e2ec] rounded-full"></div>
-              <div className="h-1.5 w-10 bg-[#e1e2ec] rounded"></div>
+              <div className="w-6 h-6 bg-[#e1e2ec] rounded-sm"></div>
             </div>
           </div>
         )}
 
-        {/* hCaptcha widget container */}
-        <div className="w-full h-full">
-          <HCaptcha
+        {/* Turnstile widget container */}
+        <div className="w-full h-full" onLoad={handleLoad}>
+          <Turnstile
             ref={captchaRef}
-            sitekey={siteKey}
-            theme={theme}
-            onLoad={handleLoad}
-            onVerify={onChange}
+            siteKey={siteKey}
+            options={{
+              theme,
+              action: 'form_submit',
+            }}
+            onSuccess={(token) => {
+              setIsLoaded(true)
+              onChange(token)
+            }}
             onExpire={() => onChange(null)}
             onError={() => onChange(null)}
           />
@@ -82,4 +84,4 @@ const RecaptchaWidget = forwardRef(function RecaptchaWidget(
   )
 })
 
-export default RecaptchaWidget
+export default TurnstileWidget

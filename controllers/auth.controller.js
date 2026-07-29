@@ -6,7 +6,7 @@ import ApiResponse from '../utils/ApiResponse.js'
 import ApiError from '../utils/ApiError.js'
 import { sendMail } from '../utils/mailer.js'
 import { resetPasswordTemplate } from '../utils/emailTemplates.js'
-import { verifyHCaptcha } from '../utils/hcaptcha.js'
+import { verifyTurnstile } from '../utils/turnstile.js'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 // Read JWT_SECRET lazily — process.exit(1) at module-load kills Vercel
@@ -40,6 +40,7 @@ const loginSchema = Joi.object({
     'hos',
     'superadmin'
   ).optional(),
+  turnstileToken: Joi.string().required(),
 })
 
 const signupSchema = Joi.object({
@@ -68,6 +69,7 @@ const signupSchema = Joi.object({
   department: Joi.string().trim().max(100).optional().allow(''),
   designation: Joi.string().trim().max(100).optional().allow(''),
   officialEmail: Joi.string().email().max(254).optional().allow(''),
+  turnstileToken: Joi.string().required(),
 })
 
 const changePasswordSchema = Joi.object({
@@ -104,8 +106,13 @@ export const signup = async (req, res, next) => {
     const {
       role, firstName, lastName, personalEmail, phone, password,
       registrationNumber, program, degree, semester, section,
-      employeeId, department, designation, officialEmail
+      employeeId, department, designation, officialEmail, turnstileToken
     } = value
+
+    const captcha = await verifyTurnstile(turnstileToken, req.ip)
+    if (!captcha.success) {
+      throw new ApiError(400, 'Captcha verification failed. Please try again.')
+    }
 
     const duplicateQuery = buildSignupDuplicateQuery({ role, personalEmail, officialEmail, registrationNumber, employeeId })
     const existingUser = Object.keys(duplicateQuery).length > 0
@@ -161,10 +168,15 @@ export const login = async (req, res, next) => {
       throw new ApiError(400, 'Invalid email or password format')
     }
 
-    const { email, password, role } = value
+    const { email, password, role, turnstileToken } = value
     const identifier = email.trim()
     const normalizedEmail = identifier.toLowerCase()
     const normalizedId = identifier.toUpperCase()
+
+    const captcha = await verifyTurnstile(turnstileToken, req.ip)
+    if (!captcha.success) {
+      throw new ApiError(400, 'Captcha verification failed. Please try again.')
+    }
 
     // Find user
     let user
@@ -299,7 +311,7 @@ const forgotSchema = Joi.object({
   identifier: Joi.string().trim().min(2).max(50).required(), // reg number or employee ID
   role: Joi.string().valid('student', 'faculty').required(),
   securityAnswer: Joi.string().trim().min(1).max(200).required(),
-  hcaptchaToken: Joi.string().required(), // hCaptcha widget token
+  turnstileToken: Joi.string().required(), // Turnstile widget token
 })
 
 const resetSchema = Joi.object({
@@ -320,10 +332,10 @@ export const forgotPassword = async (req, res, next) => {
     const { error, value } = forgotSchema.validate(req.body, { stripUnknown: true })
     if (error) throw new ApiError(400, error.details[0].message)
 
-    const { identifier, role, securityAnswer, hcaptchaToken } = value
+    const { identifier, role, securityAnswer, turnstileToken } = value
 
-    // ── hCaptcha check first (cheap, rejects bots before any DB work) ──
-    const captcha = await verifyHCaptcha(hcaptchaToken, req.ip)
+    // ── Turnstile check first (cheap, rejects bots before any DB work) ──
+    const captcha = await verifyTurnstile(turnstileToken, req.ip)
     if (!captcha.success) {
       throw new ApiError(400, 'Captcha verification failed. Please try again.')
     }

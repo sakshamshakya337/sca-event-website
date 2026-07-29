@@ -2,11 +2,10 @@ import { useState, useRef, useEffect } from 'react'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
 import useAuthStore from '../../store/authStore'
-import { Bell, Sun, Moon, ChevronRight, Plus, Menu, Settings, LogOut } from 'lucide-react'
+import { Bell, ChevronRight, Plus, Menu, Settings, LogOut } from 'lucide-react'
 import useUiStore from '../../store/uiStore'
 import useNotificationsStore from '../../store/notificationsStore'
 import { getCloudinaryUrl } from '../../lib/utils'
-
 export default function Navbar({ breadcrumb = [] }) {
   const { user } = useAuth()
   const logout = useAuthStore(state => state.logout)
@@ -30,7 +29,6 @@ export default function Navbar({ breadcrumb = [] }) {
   }))
   const getUnreadCount = useNotificationsStore((state) => state.getUnreadCount)
   const unreadCount = getUnreadCount()
-  
   const getInitials = () => {
     if (!user) return 'U'
     return `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase()

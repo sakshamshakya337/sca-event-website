@@ -6,6 +6,7 @@ import PageWrapper from '../../components/layout/PageWrapper'
 import toast from 'react-hot-toast'
 import Calendar from '../../components/Calendar'
 import DashboardMessagesPanel from '../../components/dashboard/DashboardMessagesPanel'
+import { EmptyState } from '../../components/ui/EmptyState'
 
 import useEventStore from '../../store/eventStore'
 
@@ -112,10 +113,7 @@ export default function HodDashboard() {
              </>
           ) : (
             events.length === 0 ? (
-              <div className="text-center py-12 bg-surface-card rounded-xl border border-outline-variant">
-                <CheckCircle size={48} className="text-green-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-on-surface">No Pending Events</h3>
-              </div>
+              <EmptyState title="No Pending Events" description="You're all caught up!" icon={CheckCircle} />
             ) : (
               <div className="space-y-4">
                 {events.map(event => (
@@ -126,10 +124,7 @@ export default function HodDashboard() {
           )
         ) : (
           galleries.length === 0 ? (
-            <div className="text-center py-12 bg-surface-card rounded-xl border border-outline-variant">
-              <CheckCircle size={48} className="text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-on-surface">No Pending Gallery Reports</h3>
-            </div>
+            <EmptyState title="No Pending Gallery Reports" description="You're all caught up!" icon={CheckCircle} />
           ) : (
             <div className="space-y-4">
               {galleries.map(gallery => (

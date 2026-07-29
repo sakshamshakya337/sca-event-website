@@ -6,6 +6,7 @@ import useEventStore from '../../store/eventStore'
 import useTaskStore from '../../store/taskStore'
 import { normalizeEventStatus, getEventStatusLabel } from '../../utils/eventUtils'
 import DashboardMessagesPanel from '../../components/dashboard/DashboardMessagesPanel'
+import { EmptyState } from '../../components/ui/EmptyState'
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
@@ -119,9 +120,11 @@ export default function StudentDashboard() {
             </div>
 
             {myTasks.length === 0 ? (
-              <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 text-center text-on-surface-variant text-sm">
-                No tasks assigned yet.
-              </div>
+              <EmptyState 
+                title="No Tasks"
+                description="No tasks assigned yet."
+                icon={CheckSquare}
+              />
             ) : (
               <div className="space-y-2">
                 {myTasks.slice(0, 4).map(task => (

@@ -24,7 +24,7 @@ SCA EMS is a full-stack web application designed to simplify planning, approval,
 - 📩 Contact Query Management
 - ☁️ Cloudinary File Uploads
 - 📧 Email Notifications (Brevo SMTP)
-- 🛡️ hCaptcha Protection
+- 🛡️ Cloudflare Turnstile Protection
 - 🚀 REST API Architecture
 
 ---
@@ -127,7 +127,7 @@ VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
-VITE_HCAPTCHA_SITE_KEY=
+
 ```
 
 ## Backend
@@ -150,7 +150,7 @@ BREVO_SMTP_PORT=
 BREVO_SMTP_USER=
 BREVO_SMTP_PASS=
 
-HCAPTCHA_SECRET_KEY=
+TURNSTILE_SECRET=
 ```
 
 ---
@@ -187,7 +187,7 @@ HCAPTCHA_SECRET_KEY=
 - JWT
 - Firebase Authentication
 - Joi Validation
-- hCaptcha
+- Cloudflare Turnstile
 
 ---
 
@@ -197,7 +197,7 @@ HCAPTCHA_SECRET_KEY=
 - MongoDB Atlas
 - Cloudinary
 - Brevo SMTP
-- hCaptcha
+- Cloudflare Turnstile
 
 ---
 

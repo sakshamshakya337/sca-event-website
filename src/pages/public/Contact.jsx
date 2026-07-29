@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { Send, ShieldCheck, CheckCircle2, RefreshCw, Mail } from 'lucide-react'
 import api from '../../config/axios'
 import PublicLayout from '../../components/layout/PublicLayout'
-import RecaptchaWidget from '../../components/ui/RecaptchaWidget'
+import TurnstileWidget from '../../components/security/TurnstileWidget'
 
 export default function Contact() {
   const [focusedField, setFocusedField] = useState(null)
@@ -25,7 +25,7 @@ export default function Contact() {
     setCaptchaError(false)
     setIsSubmitting(true)
     try {
-      await api.post('/contact', formData)
+      await api.post('/contact', { ...formData, turnstileToken: captchaToken })
       setIsSubmitting(false)
       setIsSubmitted(true)
       setFormData({ name: '', email: '', universityId: '', role: 'student', category: 'Event Query', subject: '', message: '' })
@@ -171,8 +171,8 @@ export default function Contact() {
               />
             </div>
 
-            {/* reCAPTCHA */}
-            <RecaptchaWidget
+            {/* Turnstile */}
+            <TurnstileWidget
               ref={recaptchaRef}
               onChange={token => { setCaptchaToken(token); setCaptchaError(false) }}
             />

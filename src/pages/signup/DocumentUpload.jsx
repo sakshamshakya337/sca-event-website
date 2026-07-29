@@ -8,7 +8,7 @@ import { useDropzone } from 'react-dropzone'
 import useSignupStore from '../../store/signupStore'
 import useAuthStore from '../../store/authStore'
 import api from '../../config/axios'
-import RecaptchaWidget from '../../components/ui/RecaptchaWidget'
+import TurnstileWidget from '../../components/security/TurnstileWidget'
 
 // ── Shared nav / footer shells ─────────────────────────────────────────────
 function TopNav() {
@@ -223,7 +223,7 @@ export default function DocumentUpload() {
 
     try {
       // Step 1 — create the account
-      const signupRes = await api.post('/auth/signup', { role, ...details })
+      const signupRes = await api.post('/auth/signup', { role, ...details, turnstileToken: captchaToken })
       const { user, token } = signupRes.data.data
       createdToken = token
 
@@ -419,7 +419,7 @@ export default function DocumentUpload() {
 
               {/* reCAPTCHA */}
               <div className="mt-6">
-                <RecaptchaWidget ref={recaptchaRef} onChange={setCaptchaToken} />
+                <TurnstileWidget ref={recaptchaRef} onChange={setCaptchaToken} />
               </div>
 
               {/* Submit */}
