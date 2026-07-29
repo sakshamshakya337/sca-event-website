@@ -23,28 +23,28 @@ function ReloadPrompt() {
   return (
     <div className="z-50 fixed bottom-4 right-4 m-0 p-0">
       { (offlineReady || needRefresh) && (
-        <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg bg-white dark:bg-slate-800 text-left">
-          <div className="mb-3 text-sm text-slate-700 dark:text-slate-200 font-medium">
+        <div className="p-5 border border-[#c4c6cf] rounded-2xl shadow-2xl bg-white/90 backdrop-blur-xl text-left w-full sm:w-80">
+          <div className="mb-4 text-sm text-[#171c1f] font-medium leading-relaxed">
             { offlineReady
-              ? <span>App ready to work offline</span>
-              : <span>New version available, click on reload button to update.</span>
+              ? <span>The app is ready to work offline.</span>
+              : <span>A new version is available. Update now?</span>
             }
           </div>
-          <div className="flex gap-2">
-            { needRefresh && (
-              <button 
-                className="bg-blue-600 text-white px-3 py-1.5 text-sm rounded-md hover:bg-blue-700 transition-colors" 
-                onClick={() => updateServiceWorker(true)}
-              >
-                Reload
-              </button>
-            )}
+          <div className="flex justify-end gap-2">
             <button 
-              className="border border-slate-300 dark:border-slate-600 px-3 py-1.5 text-sm rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors" 
+              className="border border-[#c4c6cf] px-4 py-2 text-sm font-semibold rounded-xl hover:bg-[#f0f4f8] text-[#43474e] transition-colors" 
               onClick={() => close()}
             >
               Close
             </button>
+            { needRefresh && (
+              <button 
+                className="bg-primary text-white px-4 py-2 text-sm font-semibold rounded-xl hover:bg-primary/90 shadow-md transition-all active:scale-[0.98]" 
+                onClick={() => updateServiceWorker(true)}
+              >
+                Update Now
+              </button>
+            )}
           </div>
         </div>
       )}
