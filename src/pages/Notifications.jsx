@@ -35,6 +35,7 @@ export default function Notifications() {
   const [type, setType] = useState('info')
   const [sending, setSending] = useState(false)
   const [result, setResult] = useState(null)
+  const [sendViaWhatsApp, setSendViaWhatsApp] = useState(false)
 
   useEffect(() => {
     fetchNotifications()
@@ -278,14 +279,28 @@ export default function Notifications() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-sm font-semibold text-on-surface-variant">Target Users (Registration Numbers / Employee IDs)</label>
+                <label className="text-sm font-semibold text-on-surface-variant">Target Users (Registration Numbers / Employee IDs / Phone Numbers)</label>
                 <textarea
                   className="w-full min-h-[80px] bg-white border border-outline-variant rounded-xl p-3 text-body-md font-mono placeholder:font-sans focus:ring-2 focus:ring-secondary/20 focus:outline-none placeholder:text-on-surface-variant/40 resize-y"
-                  placeholder="e.g. 12210452, 12210542, EMP10294 (comma or space separated)"
+                  placeholder="e.g. 12210452, EMP10294, 919876543210 (comma or space separated)"
                   value={targetIds}
                   onChange={(e) => setTargetIds(e.target.value)}
                   disabled={sending}
                 />
+              </div>
+
+              <div className="flex items-center gap-2 mt-4">
+                <input
+                  type="checkbox"
+                  id="sendViaWhatsApp"
+                  checked={sendViaWhatsApp}
+                  onChange={(e) => setSendViaWhatsApp(e.target.checked)}
+                  className="w-4 h-4 text-primary rounded border-outline-variant focus:ring-primary"
+                  disabled={sending}
+                />
+                <label htmlFor="sendViaWhatsApp" className="text-sm font-semibold text-on-surface">
+                  Send via WhatsApp (OpenWA)
+                </label>
               </div>
             </div>
 
@@ -313,6 +328,27 @@ export default function Notifications() {
                       targetIds: ids,
                       type
                     })
+                    
+                    if (sendViaWhatsApp) {
+                      for (const id of ids) {
+                        try {
+                          await fetch('http://localhost:2785/api/sessions/default/messages/send-text', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'x-api-key': 'your-api-key' // Replace with actual API key if needed
+                            },
+                            body: JSON.stringify({
+                              chatId: `${id}@c.us`,
+                              text: `*${title.trim()}*\n\n${message.trim()}`
+                            })
+                          });
+                        } catch (waErr) {
+                          console.error('Failed to send WhatsApp message to', id, waErr);
+                        }
+                      }
+                    }
+
                     setResult(data)
                     setTitle('')
                     setMessage('')
