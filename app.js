@@ -21,6 +21,8 @@ import verificationRoutes from './routes/verification.routes.js'
 import galleryRoutes from './routes/gallery.routes.js'
 import notificationRoutes from './routes/notification.routes.js'
 import departmentRoutes from './routes/department.routes.js'
+import controlPanelAuthRoutes from './routes/controlPanelAuth.routes.js'
+
 
 // Import new event approval and club handlers
 import approveHandler from './api/events/approve.js'
@@ -115,7 +117,9 @@ app.use('/api', generalLimiter)
 
 // Routes
 app.use('/api/auth', authRoutes)
+app.use('/api/control-panel/auth', controlPanelAuthRoutes)
 app.use('/api/users', userRoutes)
+
 // New Multi-Stage approval and club routes
 app.post('/api/events/approve', (req, res, next) => approveHandler(req, res).catch(next))
 app.get('/api/events/pending', (req, res, next) => pendingHandler(req, res).catch(next))

@@ -12,9 +12,11 @@ import PublicEventDetail from '../pages/public/EventDetail'
 import Gallery       from '../pages/public/Gallery'
 import GalleryDetail from '../pages/public/GalleryDetail'
 import Error429     from '../components/Error429'
+import NotFound     from '../pages/public/NotFound'
 
 // Auth pages
 import Portal        from '../pages/auth/Portal'
+import ControlPanel  from '../pages/auth/ControlPanel'
 import ForcePassword from '../pages/auth/ForcePassword'
 import ForgotPassword from '../pages/auth/ForgotPassword'
 import Pending       from '../pages/auth/Pending'
@@ -87,7 +89,19 @@ const router = createBrowserRouter([
   { path: '/contact',       element: <Contact /> },
   { path: '/429',           element: <Error429 /> },
 
-  // Auth (redirect if already logged in)
+  // Single Universal Privileged Authentication Gateway
+  { path: '/control-panel',   element: <PublicOnlyRoute><ControlPanel /></PublicOnlyRoute> },
+
+  // Legacy/Hidden Privileged Login Routes (Return 404 stealth response)
+  { path: '/admin/login',     element: <NotFound /> },
+  { path: '/hos/login',       element: <NotFound /> },
+  { path: '/superadmin/login', element: <NotFound /> },
+  { path: '/dean/login',      element: <NotFound /> },
+  { path: '/faculty/login',   element: <NotFound /> },
+  { path: '/dashboard/login', element: <NotFound /> },
+
+
+  // Standard Auth (Students / Faculty)
   { path: '/portal',          element: <PublicOnlyRoute><Portal /></PublicOnlyRoute> },
   { path: '/pending',         element: <Pending /> },
   { path: '/forgot-password', element: <PublicOnlyRoute><ForgotPassword /></PublicOnlyRoute> },
@@ -98,7 +112,7 @@ const router = createBrowserRouter([
   { path: '/signup/faculty',      element: <PublicOnlyRoute><FacultyDetails /></PublicOnlyRoute> },
   { path: '/signup/documents',    element: <PublicOnlyRoute><DocumentUpload /></PublicOnlyRoute> },
 
-  // Force password change (accessible only after login, before normal access)
+  // Force password change
   { path: '/change-password', element: <ProtectedRoute><ForcePassword /></ProtectedRoute> },
 
   // Student routes
@@ -154,12 +168,12 @@ const router = createBrowserRouter([
   { path: '/hos/profile',       element: <ProtectedRoute role="hos"><Suspense><AdminProfile /></Suspense></ProtectedRoute> },
   { path: '/hos/notifications', element: <ProtectedRoute role="hos"><Suspense><AdminNotifications /></Suspense></ProtectedRoute> },
 
-  // HOD routes (Merged into faculty portal)
-
-
   // Club administration routes
   { path: '/admin/clubs',       element: <ProtectedRoute role={['admin','superadmin']}><Suspense><AdminClubs /></Suspense></ProtectedRoute> },
   { path: '/faculty/events/create-club', element: <ProtectedRoute role="faculty_coordinator"><Suspense><CreateClubEvent /></Suspense></ProtectedRoute> },
+
+  // Catch-all route (404)
+  { path: '*', element: <NotFound /> },
 ])
 
 export default function AppRoutes() {

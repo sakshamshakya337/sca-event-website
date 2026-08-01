@@ -84,3 +84,22 @@ export const uploadLimiter = rateLimit({
   skip: checkSkip,
   message: { success: false, message: 'Upload limit reached. Please try again later.' },
 })
+
+// Control Panel Gateway — 10 requests per 15 minutes
+export const controlPanelLimiter = rateLimit({
+  ...baseOptions,
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  skip: checkSkip,
+  message: { success: false, message: 'Too many authentication attempts. Please try again in 15 minutes.' },
+})
+
+// OTP operations — 5 requests per 15 minutes
+export const otpLimiter = rateLimit({
+  ...baseOptions,
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  skip: checkSkip,
+  message: { success: false, message: 'Too many OTP requests. Please wait 15 minutes.' },
+})
+

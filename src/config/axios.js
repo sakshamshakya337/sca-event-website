@@ -4,12 +4,13 @@ import useRateLimitStore from '../store/rateLimitStore'
 
 const api = axios.create({
   baseURL: '/api',
+  withCredentials: true, // Send HTTP-Only cookies with requests
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
-// Request interceptor: add auth token to headers
+// Request interceptor: add auth token to headers if available
 api.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().token
@@ -17,7 +18,6 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
     if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
-      // Let axios set Content-Type for FormData automatically
       if (typeof config.headers.delete === 'function') {
         config.headers.delete('Content-Type')
       } else {
@@ -30,38 +30,62 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// Response interceptor: only logout on 401 errors and handle 429 rate limits
+// Flag to prevent endless refresh loops
+let isRefreshing = false
+
+// Response interceptor: handle 429 rate limits & attempt token refresh on 401
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config
     const status = error?.response?.status
+
     // Handle 429 Rate Limit Exceeded
     if (status === 429) {
-      // Get retry-after from header (in seconds) or default to 60
-      const retryAfterHeader = error.response.headers['retry-after']
+      const retryAfterHeader = error.response?.headers?.['retry-after']
       const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 60
       const message = error.response?.data?.message || 'Too many requests. Please try again later.'
-      
-      // Update rate limit store
+
       useRateLimitStore.getState().setRateLimited(true, message, retryAfter)
-      
-      // Redirect to 429 page or handle it
+
       if (window.location.pathname !== '/429') {
         window.location.href = '/429'
       }
-      
+
       return Promise.reject(error)
     }
 
-    // Only log user out on explicit 401 Unauthorized errors
-    if (status === 401) {
-      // Avoid logging out multiple times if already logged out
+    // Handle 401 Unauthorized with token refresh attempt
+    if (status === 401 && originalRequest && !originalRequest._retry && !originalRequest.url.includes('/auth/login') && !originalRequest.url.includes('/control-panel/auth/')) {
+      if (isRefreshing) {
+        return Promise.reject(error)
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      try {
+        const refreshRes = await axios.post('/api/control-panel/auth/refresh-token', {}, { withCredentials: true })
+        const newAccessToken = refreshRes.data?.data?.accessToken
+
+        if (newAccessToken) {
+          useAuthStore.getState().setToken(newAccessToken)
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+          isRefreshing = false
+          return api(originalRequest)
+        }
+      } catch (refreshErr) {
+        isRefreshing = false
+        if (useAuthStore.getState().token) {
+          useAuthStore.getState().logout()
+        }
+      }
+    } else if (status === 401) {
       if (useAuthStore.getState().token) {
         useAuthStore.getState().logout()
-        console.warn('Logged out due to invalid/expired session (401)')
       }
     }
-    // Reject the error for components to handle
+
     return Promise.reject(error)
   }
 )

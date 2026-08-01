@@ -252,3 +252,46 @@ export const contactQueryReplyTemplate = ({ name, querySubject, queryMessage, re
   `;
 };
 
+export const otpEmailTemplate = ({ name, otpCode, expiresMinutes = 5 }) => {
+  return `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); background-color: #ffffff;">
+      <!-- Header -->
+      <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 32px 24px; text-align: center;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; tracking: -0.02em;">SCA Control Panel Authentication</h1>
+        <p style="color: #94a3b8; margin-top: 6px; font-size: 14px;">School of Computer Applications, LPU</p>
+      </div>
+
+      <!-- Content Body -->
+      <div style="padding: 36px 32px; text-align: center;">
+        <p style="font-size: 16px; color: #334155; margin-bottom: 24px; text-align: left;">Dear <strong>${name}</strong>,</p>
+        <p style="font-size: 15px; color: #475569; line-height: 1.6; margin-bottom: 28px; text-align: left;">
+          A login attempt was initiated for your privileged account on the SCA Control Panel. Use the One-Time Password (OTP) below to proceed with authentication:
+        </p>
+
+        <!-- OTP Code Box -->
+        <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; display: inline-block; margin: 0 auto 28px auto; width: 80%;">
+          <span style="font-family: 'Courier New', Courier, monospace; font-size: 36px; font-weight: 800; letter-spacing: 10px; color: #0284c7;">
+            ${otpCode}
+          </span>
+        </div>
+
+        <div style="background-color: #fff7ed; padding: 14px 18px; border-radius: 8px; border-left: 4px solid #f97316; text-align: left; margin-bottom: 24px;">
+          <strong style="color: #c2410c; font-size: 14px;">⏱ Security Notice:</strong>
+          <span style="color: #9a3412; font-size: 14px;"> This code is valid for <strong>${expiresMinutes} minutes</strong> and can only be used once. Do not share this code with anyone.</span>
+        </div>
+
+        <p style="font-size: 13px; color: #94a3b8; text-align: left; margin-top: 20px;">
+          If you did not initiate this request, please contact the SCA System Administrator immediately.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div style="background-color: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #f1f5f9;">
+        <p style="margin: 0 0 4px 0;">This is an automated security verification message from SCA Portal.</p>
+        <p style="margin: 0;">© ${new Date().getFullYear()} School of Computer Applications. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+};
+
+

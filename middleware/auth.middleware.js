@@ -16,11 +16,15 @@ export const protect = async (req, res, next) => {
 
     if (req.headers.authorization?.startsWith('Bearer ')) {
       token = req.headers.authorization.split(' ')[1]
+    } else if (req.headers.cookie) {
+      const match = req.headers.cookie.match(/accessToken=([^;]+)/)
+      if (match) token = match[1]
     }
 
     if (!token) {
       return next(new ApiError(401, 'Authentication required'))
     }
+
 
     let decoded
     try {
@@ -74,8 +78,12 @@ export const optionalAuth = async (req, res, next) => {
     let token
     if (req.headers.authorization?.startsWith('Bearer ')) {
       token = req.headers.authorization.split(' ')[1]
+    } else if (req.headers.cookie) {
+      const match = req.headers.cookie.match(/accessToken=([^;]+)/)
+      if (match) token = match[1]
     }
     if (!token) return next()
+
 
     let decoded
     try {

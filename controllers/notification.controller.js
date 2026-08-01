@@ -2,6 +2,7 @@ import Notification from '../models/Notification.js'
 import User from '../models/User.js'
 import ApiResponse from '../utils/ApiResponse.js'
 import ApiError from '../utils/ApiError.js'
+import { sendMail } from '../utils/mailer.js'
 
 // Fetch all notifications for logged in user
 export const getNotifications = async (req, res, next) => {
@@ -105,11 +106,42 @@ export const sendAdminNotification = async (req, res, next) => {
 
     await Notification.insertMany(notificationsToCreate)
 
+    // Dispatch Gmail SMTP email notifications asynchronously
+    users.forEach((user) => {
+      const email = user.officialEmail || user.personalEmail
+      if (!email) return
+
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+          <div style="background-color: #0f172a; padding: 24px; text-align: center;">
+            <h2 style="color: white; margin: 0; font-size: 20px;">SCA Portal Announcement</h2>
+          </div>
+          <div style="padding: 30px;">
+            <p style="font-size: 16px; color: #333;">Dear <strong>${user.firstName} ${user.lastName}</strong>,</p>
+            <h3 style="color: #2563eb; font-size: 18px; margin-top: 20px;">${title}</h3>
+            <p style="font-size: 15px; color: #555; line-height: 1.6; white-space: pre-wrap;">${message}</p>
+          </div>
+          <div style="background-color: #f8fafc; padding: 15px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #f1f5f9;">
+            <p style="margin: 0;">© ${new Date().getFullYear()} School of Computer Applications, LPU. All rights reserved.</p>
+          </div>
+        </div>
+      `
+
+      sendMail({
+        to: email,
+        subject: `📢 ${title} — SCA Portal`,
+        html,
+      }).catch((err) => {
+        console.error(`❌ Async broadcast email failed for ${email}:`, err.message)
+      })
+    })
+
     res.status(201).json(new ApiResponse(201, {
       successCount: users.length,
       missingIds
-    }, `Notification sent to ${users.length} user(s).`))
+    }, `Notification sent in-app & via email to ${users.length} user(s).`))
   } catch (error) {
     next(error)
   }
 }
+

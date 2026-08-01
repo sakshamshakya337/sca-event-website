@@ -1,38 +1,8 @@
-import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { AlertTriangle, Clock, RefreshCw, Home } from 'lucide-react'
-import useRateLimitStore from '../store/rateLimitStore'
+import { Home, ArrowLeft, ShieldAlert } from 'lucide-react'
 
-export default function Error429() {
-  const { rateLimitMessage, rateLimitRetryAfter, resetRateLimit } = useRateLimitStore()
-  const [countdown, setCountdown] = useState(rateLimitRetryAfter || 60)
+export default function NotFound() {
   const navigate = useNavigate()
-
-  useEffect(() => {
-    if (countdown <= 0) {
-      resetRateLimit()
-      navigate(-1)
-      return
-    }
-
-    const timer = setInterval(() => {
-      setCountdown((prev) => prev - 1)
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [countdown, navigate, resetRateLimit])
-
-  useEffect(() => {
-    return () => {
-      resetRateLimit()
-    }
-  }, [resetRateLimit])
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
 
   const bg = 'bg-[#f1f5f9]'
   const card = 'bg-white'
@@ -48,7 +18,7 @@ export default function Error429() {
         backgroundSize: '24px 24px',
       }}
     >
-      {/* Top Header Strip */}
+      {/* Top Header Strip — Matching Portal.jsx */}
       <div className={`w-full max-w-[1400px] flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 mb-4 sm:mb-6 rounded-xl border ${strip}`}>
         <div className="flex items-center gap-2 sm:gap-3">
           <Link to="/" className="hover:opacity-90 transition-opacity">
@@ -62,48 +32,37 @@ export default function Error429() {
         </div>
       </div>
 
-      {/* Main 429 Card */}
+      {/* Main 404 Card */}
       <main className="w-full max-w-[460px] flex flex-col gap-4 sm:gap-6">
         <section className={`rounded-2xl shadow-lg ${card} p-6 sm:p-10 border border-slate-100 flex flex-col items-center text-center`}>
+          {/* SCA LPU Logo + Badge */}
           <Link to="/" className="hover:opacity-90 transition-opacity mb-4">
             <img src="/sca.png" alt="SCA Logo" className="h-20 sm:h-24 w-auto" />
           </Link>
 
-          <div className="w-14 h-14 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mb-3">
-            <AlertTriangle size={28} />
+          <div className="w-14 h-14 rounded-full bg-blue-50 border border-blue-100 text-[#022448] flex items-center justify-center mb-3">
+            <ShieldAlert size={28} className="text-[#2563EB]" />
           </div>
 
-          <h1 className="text-4xl font-black tracking-tight text-[#022448] font-mono mb-1">
-            429
+          <h1 className="text-5xl font-black tracking-tight text-[#022448] font-mono mb-2">
+            404
           </h1>
 
           <h2 className={`text-xl font-bold ${text} mb-2`}>
-            Too Many Requests
+            Page Not Found
           </h2>
 
-          <p className={`text-xs sm:text-sm ${sub} leading-relaxed mb-6`}>
-            {rateLimitMessage || "You've exceeded the request limit. Please wait a moment before trying again."}
+          <p className={`text-xs sm:text-sm ${sub} leading-relaxed mb-8`}>
+            The page you are looking for doesn't exist or has been moved. Please check the web address and try again.
           </p>
 
-          {/* Countdown Timer Widget */}
-          <div className="w-full bg-slate-50 rounded-xl p-5 mb-6 border border-slate-200 flex flex-col items-center">
-            <div className="flex items-center gap-2 mb-2 text-slate-600">
-              <Clock size={16} className="text-[#2563EB]" />
-              <span className="text-xs font-semibold uppercase tracking-wider">Retry Available In</span>
-            </div>
-            <span className="text-4xl font-extrabold text-[#022448] font-mono tracking-widest">
-              {formatTime(countdown)}
-            </span>
-          </div>
-
-          {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 w-full">
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => navigate(-1)}
               className="flex-1 py-3 px-4 rounded-btn border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98]"
             >
-              <RefreshCw size={16} />
-              Refresh
+              <ArrowLeft size={16} />
+              Go Back
             </button>
 
             <Link
@@ -116,6 +75,7 @@ export default function Error429() {
           </div>
         </section>
 
+        {/* Footer Note */}
         <footer className="text-center px-4">
           <p className="text-xs text-slate-500 leading-relaxed">
             School of Computer Applications &copy; {new Date().getFullYear()} LPU. All rights reserved.
