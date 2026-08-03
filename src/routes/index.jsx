@@ -13,6 +13,10 @@ import Gallery       from '../pages/public/Gallery'
 import GalleryDetail from '../pages/public/GalleryDetail'
 import Error429     from '../components/Error429'
 import NotFound     from '../pages/public/NotFound'
+import TermsOfUse   from '../pages/public/TermsOfUse'
+import PrivacyPolicy from '../pages/public/PrivacyPolicy'
+import DataPolicy    from '../pages/public/DataPolicy'
+import LegalAid      from '../pages/public/LegalAid'
 
 // Auth pages
 import Portal        from '../pages/auth/Portal'
@@ -87,6 +91,12 @@ const router = createBrowserRouter([
   { path: '/about',         element: <About /> },
   { path: '/team',          element: <Team /> },
   { path: '/contact',       element: <Contact /> },
+  { path: '/terms-of-use',  element: <TermsOfUse /> },
+  { path: '/terms',         element: <TermsOfUse /> },
+  { path: '/privacy-policy', element: <PrivacyPolicy /> },
+  { path: '/privacy',        element: <PrivacyPolicy /> },
+  { path: '/data-policy',   element: <DataPolicy /> },
+  { path: '/legal-aid',     element: <LegalAid /> },
   { path: '/429',           element: <Error429 /> },
 
   // Single Universal Privileged Authentication Gateway

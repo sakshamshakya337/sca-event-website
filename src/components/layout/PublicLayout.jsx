@@ -229,11 +229,12 @@ function PublicFooter() {
 
           {/* Legal */}
           <div>
-            <h5 className="font-semibold mb-5 text-[#e8e1dc] text-xs uppercase tracking-widest">Legal</h5>
+            <h5 className="font-semibold mb-5 text-[#e8e1dc] text-xs uppercase tracking-widest">Legal & Policy</h5>
             <ul className="space-y-3 text-[#FFB68B]/75 text-sm">
-              <li><Link className="hover:text-primary transition-colors" to="#">Terms of Use</Link></li>
-              <li><Link className="hover:text-primary transition-colors" to="#">Privacy Policy</Link></li>
-              <li><Link className="hover:text-primary transition-colors" to="#">LPU Guidelines</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/terms-of-use">Terms of Use</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/privacy-policy">Privacy Policy</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/data-policy">Data Policy</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/legal-aid">Legal Aid</Link></li>
             </ul>
           </div>
         </div>
