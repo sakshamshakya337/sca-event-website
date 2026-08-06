@@ -20,6 +20,21 @@ const getJwtSecret = () => {
 const MAX_LOGIN_ATTEMPTS = 5
 const LOCK_DURATION_MS = 15 * 60 * 1000 // 15 minutes
 
+const PRIVILEGED_ROLES = [
+  'admin',
+  'superadmin',
+  'hos',
+  'dean',
+  'hod',
+  'faculty_coordinator',
+  'faculty',
+]
+
+const validatePortalSchema = Joi.object({
+  identifier: Joi.string().trim().min(2).max(254).required(),
+  turnstileToken: Joi.string().optional().allow(''),
+})
+
 // ── Token ─────────────────────────────────────────────────────────────────────
 const generateToken = (userId, role) => {
   return jwt.sign({ id: userId, role }, getJwtSecret(), { expiresIn: '7d' })
@@ -235,6 +250,49 @@ export const login = async (req, res, next) => {
     user.lockUntil = undefined
     await user.save()
 
+    // If user has a privileged role (Admin, Superadmin, Dean, HOS, HOD, Faculty),
+    // require 2FA OTP verification through the control panel security pipeline.
+    if (PRIVILEGED_ROLES.includes(user.role)) {
+      const targetEmail = user.officialEmail || user.personalEmail
+      const maskedEmail = targetEmail ? targetEmail.replace(/(.{2}).+(@.+)/, '$1***$2') : ''
+
+      const Otp = (await import('../models/Otp.js')).default
+      const { otpEmailTemplate } = await import('../utils/emailTemplates.js')
+      const { sendMail } = await import('../utils/mailer.js')
+
+      await Otp.updateMany({ userId: user._id, isUsed: false }, { isUsed: true })
+      const otpCode = crypto.randomInt(100000, 999999).toString()
+      const otpHash = crypto.createHash('sha256').update(otpCode).digest('hex')
+      const expiresAt = new Date(now + 5 * 60 * 1000)
+
+      await Otp.create({
+        userId: user._id,
+        email: targetEmail,
+        otpHash,
+        expiresAt,
+      })
+
+      const html = otpEmailTemplate({
+        name: `${user.firstName} ${user.lastName}`,
+        otpCode,
+        expiresMinutes: 5,
+      })
+
+      sendMail({
+        to: targetEmail,
+        subject: '🔐 SCA Control Panel One-Time Password (OTP)',
+        html,
+      }).catch((err) => console.error('Failed to send OTP email:', err.message))
+
+      return res.status(200).json(new ApiResponse(200, {
+        requiresOtp: true,
+        isPrivileged: true,
+        userRole: user.role,
+        maskedEmail,
+        identifier: targetEmail,
+      }, 'Privileged account detected. OTP verification code sent to your email.'))
+    }
+
     const token = generateToken(user._id, user.role)
     const userResponse = user.toObject()
     delete userResponse.password
@@ -242,6 +300,56 @@ export const login = async (req, res, next) => {
     res.status(200).json(new ApiResponse(200, { user: userResponse, token }, 'Login successful'))
   } catch (error) {
     next(error)
+  }
+}
+
+export const validatePortalUser = async (req, res, next) => {
+  try {
+    const { error, value } = validatePortalSchema.validate(req.body, { stripUnknown: true })
+    if (error) throw new ApiError(400, 'Invalid request parameters.')
+
+    const { identifier, turnstileToken } = value
+
+    if (turnstileToken) {
+      const captcha = await verifyTurnstile(turnstileToken, req.ip)
+      if (!captcha.success) {
+        throw new ApiError(400, 'Security verification failed. Please try again.')
+      }
+    }
+
+    const rawId = identifier.trim()
+    const normalizedEmail = rawId.toLowerCase()
+    const normalizedId = rawId.toUpperCase()
+
+    const user = await User.findOne({
+      $or: [
+        { personalEmail: normalizedEmail },
+        { officialEmail: normalizedEmail },
+        { registrationNumber: normalizedId },
+        { employeeId: normalizedId },
+      ],
+    })
+
+    if (!user || !user.isActive) {
+      return res.status(200).json(new ApiResponse(200, {
+        isPrivileged: false,
+        found: false,
+      }, 'Account validation complete.'))
+    }
+
+    const isPrivileged = PRIVILEGED_ROLES.includes(user.role)
+    const targetEmail = user.officialEmail || user.personalEmail
+    const maskedEmail = targetEmail ? targetEmail.replace(/(.{2}).+(@.+)/, '$1***$2') : ''
+
+    res.status(200).json(new ApiResponse(200, {
+      isPrivileged,
+      found: true,
+      role: user.role,
+      maskedEmail,
+      identifier: targetEmail || rawId,
+    }, 'Account validated successfully.'))
+  } catch (err) {
+    next(err)
   }
 }
 

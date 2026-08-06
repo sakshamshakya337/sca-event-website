@@ -99,8 +99,10 @@ const router = createBrowserRouter([
   { path: '/legal-aid',     element: <LegalAid /> },
   { path: '/429',           element: <Error429 /> },
 
-  // Single Universal Privileged Authentication Gateway
-  { path: '/control-panel',   element: <PublicOnlyRoute><ControlPanel /></PublicOnlyRoute> },
+  // Universal Single Authentication Gateway for all roles
+  { path: '/portal',          element: <PublicOnlyRoute><Portal /></PublicOnlyRoute> },
+  { path: '/login',           element: <PublicOnlyRoute><Portal /></PublicOnlyRoute> },
+  { path: '/control-panel',   element: <PublicOnlyRoute><Portal /></PublicOnlyRoute> },
 
   // Legacy/Hidden Privileged Login Routes (Return 404 stealth response)
   { path: '/admin/login',     element: <NotFound /> },
@@ -110,9 +112,6 @@ const router = createBrowserRouter([
   { path: '/faculty/login',   element: <NotFound /> },
   { path: '/dashboard/login', element: <NotFound /> },
 
-
-  // Standard Auth (Students / Faculty)
-  { path: '/portal',          element: <PublicOnlyRoute><Portal /></PublicOnlyRoute> },
   { path: '/pending',         element: <Pending /> },
   { path: '/forgot-password', element: <PublicOnlyRoute><ForgotPassword /></PublicOnlyRoute> },
 
