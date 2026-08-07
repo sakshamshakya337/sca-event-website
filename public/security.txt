@@ -1,0 +1,7 @@
+Contact: mailto:sca.events@lpu.co.in
+Contact: https://sca-events.lpu.in/contact
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://sca-events.lpu.in/security.txt
+Policy: https://sca-events.lpu.in/legal-aid
+Acknowledgement: https://sca-events.lpu.in/team

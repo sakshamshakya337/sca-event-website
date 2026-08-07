@@ -12,11 +12,18 @@ import PublicEventDetail from '../pages/public/EventDetail'
 import Gallery       from '../pages/public/Gallery'
 import GalleryDetail from '../pages/public/GalleryDetail'
 import Error429     from '../components/Error429'
+import Error403     from '../pages/public/Error403'
+import Error500     from '../pages/public/Error500'
 import NotFound     from '../pages/public/NotFound'
 import TermsOfUse   from '../pages/public/TermsOfUse'
 import PrivacyPolicy from '../pages/public/PrivacyPolicy'
 import DataPolicy    from '../pages/public/DataPolicy'
 import LegalAid      from '../pages/public/LegalAid'
+import FAQ           from '../pages/public/FAQ'
+import CookiePolicy  from '../pages/public/CookiePolicy'
+import Accessibility from '../pages/public/Accessibility'
+import Maintenance   from '../pages/public/Maintenance'
+import SystemStatus  from '../pages/public/SystemStatus'
 
 // Auth pages
 import Portal        from '../pages/auth/Portal'
@@ -97,6 +104,17 @@ const router = createBrowserRouter([
   { path: '/privacy',        element: <PrivacyPolicy /> },
   { path: '/data-policy',   element: <DataPolicy /> },
   { path: '/legal-aid',     element: <LegalAid /> },
+  { path: '/faq',           element: <FAQ /> },
+  { path: '/help',          element: <FAQ /> },
+  { path: '/cookie-policy', element: <CookiePolicy /> },
+  { path: '/cookies',       element: <CookiePolicy /> },
+  { path: '/accessibility', element: <Accessibility /> },
+  { path: '/maintenance',   element: <Maintenance /> },
+  { path: '/status',        element: <SystemStatus /> },
+  { path: '/health',        element: <SystemStatus /> },
+  { path: '/403',           element: <Error403 /> },
+  { path: '/500',           element: <Error500 /> },
+  { path: '/404',           element: <NotFound /> },
   { path: '/429',           element: <Error429 /> },
 
   // Universal Single Authentication Gateway for all roles

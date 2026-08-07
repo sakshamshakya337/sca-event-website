@@ -220,20 +220,24 @@ function PublicFooter() {
           <div>
             <h5 className="font-semibold mb-5 text-[#e8e1dc] text-xs uppercase tracking-widest">Quick Links</h5>
             <ul className="space-y-3 text-[#FFB68B]/75 text-sm">
-              <li><Link className="hover:text-primary transition-colors" to="/about">About</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/about">About Us</Link></li>
               <li><Link className="hover:text-primary transition-colors" to="/events">Events</Link></li>
-              <li><Link className="hover:text-primary transition-colors" to="/contact">Contact</Link></li>
-              <li><Link className="hover:text-primary transition-colors" to="/portal">Faculty Portal</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/gallery">Gallery</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/faq">Help & FAQ</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/contact">Contact Support</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/status">System Status</Link></li>
             </ul>
           </div>
 
           {/* Legal */}
           <div>
-            <h5 className="font-semibold mb-5 text-[#e8e1dc] text-xs uppercase tracking-widest">Legal & Policy</h5>
+            <h5 className="font-semibold mb-5 text-[#e8e1dc] text-xs uppercase tracking-widest">Legal & Standards</h5>
             <ul className="space-y-3 text-[#FFB68B]/75 text-sm">
               <li><Link className="hover:text-primary transition-colors" to="/terms-of-use">Terms of Use</Link></li>
               <li><Link className="hover:text-primary transition-colors" to="/privacy-policy">Privacy Policy</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/cookie-policy">Cookie Policy</Link></li>
               <li><Link className="hover:text-primary transition-colors" to="/data-policy">Data Policy</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/accessibility">Accessibility</Link></li>
               <li><Link className="hover:text-primary transition-colors" to="/legal-aid">Legal Aid</Link></li>
             </ul>
           </div>
