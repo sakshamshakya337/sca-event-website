@@ -77,7 +77,7 @@ export default function MyTasks() {
           <div className="p-16 text-center text-on-surface-variant">
             <p className="text-xl font-semibold text-primary mb-3">No tasks yet</p>
             <p className="max-w-xl mx-auto">
-              Tasks assigned to you will appear here once your admin creates them.
+              Tasks assigned to you will appear here once HOD, HOS, or admin creates them.
             </p>
           </div>
         ) : (

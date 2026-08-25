@@ -13,8 +13,8 @@ router.get('/me/stats', userController.getUserStats)
 router.put('/me/profile', uploadLimiter, userController.upload.single('profilePhoto'), userController.updateProfile)
 
 // ── Named collection routes (MUST be before /:id) ───────────────────────────
-router.get('/students', authorize('faculty', 'admin', 'superadmin'), userController.getStudents)
-router.get('/faculty', authorize('faculty', 'admin', 'superadmin'), userController.getFaculty)
+router.get('/students', authorize('faculty', 'hod', 'hos', 'dean', 'admin', 'superadmin'), userController.getStudents)
+router.get('/faculty', authorize('faculty', 'hod', 'hos', 'dean', 'admin', 'superadmin'), userController.getFaculty)
 
 // ── Admin-only collection routes ─────────────────────────────────────────────
 router.get('/', authorize('admin', 'superadmin'), userController.getAllUsers)

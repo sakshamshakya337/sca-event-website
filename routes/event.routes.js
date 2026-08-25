@@ -77,8 +77,8 @@ router.post(
 // Admin/HOD approval actions
 router.put('/:id/approve',         authorize('hod', 'admin', 'superadmin'), eventController.approveEvent)
 router.put('/:id/reject',          authorize('hod', 'admin', 'superadmin'), eventController.rejectEvent)
-router.put('/:id/assign-faculty',  authorize('admin', 'superadmin'), eventController.assignFaculty)
-router.put('/:id/assign-students', authorize('admin', 'superadmin', 'faculty'), eventController.assignStudents)
+router.put('/:id/assign-faculty',  authorize('admin', 'superadmin', 'dean', 'hos', 'hod'), eventController.assignFaculty)
+router.put('/:id/assign-students', authorize('admin', 'superadmin', 'dean', 'hos', 'hod', 'faculty'), eventController.assignStudents)
 
 // Registration toggle
 router.patch('/:id/registration-toggle', regController.toggleRegistration)

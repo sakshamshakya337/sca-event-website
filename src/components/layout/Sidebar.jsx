@@ -43,11 +43,13 @@ const roleNavItems = {
   dean: [
     { path: '/dean', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/admin/events', label: 'All Events', icon: Calendar },
+    { path: '/dean/tasks', label: 'My Tasks', icon: CheckSquare },
     { path: '/dean/notifications', label: 'Notifications', icon: Bell },
   ],
   hos: [
     { path: '/hos', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/admin/events', label: 'All Events', icon: Calendar },
+    { path: '/hos/tasks', label: 'My Tasks', icon: CheckSquare },
     { path: '/hos/notifications', label: 'Notifications', icon: Bell },
   ],
   hod: [

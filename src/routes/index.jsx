@@ -188,11 +188,13 @@ const router = createBrowserRouter([
   // Dean routes
   { path: '/dean',              element: <ProtectedRoute role="dean"><Suspense><DeanDashboard /></Suspense></ProtectedRoute> },
   { path: '/dean/profile',      element: <ProtectedRoute role="dean"><Suspense><AdminProfile /></Suspense></ProtectedRoute> },
+  { path: '/dean/tasks',        element: <ProtectedRoute role="dean"><Suspense><FacultyMyTasks /></Suspense></ProtectedRoute> },
   { path: '/dean/notifications', element: <ProtectedRoute role="dean"><Suspense><AdminNotifications /></Suspense></ProtectedRoute> },
 
   // HOS routes
   { path: '/hos',               element: <ProtectedRoute role="hos"><Suspense><HOSDashboard /></Suspense></ProtectedRoute> },
   { path: '/hos/profile',       element: <ProtectedRoute role="hos"><Suspense><AdminProfile /></Suspense></ProtectedRoute> },
+  { path: '/hos/tasks',         element: <ProtectedRoute role="hos"><Suspense><FacultyMyTasks /></Suspense></ProtectedRoute> },
   { path: '/hos/notifications', element: <ProtectedRoute role="hos"><Suspense><AdminNotifications /></Suspense></ProtectedRoute> },
 
   // Club administration routes

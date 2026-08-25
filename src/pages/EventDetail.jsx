@@ -35,9 +35,10 @@ export default function EventDetail() {
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [taskTitle, setTaskTitle] = useState('')
   const [taskRole, setTaskRole] = useState(
-    user?.role === 'admin' || user?.role === 'superadmin' ? 'hod' :
+    ['admin', 'superadmin', 'dean', 'hos'].includes(user?.role) ? 'hod' :
     user?.role === 'hod' ? 'faculty' : 'student'
   )
+  const [assigningTask, setAssigningTask] = useState(false)
   const [taskAssignedTo, setTaskAssignedTo] = useState('')
   const [taskPriority, setTaskPriority] = useState('Medium')
   const [taskDueDate, setTaskDueDate] = useState('')
@@ -71,10 +72,13 @@ export default function EventDetail() {
   const [removingFacultyId, setRemovingFacultyId] = useState(null)
 
   const event = selectedEvent || events.find(e => e._id === id)
-  const canManage = user?.role === 'faculty' || user?.role === 'hod' || user?.role === 'admin' || user?.role === 'superadmin'
+  const canManage = ['faculty', 'hod', 'hos', 'dean', 'admin', 'superadmin'].includes(user?.role)
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin'
+  const isDean = user?.role === 'dean'
+  const isHos = user?.role === 'hos'
   const isHod = user?.role === 'hod'
-  const isFaculty = user?.role === 'faculty'
+  const canAssignFaculty = isAdmin || isDean || isHos || isHod
+  const canAssignTasks = canManage
 
   useEffect(() => {
     if (!id) return
@@ -282,13 +286,24 @@ export default function EventDetail() {
   // ── Task handlers ──────────────────────────────────────────────────────────
   const handleAddTask = async (e) => {
     e.preventDefault()
+    if (assigningTask) return
+    if (!taskAssignedTo) {
+      toast.error('Select one person to assign this task to')
+      return
+    }
+    setAssigningTask(true)
     try {
       await createTask({ event: id, title: taskTitle, assignedTo: taskAssignedTo, priority: taskPriority, dueDate: taskDueDate, notes: taskNotes })
       setTaskTitle(''); setTaskAssignedTo(''); setTaskPriority('Medium'); setTaskDueDate(''); setTaskNotes('')
       setShowTaskForm(false)
       toast.success('Task assigned!')
     } catch (err) { toast.error(err.response?.data?.message || 'Failed to assign task') }
+    finally { setAssigningTask(false) }
   }
+
+  const assigneeId = (task) => String(typeof task.assignedTo === 'object' ? task.assignedTo?._id : task.assignedTo)
+  const myEventTasks = tasks.filter(t => assigneeId(t) === String(user?._id))
+  const delegatedTasks = tasks.filter(t => String(typeof t.createdBy === 'object' ? t.createdBy?._id : t.createdBy) === String(user?._id) && assigneeId(t) !== String(user?._id))
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   const inputCls = 'w-full px-4 py-2.5 bg-surface border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:outline-none'
@@ -434,8 +449,8 @@ export default function EventDetail() {
             { key: 'todos', label: 'Todo List' },
             { key: 'tasks', label: 'Assigned Tasks' },
             ...(canManage ? [{ key: 'students', label: 'Assign Students', icon: <Users size={15} />, count: (event.assignedStudents || []).length }] : []),
-            ...(isAdmin ? [{ key: 'faculty', label: 'Assign Faculty', icon: <GraduationCap size={15} />, count: (event.assignedFaculty || []).length }] : []),
-            ...(isAdmin ? [{ key: 'overview', label: 'Overview', icon: <Users size={15} /> }] : []),
+            ...(canAssignFaculty ? [{ key: 'faculty', label: 'Assign Faculty', icon: <GraduationCap size={15} />, count: (event.assignedFaculty || []).length }] : []),
+            ...((isAdmin || isDean || isHos) ? [{ key: 'overview', label: 'Overview', icon: <Users size={15} /> }] : []),
           ].map(tab => (
             <button
               key={tab.key}
@@ -523,25 +538,29 @@ export default function EventDetail() {
               </div>
             )}
 
-            {/* Assigned tasks shown as checklist items */}
-            {tasks.length > 0 && (
+            {/* Only the viewer's own assigned tasks in the todo checklist */}
+            {myEventTasks.length > 0 && (
               <div className={todos.length > 0 ? 'mt-6 pt-6 border-t border-outline-variant space-y-2' : 'space-y-2'}>
                 <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3 flex items-center gap-2">
                   <Users size={13} />
-                  Assigned Tasks ({tasks.filter(t => t.isDone).length}/{tasks.length} done)
+                  My Tasks ({myEventTasks.filter(t => t.isDone).length}/{myEventTasks.length} done)
                 </p>
-                {tasks.map(task => (
+                {myEventTasks.map(task => (
                   <div key={task._id} className={`flex items-center justify-between p-3 rounded-xl border ${task.isDone ? 'bg-green-50 border-green-200' : 'bg-surface-container border-outline-variant'}`}>
                     <div className="flex items-center gap-3">
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${task.isDone ? 'bg-green-500' : 'border-2 border-outline-variant'}`}>
+                      <button
+                        onClick={() => !task.isDone && completeTask(task._id)}
+                        disabled={task.isDone}
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${task.isDone ? 'bg-green-500' : 'border-2 border-outline-variant hover:border-primary'}`}
+                      >
                         {task.isDone && <CheckCircle2 size={12} className="text-white" />}
-                      </div>
+                      </button>
                       <div>
                         <p className={`text-sm font-medium ${task.isDone ? 'line-through text-on-surface-variant' : 'text-on-surface'}`}>
                           {task.title}
                         </p>
                         <p className="text-xs text-on-surface-variant mt-0.5">
-                          Assigned to: {task.assignedTo?.firstName} {task.assignedTo?.lastName}
+                          Assigned to you
                           {task.priority && <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${task.priority === 'High' ? 'bg-red-100 text-red-700' : task.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>{task.priority}</span>}
                         </p>
                       </div>
@@ -554,7 +573,7 @@ export default function EventDetail() {
               </div>
             )}
 
-            {todos.length === 0 && tasks.length === 0 && (
+            {todos.length === 0 && myEventTasks.length === 0 && (
               <p className="text-center py-10 text-on-surface-variant text-sm">No todos yet. Use "+ Add Todo" to create checklist items.</p>
             )}
           </div>
@@ -583,9 +602,10 @@ export default function EventDetail() {
                       Assignee Role
                     </label>
                     <select className={inputCls} value={taskRole} onChange={e => { setTaskRole(e.target.value); setTaskAssignedTo(''); }}>
-                      {isAdmin && <option value="hod">HOD</option>}
-                      {(isAdmin || isHod) && <option value="faculty">Faculty</option>}
-                      {(isAdmin || isHod || isFaculty) && <option value="student">Student</option>}
+                      {(isAdmin || isDean) && <option value="hos">HOS</option>}
+                      {(isAdmin || isDean || isHos) && <option value="hod">HOD</option>}
+                      {(isAdmin || isDean || isHos || isHod) && <option value="faculty">Faculty</option>}
+                      {canAssignTasks && <option value="student">Student</option>}
                     </select>
                   </div>
                   <div>
@@ -606,6 +626,9 @@ export default function EventDetail() {
                     )}
                     <select className={inputCls} value={taskAssignedTo} onChange={e => setTaskAssignedTo(e.target.value)} required>
                       <option value="">Select {taskRole}…</option>
+                      {taskRole === 'hos' && allFaculty.filter(f => f.role === 'hos').map(f => (
+                        <option key={f._id} value={f._id}>{f.firstName} {f.lastName} {f.department ? `— ${f.department}` : ''}</option>
+                      ))}
                       {taskRole === 'hod' && allFaculty.filter(f => f.role === 'hod').map(f => (
                         <option key={f._id} value={f._id}>{f.firstName} {f.lastName} {f.department ? `— ${f.department}` : ''}</option>
                       ))}
@@ -636,43 +659,108 @@ export default function EventDetail() {
                 </div>
                 <div className="flex justify-end gap-3">
                   <button type="button" onClick={() => setShowTaskForm(false)} className={btnCancel}>Cancel</button>
-                  <button type="submit" className={btnPrimary}>Assign Task</button>
+                  <button type="submit" className={btnPrimary} disabled={assigningTask}>{assigningTask ? 'Assigning…' : 'Assign Task'}</button>
                 </div>
               </form>
             )}
-            <div className="space-y-3">
+            <p className="text-xs text-on-surface-variant mb-4">
+              Assign downward only (HOS/HOD → faculty → students). Students can only mark their own tasks complete.
+            </p>
+            <div className="space-y-6">
               {tasks.length === 0 ? (
                 <p className="text-center py-10 text-on-surface-variant text-sm">No tasks assigned yet</p>
-              ) : tasks.map(task => (
-                <div key={task._id} className="flex items-start justify-between p-4 bg-surface-container rounded-xl border border-outline-variant">
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => completeTask(task._id)}
-                      disabled={task.isDone}
-                      className={`p-2 rounded-lg shrink-0 mt-0.5 ${task.isDone ? 'bg-green-100 text-green-700' : 'text-outline-variant hover:bg-surface-container-high'}`}
-                    >
-                      <CheckCircle2 size={18} />
-                    </button>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className={`font-medium text-sm ${task.isDone ? 'line-through text-on-surface-variant' : 'text-on-surface'}`}>{task.title}</p>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          task.priority === 'High' ? 'bg-red-100 text-red-700' :
-                          task.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
-                        }`}>{task.priority}</span>
-                        {task.isDone && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-green-100 text-green-700">Done</span>}
-                      </div>
-                      <div className="flex flex-wrap gap-3 mt-1 text-xs text-on-surface-variant">
-                        <span className="flex items-center gap-1"><User size={12} />By: {task.createdBy?.firstName} {task.createdBy?.lastName}</span>
-                        <span className="flex items-center gap-1"><User size={12} />To: {task.assignedTo?.firstName} {task.assignedTo?.lastName}</span>
-                        {task.dueDate && <span className="flex items-center gap-1"><CalendarDays size={12} />Due: {new Date(task.dueDate).toLocaleDateString()}</span>}
-                      </div>
-                      {task.notes && <p className="mt-1 text-xs text-on-surface-variant italic">{task.notes}</p>}
+              ) : (
+                <>
+                  {myEventTasks.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Assigned to me</p>
+                      {myEventTasks.map(task => (
+                        <div key={task._id} className="flex items-start justify-between p-4 bg-surface-container rounded-xl border border-outline-variant">
+                          <div className="flex gap-3">
+                            <button
+                              onClick={() => !task.isDone && completeTask(task._id)}
+                              disabled={task.isDone}
+                              className={`p-2 rounded-lg shrink-0 mt-0.5 ${task.isDone ? 'bg-green-100 text-green-700' : 'text-outline-variant hover:bg-surface-container-high'}`}
+                            >
+                              <CheckCircle2 size={18} />
+                            </button>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className={`font-medium text-sm ${task.isDone ? 'line-through text-on-surface-variant' : 'text-on-surface'}`}>{task.title}</p>
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                  task.priority === 'High' ? 'bg-red-100 text-red-700' :
+                                  task.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                                }`}>{task.priority}</span>
+                                {task.isDone && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-green-100 text-green-700">Done</span>}
+                              </div>
+                              <div className="flex flex-wrap gap-3 mt-1 text-xs text-on-surface-variant">
+                                <span className="flex items-center gap-1"><User size={12} />By: {task.createdBy?.firstName} {task.createdBy?.lastName}</span>
+                                {task.dueDate && <span className="flex items-center gap-1"><CalendarDays size={12} />Due: {new Date(task.dueDate).toLocaleDateString()}</span>}
+                              </div>
+                              {task.notes && <p className="mt-1 text-xs text-on-surface-variant italic">{task.notes}</p>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                  {canManage && <button onClick={() => deleteTask(task._id)} className="p-2 text-error hover:bg-error/10 rounded-lg shrink-0"><Trash2 size={16} /></button>}
-                </div>
-              ))}
+                  )}
+                  {delegatedTasks.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Tasks I assigned</p>
+                      {delegatedTasks.map(task => (
+                        <div key={task._id} className="flex items-start justify-between p-4 bg-surface-container rounded-xl border border-outline-variant">
+                          <div className="flex gap-3">
+                            <div className={`p-2 rounded-lg shrink-0 mt-0.5 ${task.isDone ? 'bg-green-100 text-green-700' : 'text-outline-variant'}`}>
+                              <CheckCircle2 size={18} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className={`font-medium text-sm ${task.isDone ? 'line-through text-on-surface-variant' : 'text-on-surface'}`}>{task.title}</p>
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                  task.priority === 'High' ? 'bg-red-100 text-red-700' :
+                                  task.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                                }`}>{task.priority}</span>
+                                {task.assignedTo?.role && (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-surface-container-high text-on-surface-variant">{task.assignedTo.role}</span>
+                                )}
+                                {task.isDone && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-green-100 text-green-700">Done</span>}
+                              </div>
+                              <div className="flex flex-wrap gap-3 mt-1 text-xs text-on-surface-variant">
+                                <span className="flex items-center gap-1"><User size={12} />To: {task.assignedTo?.firstName} {task.assignedTo?.lastName}</span>
+                                {task.dueDate && <span className="flex items-center gap-1"><CalendarDays size={12} />Due: {new Date(task.dueDate).toLocaleDateString()}</span>}
+                              </div>
+                              {task.notes && <p className="mt-1 text-xs text-on-surface-variant italic">{task.notes}</p>}
+                            </div>
+                          </div>
+                          {canManage && <button onClick={() => deleteTask(task._id)} className="p-2 text-error hover:bg-error/10 rounded-lg shrink-0"><Trash2 size={16} /></button>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {(isAdmin || isDean || isHos) && tasks.filter(t => !myEventTasks.includes(t) && !delegatedTasks.includes(t)).length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Other event tasks</p>
+                      {tasks.filter(t => !myEventTasks.includes(t) && !delegatedTasks.includes(t)).map(task => (
+                        <div key={task._id} className="flex items-start justify-between p-4 bg-surface-container rounded-xl border border-outline-variant">
+                          <div className="flex gap-3">
+                            <div className={`p-2 rounded-lg shrink-0 mt-0.5 ${task.isDone ? 'bg-green-100 text-green-700' : 'text-outline-variant'}`}>
+                              <CheckCircle2 size={18} />
+                            </div>
+                            <div>
+                              <p className={`font-medium text-sm ${task.isDone ? 'line-through text-on-surface-variant' : 'text-on-surface'}`}>{task.title}</p>
+                              <div className="flex flex-wrap gap-3 mt-1 text-xs text-on-surface-variant">
+                                <span className="flex items-center gap-1"><User size={12} />By: {task.createdBy?.firstName} {task.createdBy?.lastName}</span>
+                                <span className="flex items-center gap-1"><User size={12} />To: {task.assignedTo?.firstName} {task.assignedTo?.lastName}</span>
+                              </div>
+                            </div>
+                          </div>
+                          {canManage && <button onClick={() => deleteTask(task._id)} className="p-2 text-error hover:bg-error/10 rounded-lg shrink-0"><Trash2 size={16} /></button>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         )}
@@ -793,7 +881,7 @@ export default function EventDetail() {
         })()}
 
         {/* ── ASSIGN FACULTY TAB (admin only) ───────────────────────────── */}
-        {activeTab === 'faculty' && isAdmin && (
+        {activeTab === 'faculty' && canAssignFaculty && (
           <div className="space-y-5">
             {/* Add faculty panel */}
             <div className="bg-surface-card border border-outline-variant rounded-xl p-6">
@@ -909,7 +997,7 @@ export default function EventDetail() {
         )}
 
         {/* ── OVERVIEW TAB (admin only) ──────────────────────────────────── */}
-        {activeTab === 'overview' && isAdmin && (
+        {activeTab === 'overview' && (isAdmin || isDean || isHos) && (
           <div className="space-y-5">
 
             {/* Task progress summary */}

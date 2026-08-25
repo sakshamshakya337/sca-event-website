@@ -87,7 +87,7 @@ export const getStudents = async (req, res, next) => {
 export const getFaculty = async (req, res, next) => {
   try {
     const { search } = req.query
-    const filter = { role: { $in: ['faculty', 'hod'] }, isVerified: true, isActive: true }
+    const filter = { role: { $in: ['faculty', 'hod', 'hos', 'dean'] }, isVerified: true, isActive: true }
 
     if (search) {
       const regex = new RegExp(search, 'i')
@@ -100,7 +100,7 @@ export const getFaculty = async (req, res, next) => {
     }
 
     const faculty = await User.find(filter)
-      .select('firstName lastName employeeId officialEmail department designation')
+      .select('firstName lastName employeeId officialEmail department designation role')
       .sort({ firstName: 1, lastName: 1 })
 
     res.status(200).json(new ApiResponse(200, faculty, 'Faculty fetched successfully'))

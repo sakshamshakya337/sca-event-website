@@ -859,7 +859,7 @@ export const completeEvent = async (req, res, next) => {
 // Assign faculty to event — accepts ID or slug
 export const assignFaculty = async (req, res, next) => {
   try {
-    if (!['admin', 'superadmin'].includes(req.user.role)) {
+    if (!['admin', 'superadmin', 'dean', 'hos', 'hod'].includes(req.user.role)) {
       throw new ApiError(403, 'Not authorized to assign faculty')
     }
 
@@ -900,7 +900,7 @@ export const assignFaculty = async (req, res, next) => {
 // Assign students to event — accepts ID or slug
 export const assignStudents = async (req, res, next) => {
   try {
-    if (!['admin', 'superadmin', 'faculty'].includes(req.user.role)) {
+    if (!['admin', 'superadmin', 'dean', 'hos', 'hod', 'faculty'].includes(req.user.role)) {
       throw new ApiError(403, 'Not authorized to assign students')
     }
 
